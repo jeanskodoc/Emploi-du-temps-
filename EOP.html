@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Emploi du Temps - Lycée Niamtougou</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --secondary-color: #2196F3;
+            --danger-color: #f44336;
+            --warning-color: #FF9800;
+            --neutral-color: #607d8b;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        /* Page de connexion */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-logo {
+            margin-bottom: 30px;
+        }
+
+        .login-logo i {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .login-logo h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .login-logo p {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        .app-container {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #2c3e50, #1a252f);
+            color: white;
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-bottom: 5px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--primary-color);
+        }
+
+        .nav-links i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-neutral {
+            background: var(--neutral-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        /* Teacher List */
+        .teacher-list {
+            margin: 15px 0;
+        }
+
+        .teacher-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .teacher-item span {
+            flex: 1;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .table th, .table td {
+            border: 1px solid var(--medium-gray);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        .time-col {
+            width: 120px;
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .cycle-college {
+            background-color: #e6f7ff;
+        }
+
+        .cycle-lycee {
+            background-color: #fff7e6;
+        }
+
+        .break {
+            background-color: #f0f0f0;
+        }
+
+        /* Distribution Tables */
+        .distribution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .distribution-table th,
+        .distribution-table td {
+            border: 1px solid var(--medium-gray);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .distribution-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .hour-cell {
+            background-color: #e8f5e8;
+            font-weight: bold;
+        }
+
+        .total-cell {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.primary {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-icon.secondary {
+            background: rgba(33, 150, 243, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .stat-icon.warning {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Notifications */
+        .notification {
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .notification.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .notification.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .notification.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            min-width: 200px;
+            flex: 1;
+        }
+
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .sidebar, .header, .data-actions, .filters, .btn {
+                display: none !important;
+            }
+            
+            .table {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            .table th {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            .card-header {
+                background: #f0f0f0 !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .nav-links {
+                display: flex;
+                overflow-x: auto;
+            }
+            
+            .nav-links li {
+                flex: 1;
+                min-width: 120px;
+            }
+            
+            .nav-links a {
+                flex-direction: column;
+                padding: 10px;
+                text-align: center;
+                border-left: none;
+                border-bottom: 4px solid transparent;
+            }
+            
+            .nav-links a:hover, .nav-links a.active {
+                border-left-color: transparent;
+                border-bottom-color: var(--primary-color);
+            }
+            
+            .nav-links i {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+            
+            .filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* View Options */
+        .view-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .view-option-btn {
+            background: var(--light-gray);
+            border: 2px solid var(--medium-gray);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-option-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .view-option-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Series Badges */
+        .series-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .series-c { background: #e3f2fd; color: #1976d2; }
+        .series-d { background: #f3e5f5; color: #7b1fa2; }
+        .series-a { background: #e8f5e8; color: #388e3c; }
+        .series-l { background: #fff3e0; color: #f57c00; }
+        .series-cd { background: #e1f5fe; color: #0288d1; }
+    </style>
+</head>
+<body>
+    <!-- Page de connexion -->
+    <div id="login-page" class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>Lycée Niamtougou</h1>
+                <p>Connexion à l'espace administration</p>
+            </div>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> Identifiant</label>
+                    <input type="text" id="username" placeholder="Entrez votre identifiant" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
+                    <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+            </form>
+            <div id="login-error" class="notification error" style="display: none; margin-top: 15px;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Identifiant ou mot de passe incorrect</span>
+            </div>
+            <div class="login-hint" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: var(--border-radius);">
+                <h4><i class="fas fa-info-circle"></i> Informations de connexion</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Identifiant:</strong> KOLA</p>
+                <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Mot de passe:</strong> KOLA1@</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application principale (cachée par défaut) -->
+    <div id="app" class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1><i class="fas fa-graduation-cap"></i> Lycée Niamtougou</h1>
+                <p>Gestion d'emploi du temps</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+                <li><a href="#" onclick="switchTab('distribution')"><i class="fas fa-random"></i> Répartition Auto</a></li>
+                <li><a href="#" onclick="switchTab('manual')"><i class="fas fa-edit"></i> Saisie Manuelle</a></li>
+                <li><a href="#" onclick="switchTab('timetable')"><i class="fas fa-calendar-alt"></i> Visualisation</a></li>
+                <li><a href="#" onclick="switchTab('all-data')"><i class="fas fa-database"></i> Toutes les données</a></li>
+                <li><a href="#" onclick="exportData()"><i class="fas fa-file-export"></i> Exporter</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1 id="page-title"><i class="fas fa-tachometer-alt"></i> Tableau de bord</h1>
+                <div class="user-info">
+                    <div class="user-avatar">AD</div>
+                    <span>Administrateur</span>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <section id="dashboard-tab" class="tab-content active">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-teachers">0</h3>
+                            <p>Enseignants</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon secondary">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-courses">0</h3>
+                            <p>Cours programmés</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-hours">0</h3>
+                            <p>Heures/semaine</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> Dernières activités</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-activities">
+                            <p><i class="fas fa-info-circle"></i> Aucune activité récente</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-rocket"></i> Actions rapides</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-actions">
+                            <button class="btn btn-primary" onclick="switchTab('distribution')">
+                                <i class="fas fa-random"></i> Répartition automatique
+                            </button>
+                            <button class="btn btn-secondary" onclick="switchTab('manual')">
+                                <i class="fas fa-plus"></i> Ajouter un cours
+                            </button>
+                            <button class="btn btn-neutral" onclick="switchTab('timetable')">
+                                <i class="fas fa-calendar-alt"></i> Voir l'emploi du temps
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Distribution Tab -->
+            <section id="distribution-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-random"></i> Répartition Automatique des Horaires</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="distributionForm">
+                            <div class="form-group">
+                                <label for="distributionCycle"><i class="fas fa-layer-group"></i> Cycle:</label>
+                                <select id="distributionCycle" required onchange="updateClassOptions()">
+                                    <option value="">Sélectionner un cycle</option>
+                                    <option value="Collège">Collège</option>
+                                    <option value="Lycée">Lycée</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="distributionClass"><i class="fas fa-users"></i> Classe:</label>
+                                <select id="distributionClass" required>
+                                    <option value="">Sélectionner une classe</option>
+                                    <!-- Les options seront mises à jour dynamiquement -->
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-chalkboard-teacher"></i> Enseignants et Matières:</label>
+                                <div id="teachersContainer">
+                                    <div class="teacher-item">
+                                        <input type="text" class="teacher-name" placeholder="Nom et prénom de l'enseignant" required>
+                                        <input type="text" class="teacher-subject" placeholder="Matière" required>
+                                        <input type="number" class="teacher-hours" placeholder="Heures/semaine" min="1" max="20" required>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeTeacher(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="addTeacher()">
+                                    <i class="fas fa-plus"></i> Ajouter un enseignant
+                                </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="totalHours"><i class="fas fa-clock"></i> Heures totales disponibles par semaine:</label>
+                                <input type="number" id="totalHours" value="30" min="20" max="40" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-cogs"></i> Générer la répartition
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="distributionResults" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h2><i class="fas fa-table"></i> Répartition Générée</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="distributionTableContainer"></div>
+                        <button class="btn btn-secondary" onclick="saveDistribution()">
+                            <i class="fas fa-save"></i> Enregistrer dans l'emploi du temps
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Manual Tab -->
+            <section id="manual-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-edit"></i> Saisie Manuelle des Cours</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="courseForm">
+                            <div class="form-group">
+                                <label for="teacherName"><i class="fas fa-user-tie"></i> Nom de l'enseignant:</label>
+                                <input type="text" id="teacherName" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="manualCycle"><i class="fas fa-layer-group"></i> Cycle:</label>
+                                <select id="manualCycle" required onchange="updateManualClassOptions()">
+                                    <option value="">Sélectionner un cycle</option>
+                                    <option value="Collège">Collège</option>
+                                    <option value="Lycée">Lycée</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="manualClass"><i class="fas fa-users"></i> Classe:</label>
+                                <select id="manualClass" required>
+                                    <option value="">Sélectionner une classe</option>
+                                    <!-- Les options seront mises à jour dynamiquement -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="manualSubject"><i class="fas fa-book"></i> Matière:</label>
+                                <input type="text" id="manualSubject" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-day"></i> Jours:</label>
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                    <label><input type="checkbox" name="day" value="Lundi"> <i class="fas fa-calendar"></i> Lundi</label>
+                                    <label><input type="checkbox" name="day" value="Mardi"> <i class="fas fa-calendar"></i> Mardi</label>
+                                    <label><input type="checkbox" name="day" value="Mercredi"> <i class="fas fa-calendar"></i> Mercredi</label>
+                                    <label><input type="checkbox" name="day" value="Jeudi"> <i class="fas fa-calendar"></i> Jeudi</label>
+                                    <label><input type="checkbox" name="day" value="Vendredi"> <i class="fas fa-calendar"></i> Vendredi</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="manualTimeSlot"><i class="fas fa-clock"></i> Créneau horaire:</label>
+                                <select id="manualTimeSlot" required>
+                                    <option value="">Sélectionner un créneau</option>
+                                    <option value="07:00 - 07:55">07:00 - 07:55</option>
+                                    <option value="07:55 - 08:50">07:55 - 08:50</option>
+                                    <option value="08:50 - 09:45">08:50 - 09:45</option>
+                                    <option value="10:10 - 11:05">10:10 - 11:05</option>
+                                    <option value="11:05 - 12:00">11:05 - 12:00</option>
+                                    <option value="14:30 - 15:30">14:30 - 15:30</option>
+                                    <option value="15:30 - 16:30">15:30 - 16:30</option>
+                                    <option value="16:30 - 17:30">16:30 - 17:30</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer le cours
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timetable Tab -->
+            <section id="timetable-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-calendar-alt"></i> Visualisation de l'emploi du temps</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-actions no-print">
+                            <button class="btn btn-secondary export-btn" onclick="exportData()">
+                                <i class="fas fa-file-export"></i> Exporter les données
+                            </button>
+                            <button class="btn btn-warning import-btn" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-file-import"></i> Importer des données
+                            </button>
+                            <input type="file" id="fileInput" accept=".json" onchange="importData(this)" class="sr-only">
+                            <button class="btn btn-danger delete-btn" onclick="clearAllData()">
+                                <i class="fas fa-trash"></i> Supprimer toutes les données
+                            </button>
+                            <button class="btn btn-neutral" onclick="printTimetable()">
+                                <i class="fas fa-print"></i> Imprimer l'emploi du temps
+                            </button>
+                        </div>
+
+                        <div class="view-options no-print">
+                            <button class="view-option-btn active" onclick="changeView('general')">
+                                <i class="fas fa-globe"></i> Vue Générale
+                            </button>
+                            <button class="view-option-btn" onclick="changeView('teacher')">
+                                <i class="fas fa-user-tie"></i> Par Enseignant
+                            </button>
+                            <button class="view-option-btn" onclick="changeView('class')">
+                                <i class="fas fa-users"></i> Par Classe
+                            </button>
+                            <button class="view-option-btn" onclick="changeView('teacherAll')">
+                                <i class="fas fa-chalkboard-teacher"></i> Enseignant (Toutes classes)
+                            </button>
+                        </div>
+                        
+                        <div class="filters no-print" id="generalFilters">
+                            <div class="filter-group">
+                                <label for="selectTeacher"><i class="fas fa-user-tie"></i> Enseignant:</label>
+                                <select id="selectTeacher" onchange="generateTimetable()">
+                                    <option value="">-- Tous --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectCycle"><i class="fas fa-layer-group"></i> Cycle:</label>
+                                <select id="selectCycle" onchange="generateTimetable()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Collège">Collège</option>
+                                    <option value="Lycée">Lycée</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectClass"><i class="fas fa-users"></i> Classe:</label>
+                                <select id="selectClass" onchange="generateTimetable()">
+                                    <option value="">-- Toutes --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filters no-print" id="teacherFilters" style="display: none;">
+                            <div class="filter-group">
+                                <label for="selectTeacherSpecific"><i class="fas fa-user-tie"></i> Enseignant:</label>
+                                <select id="selectTeacherSpecific" onchange="generateTeacherTimetable()">
+                                    <option value="">-- Sélectionner un enseignant --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filters no-print" id="classFilters" style="display: none;">
+                            <div class="filter-group">
+                                <label for="selectClassSpecific"><i class="fas fa-users"></i> Classe:</label>
+                                <select id="selectClassSpecific" onchange="generateClassTimetable()">
+                                    <option value="">-- Sélectionner une classe --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="filters no-print" id="teacherAllFilters" style="display: none;">
+                            <div class="filter-group">
+                                <label for="selectTeacherAll"><i class="fas fa-user-tie"></i> Enseignant:</label>
+                                <select id="selectTeacherAll" onchange="generateTeacherAllClassesTimetable()">
+                                    <option value="">-- Sélectionner un enseignant --</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="timetableContainer" class="print-section">
+                            <div class="print-header" style="text-align: center; margin-bottom: 20px; display: none;">
+                                <h2>EMPLOI DU TEMPS - LYCÉE NIAMTOUGOU</h2>
+                                <p id="printSubtitle">Année Scolaire 2023-2024</p>
+                                <p id="printDate">Généré le: <span id="currentDate"></span></p>
+                            </div>
+                            <table class="table" id="timetable">
+                                <thead>
+                                    <tr>
+                                        <th class="time-col"><i class="fas fa-clock"></i> Horaire</th>
+                                        <th><i class="fas fa-calendar-day"></i> Lundi</th>
+                                        <th><i class="fas fa-calendar-day"></i> Mardi</th>
+                                        <th><i class="fas fa-calendar-day"></i> Mercredi</th>
+                                        <th><i class="fas fa-calendar-day"></i> Jeudi</th>
+                                        <th><i class="fas fa-calendar-day"></i> Vendredi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timetableBody">
+                                    <!-- Les créneaux horaires seront générés ici par JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Data Tab -->
+            <section id="all-data-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-database"></i> Toutes les données enregistrées</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-actions">
+                            <button class="btn btn-secondary export-btn" onclick="exportData()">
+                                <i class="fas fa-file-export"></i> Exporter les données
+                            </button>
+                            <button class="btn btn-warning import-btn" onclick="document.getElementById('fileInput2').click()">
+                                <i class="fas fa-file-import"></i> Importer des données
+                            </button>
+                            <input type="file" id="fileInput2" accept=".json" onchange="importData(this)" class="sr-only">
+                            <button class="btn btn-danger delete-btn" onclick="clearAllData()">
+                                <i class="fas fa-trash"></i> Supprimer toutes les données
+                            </button>
+                        </div>
+                        
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label for="filterTeacher"><i class="fas fa-user-tie"></i> Filtrer par enseignant:</label>
+                                <select id="filterTeacher" onchange="displayAllData()">
+                                    <option value="">-- Tous --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filterCycle"><i class="fas fa-layer-group"></i> Filtrer par cycle:</label>
+                                <select id="filterCycle" onchange="displayAllData()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Collège">Collège</option>
+                                    <option value="Lycée">Lycée</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-user-tie"></i> Enseignant</th>
+                                        <th><i class="fas fa-users"></i> Classe</th>
+                                        <th><i class="fas fa-layer-group"></i> Cycle</th>
+                                        <th><i class="fas fa-book"></i> Matière</th>
+                                        <th><i class="fas fa-calendar-day"></i> Jour</th>
+                                        <th><i class="fas fa-clock"></i> Créneau</th>
+                                        <th><i class="fas fa-cog"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allDataBody">
+                                    <!-- Toutes les données seront affichées ici -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Configuration des identifiants
+        const VALID_CREDENTIALS = {
+            username: 'KOLA',
+            password: 'KOLA1@'
+        };
+
+        // Données des classes par cycle
+        const CLASSES_BY_CYCLE = {
+            'Collège': [
+                '6ème', '5ème', '4ème', '3ème'
+            ],
+            'Lycée': [
+                '2nd C', '2nd D', '2nd L', 
+                '1ère C', '1ère D', '1ère A', 
+                'Tle C', 'Tle D', 'Tle A'
+            ]
+        };
+
+        // Variables globales
+        let currentView = 'general';
+
+        // Gestion de l'authentification
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
+                // Connexion réussie
+                localStorage.setItem('isAuthenticated', 'true');
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                showNotification('Connexion réussie!', 'success');
+            } else {
+                // Échec de connexion
+                errorDiv.style.display = 'flex';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function checkAuthentication() {
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+            if (isAuthenticated) {
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+            } else {
+                document.getElementById('login-page').style.display = 'flex';
+                document.getElementById('app').style.display = 'none';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('isAuthenticated');
+            checkAuthentication();
+            showNotification('Déconnexion réussie', 'success');
+        }
+
+        // Fonctions pour mettre à jour les options de classe
+        function updateClassOptions() {
+            const cycle = document.getElementById('distributionCycle').value;
+            const classSelect = document.getElementById('distributionClass');
+            
+            classSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
+            
+            if (cycle && CLASSES_BY_CYCLE[cycle]) {
+                CLASSES_BY_CYCLE[cycle].forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classSelect.appendChild(option);
+                });
+            }
+        }
+
+        function updateManualClassOptions() {
+            const cycle = document.getElementById('manualCycle').value;
+            const classSelect = document.getElementById('manualClass');
+            
+            classSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
+            
+            if (cycle && CLASSES_BY_CYCLE[cycle]) {
+                CLASSES_BY_CYCLE[cycle].forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Fonction pour obtenir les informations de série
+        function getSeriesFromClassName(className) {
+            const seriesMap = {
+                'C': { code: 'c', name: 'Scientifique', badge: '<span class="series-badge series-c">C</span>' },
+                'D': { code: 'd', name: 'Sciences Économiques', badge: '<span class="series-badge series-d">D</span>' },
+                'A': { code: 'a', name: 'Littéraire', badge: '<span class="series-badge series-a">A</span>' },
+                'L': { code: 'l', name: 'Lettres', badge: '<span class="series-badge series-l">L</span>' }
+            };
+
+            // Extraire la série du nom de classe
+            if (className.includes('2nd')) {
+                if (className.includes('C')) {
+                    return seriesMap['C'];
+                } else if (className.includes('D')) {
+                    return seriesMap['D'];
+                } else if (className.includes('L')) {
+                    return seriesMap['L'];
+                }
+            } else if (className.includes('1ère') || className.includes('Tle')) {
+                if (className.includes('C')) {
+                    return seriesMap['C'];
+                } else if (className.includes('D')) {
+                    return seriesMap['D'];
+                } else if (className.includes('A')) {
+                    return seriesMap['A'];
+                }
+            }
+            
+            return { code: '', name: '', badge: '' };
+        }
+
+        // Données des créneaux horaires (sans la pause)
+        const timeSlots = [
+            "07:00 - 07:55",
+            "07:55 - 08:50", 
+            "08:50 - 09:45",
+            "10:10 - 11:05",
+            "11:05 - 12:00",
+            "14:30 - 15:30",
+            "15:30 - 16:30",
+            "16:30 - 17:30"
+        ];
+
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+
+        // Stockage des données de répartition
+        let currentDistribution = null;
+
+        // Fonctions pour changer la vue
+        function changeView(viewType) {
+            currentView = viewType;
+            
+            // Mettre à jour les boutons de vue
+            document.querySelectorAll('.view-option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Afficher/masquer les filtres appropriés
+            document.getElementById('generalFilters').style.display = 'none';
+            document.getElementById('teacherFilters').style.display = 'none';
+            document.getElementById('classFilters').style.display = 'none';
+            document.getElementById('teacherAllFilters').style.display = 'none';
+            
+            switch(viewType) {
+                case 'general':
+                    document.getElementById('generalFilters').style.display = 'flex';
+                    generateTimetable();
+                    break;
+                case 'teacher':
+                    document.getElementById('teacherFilters').style.display = 'flex';
+                    updateTeacherFilters();
+                    break;
+                case 'class':
+                    document.getElementById('classFilters').style.display = 'flex';
+                    updateClassFilters();
+                    break;
+                case 'teacherAll':
+                    document.getElementById('teacherAllFilters').style.display = 'flex';
+                    updateTeacherAllFilters();
+                    break;
+            }
+        }
+
+        // Fonction d'impression améliorée
+        function printTimetable() {
+            const printHeader = document.querySelector('.print-header');
+            const printSubtitle = document.getElementById('printSubtitle');
+            const currentDate = document.getElementById('currentDate');
+            
+            // Mettre à jour les informations d'impression
+            printHeader.style.display = 'block';
+            currentDate.textContent = new Date().toLocaleDateString('fr-FR');
+            
+            // Définir le sous-titre selon la vue
+            switch(currentView) {
+                case 'general':
+                    const teacher = document.getElementById('selectTeacher').value;
+                    const cycle = document.getElementById('selectCycle').value;
+                    const classe = document.getElementById('selectClass').value;
+                    
+                    let subtitle = 'Vue Générale';
+                    if (teacher) subtitle += ` - Enseignant: ${teacher}`;
+                    if (cycle) subtitle += ` - Cycle: ${cycle}`;
+                    if (classe) subtitle += ` - Classe: ${classe}`;
+                    printSubtitle.textContent = subtitle;
+                    break;
+                    
+                case 'teacher':
+                    const teacherSpecific = document.getElementById('selectTeacherSpecific').value;
+                    printSubtitle.textContent = `Emploi du temps de ${teacherSpecific}`;
+                    break;
+                    
+                case 'class':
+                    const classSpecific = document.getElementById('selectClassSpecific').value;
+                    const seriesInfo = getSeriesFromClassName(classSpecific);
+                    let classTitle = `Emploi du temps de la ${classSpecific}`;
+                    if (seriesInfo.name) {
+                        classTitle += ` (Série ${seriesInfo.name})`;
+                    }
+                    printSubtitle.textContent = classTitle;
+                    break;
+                    
+                case 'teacherAll':
+                    const teacherAll = document.getElementById('selectTeacherAll').value;
+                    printSubtitle.textContent = `Emploi du temps de ${teacherAll} (Toutes classes)`;
+                    break;
+            }
+            
+            // Lancer l'impression
+            window.print();
+            
+            // Masquer le header après impression
+            setTimeout(() => {
+                printHeader.style.display = 'none';
+            }, 500);
+        }
+
+        // Fonctions pour la gestion des enseignants
+        function addTeacher() {
+            const container = document.getElementById('teachersContainer');
+            const teacherCount = container.children.length + 1;
+            
+            const teacherDiv = document.createElement('div');
+            teacherDiv.className = 'teacher-item';
+            teacherDiv.innerHTML = `
+                <input type="text" class="teacher-name" placeholder="Nom et prénom de l'enseignant" required>
+                <input type="text" class="teacher-subject" placeholder="Matière" required>
+                <input type="number" class="teacher-hours" placeholder="Heures/semaine" min="1" max="20" required>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeTeacher(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(teacherDiv);
+        }
+
+        function removeTeacher(button) {
+            const container = document.getElementById('teachersContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        // Fonction pour générer la répartition aléatoire
+        function generateDistribution() {
+            const cycle = document.getElementById('distributionCycle').value;
+            const className = document.getElementById('distributionClass').value;
+            const totalHours = parseInt(document.getElementById('totalHours').value);
+            
+            // Récupérer les données des enseignants
+            const teachers = [];
+            const teacherItems = document.querySelectorAll('.teacher-item');
+            
+            teacherItems.forEach(item => {
+                const name = item.querySelector('.teacher-name').value;
+                const subject = item.querySelector('.teacher-subject').value;
+                const hours = parseInt(item.querySelector('.teacher-hours').value);
+                
+                if (name && subject && hours) {
+                    teachers.push({ name, subject, hours });
+                }
+            });
+            
+            if (teachers.length === 0) {
+                showNotification('Veuillez ajouter au moins un enseignant', 'error');
+                return;
+            }
+            
+            // Vérifier que le total des heures demandées ne dépasse pas les heures disponibles
+            const totalRequestedHours = teachers.reduce((sum, teacher) => sum + teacher.hours, 0);
+            if (totalRequestedHours > totalHours) {
+                showNotification(`Le total des heures demandées (${totalRequestedHours}) dépasse les heures disponibles (${totalHours})`, 'error');
+                return;
+            }
+            
+            // Générer la répartition
+            const distribution = generateRandomDistribution(teachers, totalHours, cycle, className);
+            currentDistribution = distribution;
+            
+            // Afficher les résultats
+            displayDistributionResults(distribution);
+            
+            showNotification('Répartition générée avec succès!', 'success');
+        }
+
+        function generateRandomDistribution(teachers, totalHours, cycle, className) {
+            const distribution = {
+                cycle,
+                className,
+                totalHours,
+                teachers: [],
+                timetable: initializeTimetable()
+            };
+            
+            // Créer une copie des enseignants avec les heures restantes à placer
+            const teachersToPlace = teachers.map(teacher => ({
+                ...teacher,
+                remainingHours: teacher.hours
+            }));
+            
+            // Placer les heures de manière aléatoire
+            while (teachersToPlace.some(teacher => teacher.remainingHours > 0)) {
+                // Choisir un enseignant au hasard qui a encore des heures à placer
+                const availableTeachers = teachersToPlace.filter(t => t.remainingHours > 0);
+                if (availableTeachers.length === 0) break;
+                
+                const randomTeacherIndex = Math.floor(Math.random() * availableTeachers.length);
+                const teacher = availableTeachers[randomTeacherIndex];
+                
+                // Trouver un créneau disponible
+                const availableSlot = findAvailableSlot(distribution.timetable, teacher.name);
+                
+                if (availableSlot) {
+                    // Placer le cours
+                    distribution.timetable[availableSlot.day][availableSlot.timeSlot] = {
+                        teacher: teacher.name,
+                        subject: teacher.subject
+                    };
+                    
+                    teacher.remainingHours--;
+                    distribution.teachers.push({
+                        teacher: teacher.name,
+                        subject: teacher.subject,
+                        day: availableSlot.day,
+                        timeSlot: availableSlot.timeSlot
+                    });
+                } else {
+                    // Si aucun créneau disponible, on arrête
+                    break;
+                }
+            }
+            
+            return distribution;
+        }
+
+        function initializeTimetable() {
+            const timetable = {};
+            days.forEach(day => {
+                timetable[day] = {};
+                timeSlots.forEach(slot => {
+                    timetable[day][slot] = null;
+                });
+            });
+            return timetable;
+        }
+
+        function findAvailableSlot(timetable, teacherName) {
+            // Créer une liste de tous les créneaux possibles
+            const allSlots = [];
+            days.forEach(day => {
+                timeSlots.forEach(slot => {
+                    allSlots.push({ day, timeSlot: slot });
+                });
+            });
+            
+            // Mélanger les créneaux
+            shuffleArray(allSlots);
+            
+            // Trouver le premier créneau disponible où l'enseignant n'a pas déjà cours
+            for (const slot of allSlots) {
+                if (!timetable[slot.day][slot.timeSlot] && 
+                    !isTeacherAlreadyScheduled(timetable, teacherName, slot.day, slot.timeSlot)) {
+                    return slot;
+                }
+            }
+            
+            return null;
+        }
+
+        function isTeacherAlreadyScheduled(timetable, teacherName, day, timeSlot) {
+            // Vérifier si l'enseignant a déjà cours ce jour-là
+            for (const slot of timeSlots) {
+                if (timetable[day][slot] && timetable[day][slot].teacher === teacherName) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function displayDistributionResults(distribution) {
+            const container = document.getElementById('distributionTableContainer');
+            const resultsDiv = document.getElementById('distributionResults');
+            
+            const seriesInfo = getSeriesFromClassName(distribution.className);
+            let classTitle = distribution.className;
+            if (seriesInfo.name) {
+                classTitle += ` (Série ${seriesInfo.name})`;
+            }
+            
+            let html = `
+                <h4><i class="fas fa-info-circle"></i> Répartition pour la ${classTitle} (${distribution.cycle})</h4>
+                <div class="table-responsive">
+                    <table class="distribution-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-clock"></i> Horaire</th>
+                                ${days.map(day => `<th><i class="fas fa-calendar-day"></i> ${day}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            timeSlots.forEach(slot => {
+                html += `<tr><td class="time-col">${slot}</td>`;
+                days.forEach(day => {
+                    const course = distribution.timetable[day][slot];
+                    html += `<td class="${course ? 'hour-cell' : ''}">`;
+                    if (course) {
+                        html += `<strong>${course.teacher}</strong><br><small><i class="fas fa-book"></i> ${course.subject}</small>`;
+                    } else {
+                        html += '<i class="fas fa-times" style="color: #ccc;"></i>';
+                    }
+                    html += '</td>';
+                });
+                html += '</tr>';
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="summary">
+                    <h4><i class="fas fa-chart-bar"></i> Récapitulatif par enseignant:</h4>
+                    <div class="table-responsive">
+                        <table class="distribution-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-user-tie"></i> Enseignant</th>
+                                    <th><i class="fas fa-book"></i> Matière</th>
+                                    <th><i class="fas fa-clock"></i> Heures programmées</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            // Compter les heures par enseignant
+            const teacherSummary = {};
+            distribution.teachers.forEach(course => {
+                const key = `${course.teacher}-${course.subject}`;
+                if (!teacherSummary[key]) {
+                    teacherSummary[key] = {
+                        teacher: course.teacher,
+                        subject: course.subject,
+                        hours: 0
+                    };
+                }
+                teacherSummary[key].hours++;
+            });
+            
+            Object.values(teacherSummary).forEach(summary => {
+                html += `
+                    <tr>
+                        <td>${summary.teacher}</td>
+                        <td>${summary.subject}</td>
+                        <td>${summary.hours}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function saveDistribution() {
+            if (!currentDistribution) {
+                showNotification('Aucune répartition à enregistrer', 'error');
+                return;
+            }
+            
+            // Sauvegarder chaque cours dans le localStorage
+            const courses = getCourses();
+            let savedCount = 0;
+            
+            currentDistribution.teachers.forEach(courseData => {
+                const course = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    teacherName: courseData.teacher,
+                    className: currentDistribution.className,
+                    cycle: currentDistribution.cycle,
+                    subject: courseData.subject,
+                    day: courseData.day,
+                    timeSlot: courseData.timeSlot
+                };
+                
+                courses.push(course);
+                savedCount++;
+            });
+            
+            localStorage.setItem('courses', JSON.stringify(courses));
+            
+            showNotification(`${savedCount} cours enregistrés avec succès!`, 'success');
+            updateFilters();
+            updateDashboard();
+            
+            // Passer à l'onglet de visualisation
+            switchTab('timetable');
+        }
+
+        // Fonctions utilitaires
+        function showNotification(message, type = 'success') {
+            // Supprimer les notifications existantes
+            document.querySelectorAll('.notification').forEach(notif => notif.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icon = type === 'success' ? 'check-circle' : 
+                         type === 'error' ? 'exclamation-circle' : 'exclamation-triangle';
+            
+            notification.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" aria-label="Fermer la notification">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            document.querySelector('.main-content').insertBefore(notification, document.querySelector('.main-content').firstChild);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function switchTab(tabName) {
+            // Mettre à jour la navigation
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Activer le nouvel onglet
+            const activeNav = document.querySelector(`.nav-links a[onclick="switchTab('${tabName}')"]`);
+            const activeContent = document.getElementById(`${tabName}-tab`);
+            
+            if (activeNav && activeContent) {
+                activeNav.classList.add('active');
+                activeContent.classList.add('active');
+                
+                // Mettre à jour le titre de la page
+                const pageTitle = document.getElementById('page-title');
+                const icon = activeNav.querySelector('i').className;
+                const text = activeNav.textContent.trim();
+                pageTitle.innerHTML = `${icon} ${text}`;
+            }
+            
+            // Actions spécifiques à chaque onglet
+            if (tabName === 'timetable') {
+                updateFilters();
+                generateTimetable();
+            } else if (tabName === 'all-data') {
+                updateFilters();
+                displayAllData();
+            } else if (tabName === 'dashboard') {
+                updateDashboard();
+            }
+        }
+
+        // Fonctions existantes pour la gestion des cours
+        function getCourses() {
+            return JSON.parse(localStorage.getItem('courses')) || [];
+        }
+
+        function updateFilters() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            const classes = [...new Set(courses.map(c => c.className))];
+            
+            updateSelectOptions('selectTeacher', teachers);
+            updateSelectOptions('filterTeacher', teachers);
+            updateSelectOptions('selectClass', classes);
+        }
+
+        function updateTeacherFilters() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            updateSelectOptions('selectTeacherSpecific', teachers);
+        }
+
+        function updateClassFilters() {
+            const courses = getCourses();
+            const classes = [...new Set(courses.map(c => c.className))];
+            updateSelectOptions('selectClassSpecific', classes);
+        }
+
+        function updateTeacherAllFilters() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            updateSelectOptions('selectTeacherAll', teachers);
+        }
+
+        function updateSelectOptions(selectId, options) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- Tous --</option>';
+            
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+            
+            if (options.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        // Fonctions de génération des emplois du temps
+        function generateTimetable() {
+            const courses = getCourses();
+            const selectedTeacher = document.getElementById('selectTeacher').value;
+            const selectedCycle = document.getElementById('selectCycle').value;
+            const selectedClass = document.getElementById('selectClass').value;
+            
+            const timetableBody = document.getElementById('timetableBody');
+            timetableBody.innerHTML = '';
+            
+            let filteredCourses = courses;
+            if (selectedTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === selectedTeacher);
+            if (selectedCycle) filteredCourses = filteredCourses.filter(c => c.cycle === selectedCycle);
+            if (selectedClass) filteredCourses = filteredCourses.filter(c => c.className === selectedClass);
+            
+            generateTimetableHTML(filteredCourses);
+        }
+
+        function generateTeacherTimetable() {
+            const teacher = document.getElementById('selectTeacherSpecific').value;
+            if (!teacher) return;
+            
+            const courses = getCourses();
+            const filteredCourses = courses.filter(c => c.teacherName === teacher);
+            
+            generateTimetableHTML(filteredCourses);
+        }
+
+        function generateClassTimetable() {
+            const classe = document.getElementById('selectClassSpecific').value;
+            if (!classe) return;
+            
+            const courses = getCourses();
+            const filteredCourses = courses.filter(c => c.className === classe);
+            
+            generateTimetableHTML(filteredCourses);
+        }
+
+        function generateTeacherAllClassesTimetable() {
+            const teacher = document.getElementById('selectTeacherAll').value;
+            if (!teacher) return;
+            
+            const courses = getCourses();
+            const filteredCourses = courses.filter(c => c.teacherName === teacher);
+            
+            generateTimetableHTML(filteredCourses);
+        }
+
+        function generateTimetableHTML(courses) {
+            const timetableBody = document.getElementById('timetableBody');
+            timetableBody.innerHTML = '';
+            
+            timeSlots.forEach(slot => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="time-col">${slot}</td>`;
+                
+                days.forEach(day => {
+                    const cell = document.createElement('td');
+                    const dayCourses = courses.filter(c => c.day === day && c.timeSlot === slot);
+                    
+                    if (dayCourses.length > 0) {
+                        let content = '';
+                        dayCourses.forEach(course => {
+                            const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
+                            const seriesInfo = getSeriesFromClassName(course.className);
+                            let classDisplay = course.className;
+                            if (seriesInfo.badge) {
+                                classDisplay = `${course.className} ${seriesInfo.badge}`;
+                            }
+                            
+                            content += `<div class="${cycleClass}">
+                                <strong>${course.className}</strong><br>
+                                <small><i class="fas fa-book"></i> ${course.subject}</small><br>
+                                <small><i class="fas fa-user-tie"></i> ${course.teacherName}</small>
+                            </div>`;
+                        });
+                        cell.innerHTML = content;
+                    } else {
+                        cell.innerHTML = '<i class="fas fa-times" style="color: #ccc;"></i>';
+                    }
+                    
+                    row.appendChild(cell);
+                });
+                
+                timetableBody.appendChild(row);
+            });
+        }
+
+        function displayAllData() {
+            const courses = getCourses();
+            const filterTeacher = document.getElementById('filterTeacher').value;
+            const filterCycle = document.getElementById('filterCycle').value;
+            
+            const allDataBody = document.getElementById('allDataBody');
+            allDataBody.innerHTML = '';
+            
+            let filteredCourses = courses;
+            if (filterTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === filterTeacher);
+            if (filterCycle) filteredCourses = filteredCourses.filter(c => c.cycle === filterCycle);
+            
+            if (filteredCourses.length === 0) {
+                allDataBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-info-circle" style="font-size: 24px; color: #6c757d; margin-bottom: 10px; display: block;"></i>
+                            Aucun cours trouvé avec les filtres sélectionnés
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredCourses.forEach(course => {
+                const row = document.createElement('tr');
+                const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
+                row.className = cycleClass;
+                
+                row.innerHTML = `
+                    <td><i class="fas fa-user-tie"></i> ${course.teacherName}</td>
+                    <td><i class="fas fa-users"></i> ${course.className}</td>
+                    <td><i class="fas fa-layer-group"></i> ${course.cycle}</td>
+                    <td><i class="fas fa-book"></i> ${course.subject}</td>
+                    <td><i class="fas fa-calendar-day"></i> ${course.day}</td>
+                    <td><i class="fas fa-clock"></i> ${course.timeSlot}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCourse(${course.id})">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </td>
+                `;
+                allDataBody.appendChild(row);
+            });
+        }
+
+        function deleteCourse(id) {
+            if (confirm('Voulez-vous vraiment supprimer ce cours?')) {
+                let courses = getCourses();
+                courses = courses.filter(c => c.id !== id);
+                localStorage.setItem('courses', JSON.stringify(courses));
+                updateFilters();
+                generateTimetable();
+                displayAllData();
+                updateDashboard();
+                showNotification('Cours supprimé avec succès', 'success');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Voulez-vous vraiment supprimer TOUTES les données?')) {
+                localStorage.removeItem('courses');
+                updateFilters();
+                generateTimetable();
+                displayAllData();
+                updateDashboard();
+                showNotification('Toutes les données ont été supprimées', 'success');
+            }
+        }
+
+        function exportData() {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                showNotification('Aucune donnée à exporter', 'warning');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(courses, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `emploi_du_temps_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('Données exportées avec succès');
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedCourses = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedCourses)) throw new Error('Format de fichier invalide');
+                    
+                    if (confirm(`Importer ${importedCourses.length} cours?`)) {
+                        const currentCourses = getCourses();
+                        const mergedCourses = [...currentCourses, ...importedCourses];
+                        localStorage.setItem('courses', JSON.stringify(mergedCourses));
+                        updateFilters();
+                        generateTimetable();
+                        displayAllData();
+                        updateDashboard();
+                        showNotification('Données importées avec succès');
+                    }
+                } catch (error) {
+                    showNotification('Erreur lors de l\'importation: ' + error.message, 'error');
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // Mise à jour du tableau de bord
+        function updateDashboard() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            const totalHours = courses.length;
+            
+            document.getElementById('total-teachers').textContent = teachers.length;
+            document.getElementById('total-courses').textContent = courses.length;
+            document.getElementById('total-hours').textContent = totalHours;
+            
+            // Mettre à jour les activités récentes
+            const recentActivities = document.getElementById('recent-activities');
+            if (courses.length > 0) {
+                const recentCourses = courses.slice(-5).reverse();
+                recentActivities.innerHTML = recentCourses.map(course => `
+                    <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                        <strong>${course.teacherName}</strong> - ${course.subject}<br>
+                        <small>${course.className} • ${course.day} ${course.timeSlot}</small>
+                    </div>
+                `).join('');
+            } else {
+                recentActivities.innerHTML = '<p><i class="fas fa-info-circle"></i> Aucune activité récente</p>';
+            }
+        }
+
+        // Gestion des formulaires
+        document.getElementById('distributionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateDistribution();
+        });
+
+        document.getElementById('courseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const course = {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                teacherName: document.getElementById('teacherName').value,
+                className: document.getElementById('manualClass').value,
+                cycle: document.getElementById('manualCycle').value,
+                subject: document.getElementById('manualSubject').value,
+                day: Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value)[0],
+                timeSlot: document.getElementById('manualTimeSlot').value
+            };
+            
+            if (!course.day) {
+                showNotification('Veuillez sélectionner au moins un jour', 'error');
+                return;
+            }
+            
+            const courses = getCourses();
+            courses.push(course);
+            localStorage.setItem('courses', JSON.stringify(courses));
+            
+            showNotification('Cours enregistré avec succès!', 'success');
+            this.reset();
+            updateFilters();
+            updateDashboard();
+        });
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier l'authentification
+            checkAuthentication();
+            
+            // Gestion du formulaire de connexion
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            
+            // Initialiser l'application si connecté
+            if (localStorage.getItem('isAuthenticated') === 'true') {
+                updateFilters();
+                generateTimetable();
+                displayAllData();
+                updateDashboard();
+                
+                // Ajouter un enseignant par défaut
+                addTeacher();
+                
+                // Initialiser les options de classe
+                updateClassOptions();
+                updateManualClassOptions();
+            }
+        });
+    </script>
+</body>
+</html>

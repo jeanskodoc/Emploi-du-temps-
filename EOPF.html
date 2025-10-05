@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire de Commande - Matériel Scolaire</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --secondary-color: #2196F3;
+            --danger-color: #f44336;
+            --warning-color: #FF9800;
+            --neutral-color: #607d8b;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 1rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        .cycle-section {
+            background: var(--light-gray);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .cycle-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .class-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .class-item label {
+            flex: 1;
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        .class-item input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-whatsapp:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .required {
+            color: var(--danger-color);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            border: 1px solid #2196F3;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .summary-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            border-top: 2px solid var(--primary-color);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-school"></i> Formulaire de Commande</h1>
+            <p>Matériel Scolaire - Année 2024/2025</p>
+        </div>
+
+        <div class="form-container">
+            <div class="info-message">
+                <i class="fas fa-info-circle"></i>
+                <span>Veuillez remplir ce formulaire pour passer votre commande de matériel scolaire</span>
+            </div>
+
+            <form id="orderForm">
+                <!-- Informations de l'établissement -->
+                <div class="form-group">
+                    <h2 class="section-title">
+                        <i class="fas fa-building"></i>
+                        Informations de l'Établissement
+                    </h2>
+                    
+                    <div class="form-group">
+                        <label for="etablissement">Nom de l'établissement <span class="required">*</span></label>
+                        <input type="text" id="etablissement" required placeholder="Ex: Lycée Niamtougou">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inspection">Inspection <span class="required">*</span></label>
+                        <input type="text" id="inspection" required placeholder="Ex: Inspection de Niamtougou">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dre">DRE (Direction Régionale de l'Éducation) <span class="required">*</span></label>
+                        <input type="text" id="dre" required placeholder="Ex: DRE Kara">
+                    </div>
+                </div>
+
+                <!-- Sélection du cycle -->
+                <div class="form-group">
+                    <h2 class="section-title">
+                        <i class="fas fa-layer-group"></i>
+                        Cycle Scolaire
+                    </h2>
+                    
+                    <label for="cycle">Type d'établissement <span class="required">*</span></label>
+                    <select id="cycle" required onchange="toggleCycleSections()">
+                        <option value="">Sélectionner le cycle</option>
+                        <option value="college">Collège uniquement</option>
+                        <option value="lycee">Lycée uniquement</option>
+                        <option value="complexe">Complexe (Collège + Lycée)</option>
+                    </select>
+                </div>
+
+                <!-- Section Collège -->
+                <div id="collegeSection" class="cycle-section hidden">
+                    <h3><i class="fas fa-graduation-cap"></i> Collège - Nombre de classes par niveau</h3>
+                    
+                    <div class="classes-grid">
+                        <div class="class-item">
+                            <label for="classe_6eme">6ème</label>
+                            <input type="number" id="classe_6eme" min="0" max="20" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_5eme">5ème</label>
+                            <input type="number" id="classe_5eme" min="0" max="20" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_4eme">4ème</label>
+                            <input type="number" id="classe_4eme" min="0" max="20" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_3eme">3ème</label>
+                            <input type="number" id="classe_3eme" min="0" max="20" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Lycée -->
+                <div id="lyceeSection" class="cycle-section hidden">
+                    <h3><i class="fas fa-university"></i> Lycée - Nombre de classes par niveau</h3>
+                    
+                    <div class="classes-grid">
+                        <!-- Secondes -->
+                        <div class="class-item">
+                            <label for="classe_2ndCD">2nd C/D</label>
+                            <input type="number" id="classe_2ndCD" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_2ndL">2nd L</label>
+                            <input type="number" id="classe_2ndL" min="0" max="10" value="0">
+                        </div>
+
+                        <!-- Premières -->
+                        <div class="class-item">
+                            <label for="classe_1ereA4">1ère A4</label>
+                            <input type="number" id="classe_1ereA4" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_1ereA5">1ère A5</label>
+                            <input type="number" id="classe_1ereA5" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_1ereC4">1ère C4</label>
+                            <input type="number" id="classe_1ereC4" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_1ereD">1ère D</label>
+                            <input type="number" id="classe_1ereD" min="0" max="10" value="0">
+                        </div>
+
+                        <!-- Terminales -->
+                        <div class="class-item">
+                            <label for="classe_TleA4">Tle A4</label>
+                            <input type="number" id="classe_TleA4" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_TleA5">Tle A5</label>
+                            <input type="number" id="classe_TleA5" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_TleC4">Tle C4</label>
+                            <input type="number" id="classe_TleC4" min="0" max="10" value="0">
+                        </div>
+                        <div class="class-item">
+                            <label for="classe_TleD">Tle D</label>
+                            <input type="number" id="classe_TleD" min="0" max="10" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Récapitulatif -->
+                <div id="summarySection" class="summary-section hidden">
+                    <h3><i class="fas fa-list-alt"></i> Récapitulatif de la Commande</h3>
+                    <div id="summaryContent"></div>
+                </div>
+
+                <!-- Actions du formulaire -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="generateSummary()">
+                        <i class="fas fa-calculator"></i> Calculer le Récapitulatif
+                    </button>
+                    
+                    <button type="button" class="btn btn-whatsapp" onclick="sendToWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> Envoyer par WhatsApp
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Fonction pour afficher/masquer les sections selon le cycle sélectionné
+        function toggleCycleSections() {
+            const cycle = document.getElementById('cycle').value;
+            const collegeSection = document.getElementById('collegeSection');
+            const lyceeSection = document.getElementById('lyceeSection');
+            const summarySection = document.getElementById('summarySection');
+
+            // Masquer toutes les sections d'abord
+            collegeSection.classList.add('hidden');
+            lyceeSection.classList.add('hidden');
+            summarySection.classList.add('hidden');
+
+            // Afficher les sections selon le cycle sélectionné
+            if (cycle === 'college') {
+                collegeSection.classList.remove('hidden');
+            } else if (cycle === 'lycee') {
+                lyceeSection.classList.remove('hidden');
+            } else if (cycle === 'complexe') {
+                collegeSection.classList.remove('hidden');
+                lyceeSection.classList.remove('hidden');
+            }
+        }
+
+        // Fonction pour générer le récapitulatif
+        function generateSummary() {
+            const cycle = document.getElementById('cycle').value;
+            const etablissement = document.getElementById('etablissement').value;
+            const inspection = document.getElementById('inspection').value;
+            const dre = document.getElementById('dre').value;
+
+            // Vérifier que les champs obligatoires sont remplis
+            if (!etablissement || !inspection || !dre || !cycle) {
+                alert('Veuillez remplir tous les champs obligatoires avant de générer le récapitulatif.');
+                return;
+            }
+
+            let summaryHTML = `
+                <div class="summary-item">
+                    <strong>Établissement:</strong>
+                    <span>${etablissement}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>Inspection:</strong>
+                    <span>${inspection}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>DRE:</strong>
+                    <span>${dre}</span>
+                </div>
+                <div class="summary-item">
+                    <strong>Cycle:</strong>
+                    <span>${getCycleLabel(cycle)}</span>
+                </div>
+            `;
+
+            let totalClasses = 0;
+
+            // Ajouter les classes du collège si applicable
+            if (cycle === 'college' || cycle === 'complexe') {
+                summaryHTML += '<div class="summary-item" style="margin-top: 15px;"><strong>COLLÈGE:</strong></div>';
+                
+                const classesCollege = [
+                    { id: 'classe_6eme', label: '6ème' },
+                    { id: 'classe_5eme', label: '5ème' },
+                    { id: 'classe_4eme', label: '4ème' },
+                    { id: 'classe_3eme', label: '3ème' }
+                ];
+
+                classesCollege.forEach(classe => {
+                    const count = parseInt(document.getElementById(classe.id).value) || 0;
+                    if (count > 0) {
+                        summaryHTML += `
+                            <div class="summary-item">
+                                <span>${classe.label}:</span>
+                                <span>${count} classe(s)</span>
+                            </div>
+                        `;
+                        totalClasses += count;
+                    }
+                });
+            }
+
+            // Ajouter les classes du lycée si applicable
+            if (cycle === 'lycee' || cycle === 'complexe') {
+                summaryHTML += '<div class="summary-item" style="margin-top: 15px;"><strong>LYCÉE:</strong></div>';
+                
+                const classesLycee = [
+                    { id: 'classe_2ndCD', label: '2nd C/D' },
+                    { id: 'classe_2ndL', label: '2nd L' },
+                    { id: 'classe_1ereA4', label: '1ère A4' },
+                    { id: 'classe_1ereA5', label: '1ère A5' },
+                    { id: 'classe_1ereC4', label: '1ère C4' },
+                    { id: 'classe_1ereD', label: '1ère D' },
+                    { id: 'classe_TleA4', label: 'Tle A4' },
+                    { id: 'classe_TleA5', label: 'Tle A5' },
+                    { id: 'classe_TleC4', label: 'Tle C4' },
+                    { id: 'classe_TleD', label: 'Tle D' }
+                ];
+
+                classesLycee.forEach(classe => {
+                    const count = parseInt(document.getElementById(classe.id).value) || 0;
+                    if (count > 0) {
+                        summaryHTML += `
+                            <div class="summary-item">
+                                <span>${classe.label}:</span>
+                                <span>${count} classe(s)</span>
+                            </div>
+                        `;
+                        totalClasses += count;
+                    }
+                });
+            }
+
+            // Ajouter le total
+            summaryHTML += `
+                <div class="summary-item summary-total">
+                    <strong>TOTAL DES CLASSES:</strong>
+                    <span>${totalClasses} classe(s)</span>
+                </div>
+            `;
+
+            // Afficher le récapitulatif
+            document.getElementById('summaryContent').innerHTML = summaryHTML;
+            document.getElementById('summarySection').classList.remove('hidden');
+
+            // Faire défiler jusqu'au récapitulatif
+            document.getElementById('summarySection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Fonction pour obtenir le libellé du cycle
+        function getCycleLabel(cycleValue) {
+            const cycles = {
+                'college': 'Collège uniquement',
+                'lycee': 'Lycée uniquement',
+                'complexe': 'Complexe (Collège + Lycée)'
+            };
+            return cycles[cycleValue] || cycleValue;
+        }
+
+        // Fonction pour envoyer par WhatsApp
+        function sendToWhatsApp() {
+            const cycle = document.getElementById('cycle').value;
+            const etablissement = document.getElementById('etablissement').value;
+            const inspection = document.getElementById('inspection').value;
+            const dre = document.getElementById('dre').value;
+
+            // Vérifier que les champs obligatoires sont remplis
+            if (!etablissement || !inspection || !dre || !cycle) {
+                alert('Veuillez remplir tous les champs obligatoires avant d\'envoyer la commande.');
+                return;
+            }
+
+            // Construire le message WhatsApp
+            let message = `📚 COMMANDE DE MATÉRIEL SCOLAIRE 📚\n\n`;
+            message += `🏫 Établissement: ${etablissement}\n`;
+            message += `📋 Inspection: ${inspection}\n`;
+            message += `📍 DRE: ${dre}\n`;
+            message += `🎓 Cycle: ${getCycleLabel(cycle)}\n\n`;
+
+            // Ajouter les classes du collège
+            if (cycle === 'college' || cycle === 'complexe') {
+                message += `📖 COLLÈGE:\n`;
+                const classesCollege = [
+                    { id: 'classe_6eme', label: '6ème' },
+                    { id: 'classe_5eme', label: '5ème' },
+                    { id: 'classe_4eme', label: '4ème' },
+                    { id: 'classe_3eme', label: '3ème' }
+                ];
+
+                classesCollege.forEach(classe => {
+                    const count = parseInt(document.getElementById(classe.id).value) || 0;
+                    if (count > 0) {
+                        message += `• ${classe.label}: ${count} classe(s)\n`;
+                    }
+                });
+                message += `\n`;
+            }
+
+            // Ajouter les classes du lycée
+            if (cycle === 'lycee' || cycle === 'complexe') {
+                message += `🎓 LYCÉE:\n`;
+                const classesLycee = [
+                    { id: 'classe_2ndCD', label: '2nd C/D' },
+                    { id: 'classe_2ndL', label: '2nd L' },
+                    { id: 'classe_1ereA4', label: '1ère A4' },
+                    { id: 'classe_1ereA5', label: '1ère A5' },
+                    { id: 'classe_1ereC4', label: '1ère C4' },
+                    { id: 'classe_1ereD', label: '1ère D' },
+                    { id: 'classe_TleA4', label: 'Tle A4' },
+                    { id: 'classe_TleA5', label: 'Tle A5' },
+                    { id: 'classe_TleC4', label: 'Tle C4' },
+                    { id: 'classe_TleD', label: 'Tle D' }
+                ];
+
+                classesLycee.forEach(classe => {
+                    const count = parseInt(document.getElementById(classe.id).value) || 0;
+                    if (count > 0) {
+                        message += `• ${classe.label}: ${count} classe(s)\n`;
+                    }
+                });
+            }
+
+            // Calculer le total
+            let totalClasses = 0;
+            const allClasses = document.querySelectorAll('input[type="number"]');
+            allClasses.forEach(input => {
+                totalClasses += parseInt(input.value) || 0;
+            });
+
+            message += `\n📊 TOTAL: ${totalClasses} classe(s)\n\n`;
+            message += `📅 Date: ${new Date().toLocaleDateString('fr-FR')}\n`;
+            message += `⏰ Heure: ${new Date().toLocaleTimeString('fr-FR')}`;
+
+            // Numéro WhatsApp
+            const phoneNumber = '92871605';
+
+            // Encoder le message pour l'URL
+            const encodedMessage = encodeURIComponent(message);
+
+            // Créer l'URL WhatsApp
+            const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+            // Ouvrir WhatsApp
+            window.open(whatsappURL, '_blank');
+
+            // Afficher une confirmation
+            alert('Redirection vers WhatsApp... Veuillez vérifier le message avant de l\'envoyer.');
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ajouter des écouteurs d'événements pour les champs numériques
+            const numberInputs = document.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.value < 0) this.value = 0;
+                    if (this.value > 20) this.value = 20;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

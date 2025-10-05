@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index - Projet Gestion Scolaire</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --primary-hover: #45a049;
+            --secondary-color: #2196F3;
+            --secondary-hover: #0b7dda;
+            --danger-color: #f44336;
+            --warning-color: #FF9800;
+            --neutral-color: #607d8b;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .project-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .project-header i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .project-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .project-body {
+            padding: 25px;
+        }
+
+        .project-description {
+            margin-bottom: 20px;
+            color: var(--dark-gray);
+        }
+
+        .project-features {
+            margin-bottom: 25px;
+        }
+
+        .project-features h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-list {
+            list-style-type: none;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list i {
+            color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .info-section {
+            background: var(--light-gray);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-top: 40px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .info-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .info-text h4 {
+            margin-bottom: 5px;
+            color: var(--dark-gray);
+        }
+
+        .info-text p {
+            color: var(--neutral-color);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--dark-gray);
+            border-top: 1px solid var(--medium-gray);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-graduation-cap"></i> Projet Gestion Scolaire</h1>
+            <p>Une solution complète pour la gestion des emplois du temps et des commandes de matériel scolaire</p>
+        </div>
+
+        <div class="content">
+            <h2 class="section-title">
+                <i class="fas fa-rocket"></i>
+                Applications Disponibles
+            </h2>
+            
+            <div class="projects-grid">
+                <!-- Carte pour EOP - Gestion d'emploi du temps -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>Gestion d'Emploi du Temps</h3>
+                        <p>Application complète de gestion scolaire</p>
+                    </div>
+                    <div class="project-body">
+                        <div class="project-description">
+                            <p>Une application web complète permettant de créer, gérer et visualiser les emplois du temps pour les établissements scolaires.</p>
+                        </div>
+                        
+                        <div class="project-features">
+                            <h4><i class="fas fa-star"></i> Fonctionnalités principales</h4>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i> Répartition automatique des horaires</li>
+                                <li><i class="fas fa-check"></i> Saisie manuelle des cours</li>
+                                <li><i class="fas fa-check"></i> Visualisation par enseignant ou classe</li>
+                                <li><i class="fas fa-check"></i> Exportation et importation des données</li>
+                                <li><i class="fas fa-check"></i> Interface d'administration sécurisée</li>
+                            </ul>
+                        </div>
+                        
+                        <a href="EOP.html" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Visiter le projet
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Carte pour EOPF - Formulaire de commande -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>Formulaire de Commande</h3>
+                        <p>Gestion des commandes de matériel scolaire</p>
+                    </div>
+                    <div class="project-body">
+                        <div class="project-description">
+                            <p>Un formulaire intuitif permettant aux établissements scolaires de commander facilement leur matériel pédagogique.</p>
+                        </div>
+                        
+                        <div class="project-features">
+                            <h4><i class="fas fa-star"></i> Fonctionnalités principales</h4>
+                            <ul class="feature-list">
+                                <li><i class="fas fa-check"></i> Sélection par cycle (Collège/Lycée)</li>
+                                <li><i class="fas fa-check"></i> Calcul automatique des quantités</li>
+                                <li><i class="fas fa-check"></i> Récapitulatif détaillé de commande</li>
+                                <li><i class="fas fa-check"></i> Envoi direct via WhatsApp</li>
+                                <li><i class="fas fa-check"></i> Interface responsive et intuitive</li>
+                            </ul>
+                        </div>
+                        
+                        <a href="EOPF.html" class="btn btn-secondary">
+                            <i class="fas fa-external-link-alt"></i> Accéder au formulaire
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h2><i class="fas fa-info-circle"></i> À propos de ce projet</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <div class="info-text">
+                            <h4>Technologies utilisées</h4>
+                            <p>HTML5, CSS3, JavaScript, Font Awesome</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="info-text">
+                            <h4>Design Responsive</h4>
+                            <p>Compatible avec tous les appareils</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="info-text">
+                            <h4>Sécurisé</h4>
+                            <p>Interface d'administration protégée</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="info-text">
+                            <h4>Facile à utiliser</h4>
+                            <p>Interface intuitive pour tous les utilisateurs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2024 - Projet Gestion Scolaire | Tous droits réservés</p>
+        </footer>
+    </div>
+</body>
+</html>
