@@ -20,6 +20,10 @@
             --shadow: 0 4px 6px rgba(0,0,0,0.1);
             --transition: all 0.3s ease;
             --sidebar-width: 250px;
+            --exam-color: #9C27B0;
+            --td-color: #2196F3;
+            --tp-color: #FF9800;
+            --tm-color: #795548;
         }
 
         * {
@@ -389,6 +393,67 @@
 
         .break {
             background-color: #f0f0f0;
+        }
+
+        /* Activity Type Colors */
+        .activity-exam {
+            background-color: rgba(156, 39, 176, 0.1);
+            border-left: 4px solid var(--exam-color);
+        }
+
+        .activity-td {
+            background-color: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid var(--td-color);
+        }
+
+        .activity-tp {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid var(--tp-color);
+        }
+
+        .activity-tm {
+            background-color: rgba(121, 85, 72, 0.1);
+            border-left: 4px solid var(--tm-color);
+        }
+
+        .activity-cours {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Badges for activity types */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        .badge-exam {
+            background-color: var(--exam-color);
+            color: white;
+        }
+
+        .badge-td {
+            background-color: var(--td-color);
+            color: white;
+        }
+
+        .badge-tp {
+            background-color: var(--tp-color);
+            color: white;
+        }
+
+        .badge-tm {
+            background-color: var(--tm-color);
+            color: white;
+        }
+
+        .badge-cours {
+            background-color: var(--primary-color);
+            color: white;
         }
 
         /* Distribution Tables */
@@ -910,7 +975,27 @@
         .series-d { background: #f3e5f5; color: #7b1fa2; }
         .series-a { background: #e8f5e8; color: #388e3c; }
         .series-l { background: #fff3e0; color: #f57c00; }
-        .series-cd { background: #e1f5fe; color: #0288d1; }
+        
+        /* Time Period Indicators */
+        .time-period-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+            font-weight: normal;
+        }
+        
+        .morning { background-color: #FFF3CD; color: #856404; }
+        .afternoon { background-color: #D1ECF1; color: #0C5460; }
+        .all-day { background-color: #D4EDDA; color: #155724; }
+        
+        /* Multi-column form groups */
+        .form-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
@@ -1072,6 +1157,13 @@
                                     <div class="teacher-item">
                                         <input type="text" class="teacher-name" placeholder="Nom et prénom de l'enseignant" required>
                                         <input type="text" class="teacher-subject" placeholder="Matière" required>
+                                        <select class="teacher-activity-type" required>
+                                            <option value="Cours">Cours</option>
+                                            <option value="DEVOIR">DEVOIR (surveillé)</option>
+                                            <option value="TD">Travaux Dirigés (TD)</option>
+                                            <option value="TP">Travaux Pratiques (TP)</option>
+                                            <option value="TM">Travail Manuel (TM)</option>
+                                        </select>
                                         <input type="number" class="teacher-hours" placeholder="Heures/semaine" min="1" max="20" required>
                                         <button type="button" class="btn btn-danger btn-sm" onclick="removeTeacher(this)">
                                             <i class="fas fa-times"></i>
@@ -1086,6 +1178,15 @@
                             <div class="form-group">
                                 <label for="totalHours"><i class="fas fa-clock"></i> Heures totales disponibles par semaine:</label>
                                 <input type="number" id="totalHours" value="30" min="20" max="40" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-sun"></i> Période préférée:</label>
+                                <select id="preferredTimePeriod" required>
+                                    <option value="all">Matinée et Après-midi</option>
+                                    <option value="morning">Matinée uniquement (avant midi)</option>
+                                    <option value="afternoon">Après-midi uniquement</option>
+                                </select>
                             </div>
 
                             <button type="submit" class="btn btn-primary">
@@ -1116,31 +1217,44 @@
                     </div>
                     <div class="card-body">
                         <form id="courseForm">
-                            <div class="form-group">
-                                <label for="teacherName"><i class="fas fa-user-tie"></i> Nom de l'enseignant:</label>
-                                <input type="text" id="teacherName" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="manualCycle"><i class="fas fa-layer-group"></i> Cycle:</label>
-                                <select id="manualCycle" required onchange="updateManualClassOptions()">
-                                    <option value="">Sélectionner un cycle</option>
-                                    <option value="Collège">Collège</option>
-                                    <option value="Lycée">Lycée</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="manualClass"><i class="fas fa-users"></i> Classe:</label>
-                                <select id="manualClass" required>
-                                    <option value="">Sélectionner une classe</option>
-                                    <!-- Les options seront mises à jour dynamiquement -->
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="manualSubject"><i class="fas fa-book"></i> Matière:</label>
-                                <input type="text" id="manualSubject" required>
+                            <div class="form-columns">
+                                <div class="form-group">
+                                    <label for="teacherName"><i class="fas fa-user-tie"></i> Nom de l'enseignant:</label>
+                                    <input type="text" id="teacherName" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="manualCycle"><i class="fas fa-layer-group"></i> Cycle:</label>
+                                    <select id="manualCycle" required onchange="updateManualClassOptions()">
+                                        <option value="">Sélectionner un cycle</option>
+                                        <option value="Collège">Collège</option>
+                                        <option value="Lycée">Lycée</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="manualClass"><i class="fas fa-users"></i> Classe:</label>
+                                    <select id="manualClass" required>
+                                        <option value="">Sélectionner une classe</option>
+                                        <!-- Les options seront mises à jour dynamiquement -->
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="manualSubject"><i class="fas fa-book"></i> Matière:</label>
+                                    <input type="text" id="manualSubject" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="activityType"><i class="fas fa-tasks"></i> Type d'activité:</label>
+                                    <select id="activityType" required>
+                                        <option value="Cours">Cours</option>
+                                        <option value="DEVOIR">DEVOIR (surveillé)</option>
+                                        <option value="TD">Travaux Dirigés (TD)</option>
+                                        <option value="TP">Travaux Pratiques (TP)</option>
+                                        <option value="TM">Travail Manuel (TM)</option>
+                                    </select>
+                                </div>
                             </div>
                             
                             <div class="form-group">
@@ -1154,19 +1268,30 @@
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="manualTimeSlot"><i class="fas fa-clock"></i> Créneau horaire:</label>
-                                <select id="manualTimeSlot" required>
-                                    <option value="">Sélectionner un créneau</option>
-                                    <option value="07:00 - 07:55">07:00 - 07:55</option>
-                                    <option value="07:55 - 08:50">07:55 - 08:50</option>
-                                    <option value="08:50 - 09:45">08:50 - 09:45</option>
-                                    <option value="10:10 - 11:05">10:10 - 11:05</option>
-                                    <option value="11:05 - 12:00">11:05 - 12:00</option>
-                                    <option value="14:30 - 15:30">14:30 - 15:30</option>
-                                    <option value="15:30 - 16:30">15:30 - 16:30</option>
-                                    <option value="16:30 - 17:30">16:30 - 17:30</option>
-                                </select>
+                            <div class="form-columns">
+                                <div class="form-group">
+                                    <label for="manualTimeSlot"><i class="fas fa-clock"></i> Créneau horaire:</label>
+                                    <select id="manualTimeSlot" required>
+                                        <option value="">Sélectionner un créneau</option>
+                                        <option value="07:00 - 07:55">07:00 - 07:55 (Matin)</option>
+                                        <option value="07:55 - 08:50">07:55 - 08:50 (Matin)</option>
+                                        <option value="08:50 - 09:45">08:50 - 09:45 (Matin)</option>
+                                        <option value="10:10 - 11:05">10:10 - 11:05 (Matin)</option>
+                                        <option value="11:05 - 12:00">11:05 - 12:00 (Matin)</option>
+                                        <option value="14:30 - 15:30">14:30 - 15:30 (Après-midi)</option>
+                                        <option value="15:30 - 16:30">15:30 - 16:30 (Après-midi)</option>
+                                        <option value="16:30 - 17:30">16:30 - 17:30 (Après-midi)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="timePeriod"><i class="fas fa-sun"></i> Période:</label>
+                                    <select id="timePeriod" required onchange="filterTimeSlots()">
+                                        <option value="all">Tous les créneaux</option>
+                                        <option value="morning">Matin uniquement (avant midi)</option>
+                                        <option value="afternoon">Après-midi uniquement</option>
+                                    </select>
+                                </div>
                             </div>
                             
                             <button type="submit" class="btn btn-primary">
@@ -1238,6 +1363,27 @@
                                     <option value="">-- Toutes --</option>
                                 </select>
                             </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectActivityType"><i class="fas fa-tasks"></i> Type d'activité:</label>
+                                <select id="selectActivityType" onchange="generateTimetable()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Cours">Cours</option>
+                                    <option value="DEVOIR">DEVOIR</option>
+                                    <option value="TD">Travaux Dirigés</option>
+                                    <option value="TP">Travaux Pratiques</option>
+                                    <option value="TM">Travail Manuel</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectTimePeriod"><i class="fas fa-sun"></i> Période:</label>
+                                <select id="selectTimePeriod" onchange="generateTimetable()">
+                                    <option value="">-- Toutes --</option>
+                                    <option value="morning">Matin uniquement</option>
+                                    <option value="afternoon">Après-midi uniquement</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="filters no-print" id="teacherFilters" style="display: none;">
@@ -1245,6 +1391,18 @@
                                 <label for="selectTeacherSpecific"><i class="fas fa-user-tie"></i> Enseignant:</label>
                                 <select id="selectTeacherSpecific" onchange="generateTeacherTimetable()">
                                     <option value="">-- Sélectionner un enseignant --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectTeacherActivityType"><i class="fas fa-tasks"></i> Type d'activité:</label>
+                                <select id="selectTeacherActivityType" onchange="generateTeacherTimetable()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Cours">Cours</option>
+                                    <option value="DEVOIR">DEVOIR</option>
+                                    <option value="TD">Travaux Dirigés</option>
+                                    <option value="TP">Travaux Pratiques</option>
+                                    <option value="TM">Travail Manuel</option>
                                 </select>
                             </div>
                         </div>
@@ -1256,6 +1414,18 @@
                                     <option value="">-- Sélectionner une classe --</option>
                                 </select>
                             </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectClassActivityType"><i class="fas fa-tasks"></i> Type d'activité:</label>
+                                <select id="selectClassActivityType" onchange="generateClassTimetable()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Cours">Cours</option>
+                                    <option value="DEVOIR">DEVOIR</option>
+                                    <option value="TD">Travaux Dirigés</option>
+                                    <option value="TP">Travaux Pratiques</option>
+                                    <option value="TM">Travail Manuel</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="filters no-print" id="teacherAllFilters" style="display: none;">
@@ -1263,6 +1433,18 @@
                                 <label for="selectTeacherAll"><i class="fas fa-user-tie"></i> Enseignant:</label>
                                 <select id="selectTeacherAll" onchange="generateTeacherAllClassesTimetable()">
                                     <option value="">-- Sélectionner un enseignant --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectTeacherAllActivityType"><i class="fas fa-tasks"></i> Type d'activité:</label>
+                                <select id="selectTeacherAllActivityType" onchange="generateTeacherAllClassesTimetable()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Cours">Cours</option>
+                                    <option value="DEVOIR">DEVOIR</option>
+                                    <option value="TD">Travaux Dirigés</option>
+                                    <option value="TP">Travaux Pratiques</option>
+                                    <option value="TM">Travail Manuel</option>
                                 </select>
                             </div>
                         </div>
@@ -1329,6 +1511,27 @@
                                     <option value="Lycée">Lycée</option>
                                 </select>
                             </div>
+                            
+                            <div class="filter-group">
+                                <label for="filterActivityType"><i class="fas fa-tasks"></i> Filtrer par type d'activité:</label>
+                                <select id="filterActivityType" onchange="displayAllData()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="Cours">Cours</option>
+                                    <option value="DEVOIR">DEVOIR</option>
+                                    <option value="TD">Travaux Dirigés</option>
+                                    <option value="TP">Travaux Pratiques</option>
+                                    <option value="TM">Travail Manuel</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filterTimePeriod"><i class="fas fa-sun"></i> Filtrer par période:</label>
+                                <select id="filterTimePeriod" onchange="displayAllData()">
+                                    <option value="">-- Toutes --</option>
+                                    <option value="morning">Matin uniquement</option>
+                                    <option value="afternoon">Après-midi uniquement</option>
+                                </select>
+                            </div>
                         </div>
                         
                         <div class="table-responsive">
@@ -1339,8 +1542,10 @@
                                         <th><i class="fas fa-users"></i> Classe</th>
                                         <th><i class="fas fa-layer-group"></i> Cycle</th>
                                         <th><i class="fas fa-book"></i> Matière</th>
+                                        <th><i class="fas fa-tasks"></i> Type</th>
                                         <th><i class="fas fa-calendar-day"></i> Jour</th>
                                         <th><i class="fas fa-clock"></i> Créneau</th>
+                                        <th><i class="fas fa-sun"></i> Période</th>
                                         <th><i class="fas fa-cog"></i> Actions</th>
                                     </tr>
                                 </thead>
@@ -1376,6 +1581,64 @@
 
         // Variables globales
         let currentView = 'general';
+        
+        // Créneaux horaires classés par période
+        const morningSlots = [
+            "07:00 - 07:55",
+            "07:55 - 08:50", 
+            "08:50 - 09:45",
+            "10:10 - 11:05",
+            "11:05 - 12:00"
+        ];
+        
+        const afternoonSlots = [
+            "14:30 - 15:30",
+            "15:30 - 16:30",
+            "16:30 - 17:30"
+        ];
+        
+        const allTimeSlots = [...morningSlots, ...afternoonSlots];
+        
+        // Types d'activités avec leurs couleurs et icônes
+        const ACTIVITY_TYPES = {
+            'Cours': { 
+                color: 'primary', 
+                bgColor: 'rgba(76, 175, 80, 0.1)',
+                borderColor: '#4CAF50',
+                icon: 'fa-chalkboard',
+                badgeClass: 'badge-cours'
+            },
+            'DEVOIR': { 
+                color: 'exam', 
+                bgColor: 'rgba(156, 39, 176, 0.1)',
+                borderColor: '#9C27B0',
+                icon: 'fa-file-alt',
+                badgeClass: 'badge-exam'
+            },
+            'TD': { 
+                color: 'td', 
+                bgColor: 'rgba(33, 150, 243, 0.1)',
+                borderColor: '#2196F3',
+                icon: 'fa-users',
+                badgeClass: 'badge-td'
+            },
+            'TP': { 
+                color: 'tp', 
+                bgColor: 'rgba(255, 152, 0, 0.1)',
+                borderColor: '#FF9800',
+                icon: 'fa-flask',
+                badgeClass: 'badge-tp'
+            },
+            'TM': { 
+                color: 'tm', 
+                bgColor: 'rgba(121, 85, 72, 0.1)',
+                borderColor: '#795548',
+                icon: 'fa-tools',
+                badgeClass: 'badge-tm'
+            }
+        };
+        
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
 
         // Gestion de l'authentification
         function handleLogin(event) {
@@ -1481,20 +1744,6 @@
             return { code: '', name: '', badge: '' };
         }
 
-        // Données des créneaux horaires (sans la pause)
-        const timeSlots = [
-            "07:00 - 07:55",
-            "07:55 - 08:50", 
-            "08:50 - 09:45",
-            "10:10 - 11:05",
-            "11:05 - 12:00",
-            "14:30 - 15:30",
-            "15:30 - 16:30",
-            "16:30 - 17:30"
-        ];
-
-        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-
         // Stockage des données de répartition
         let currentDistribution = null;
 
@@ -1598,6 +1847,13 @@
             teacherDiv.innerHTML = `
                 <input type="text" class="teacher-name" placeholder="Nom et prénom de l'enseignant" required>
                 <input type="text" class="teacher-subject" placeholder="Matière" required>
+                <select class="teacher-activity-type" required>
+                    <option value="Cours">Cours</option>
+                    <option value="DEVOIR">DEVOIR (surveillé)</option>
+                    <option value="TD">Travaux Dirigés (TD)</option>
+                    <option value="TP">Travaux Pratiques (TP)</option>
+                    <option value="TM">Travail Manuel (TM)</option>
+                </select>
                 <input type="number" class="teacher-hours" placeholder="Heures/semaine" min="1" max="20" required>
                 <button type="button" class="btn btn-danger btn-sm" onclick="removeTeacher(this)">
                     <i class="fas fa-times"></i>
@@ -1613,12 +1869,78 @@
                 button.parentElement.remove();
             }
         }
+        
+        // Fonction pour filtrer les créneaux horaires selon la période
+        function filterTimeSlots() {
+            const timePeriod = document.getElementById('timePeriod').value;
+            const timeSlotSelect = document.getElementById('manualTimeSlot');
+            
+            // Sauvegarder la valeur sélectionnée
+            const selectedValue = timeSlotSelect.value;
+            
+            // Vider les options
+            timeSlotSelect.innerHTML = '<option value="">Sélectionner un créneau</option>';
+            
+            // Ajouter les options selon la période
+            let slots = allTimeSlots;
+            if (timePeriod === 'morning') {
+                slots = morningSlots;
+            } else if (timePeriod === 'afternoon') {
+                slots = afternoonSlots;
+            }
+            
+            slots.forEach(slot => {
+                const period = morningSlots.includes(slot) ? ' (Matin)' : ' (Après-midi)';
+                const option = document.createElement('option');
+                option.value = slot;
+                option.textContent = slot + period;
+                timeSlotSelect.appendChild(option);
+            });
+            
+            // Restaurer la valeur sélectionnée si elle existe encore
+            if (selectedValue && slots.includes(selectedValue)) {
+                timeSlotSelect.value = selectedValue;
+            }
+        }
+
+        // Fonction pour déterminer la période d'un créneau
+        function getTimePeriod(slot) {
+            if (morningSlots.includes(slot)) {
+                return 'morning';
+            } else if (afternoonSlots.includes(slot)) {
+                return 'afternoon';
+            }
+            return 'unknown';
+        }
+        
+        // Fonction pour obtenir le badge de période
+        function getTimePeriodBadge(slot) {
+            const period = getTimePeriod(slot);
+            let badgeText, badgeClass;
+            
+            switch(period) {
+                case 'morning':
+                    badgeText = 'Matin';
+                    badgeClass = 'morning';
+                    break;
+                case 'afternoon':
+                    badgeText = 'Après-midi';
+                    badgeClass = 'afternoon';
+                    break;
+                default:
+                    badgeText = 'Toute journée';
+                    badgeClass = 'all-day';
+            }
+            
+            return `<span class="time-period-badge ${badgeClass}">${badgeText}</span>`;
+        }
 
         // Fonction pour générer la répartition aléatoire
         function generateDistribution() {
             const cycle = document.getElementById('distributionCycle').value;
             const className = document.getElementById('distributionClass').value;
             const totalHours = parseInt(document.getElementById('totalHours').value);
+            const preferredTimePeriod = document.getElementById('preferredTimePeriod').value;
             
             // Récupérer les données des enseignants
             const teachers = [];
@@ -1627,10 +1949,11 @@
             teacherItems.forEach(item => {
                 const name = item.querySelector('.teacher-name').value;
                 const subject = item.querySelector('.teacher-subject').value;
+                const activityType = item.querySelector('.teacher-activity-type').value;
                 const hours = parseInt(item.querySelector('.teacher-hours').value);
                 
                 if (name && subject && hours) {
-                    teachers.push({ name, subject, hours });
+                    teachers.push({ name, subject, activityType, hours });
                 }
             });
             
@@ -1647,7 +1970,7 @@
             }
             
             // Générer la répartition
-            const distribution = generateRandomDistribution(teachers, totalHours, cycle, className);
+            const distribution = generateRandomDistribution(teachers, totalHours, cycle, className, preferredTimePeriod);
             currentDistribution = distribution;
             
             // Afficher les résultats
@@ -1656,7 +1979,7 @@
             showNotification('Répartition générée avec succès!', 'success');
         }
 
-        function generateRandomDistribution(teachers, totalHours, cycle, className) {
+        function generateRandomDistribution(teachers, totalHours, cycle, className, preferredTimePeriod) {
             const distribution = {
                 cycle,
                 className,
@@ -1671,6 +1994,14 @@
                 remainingHours: teacher.hours
             }));
             
+            // Déterminer les créneaux disponibles selon la période préférée
+            let availableSlots = allTimeSlots;
+            if (preferredTimePeriod === 'morning') {
+                availableSlots = morningSlots;
+            } else if (preferredTimePeriod === 'afternoon') {
+                availableSlots = afternoonSlots;
+            }
+            
             // Placer les heures de manière aléatoire
             while (teachersToPlace.some(teacher => teacher.remainingHours > 0)) {
                 // Choisir un enseignant au hasard qui a encore des heures à placer
@@ -1681,25 +2012,48 @@
                 const teacher = availableTeachers[randomTeacherIndex];
                 
                 // Trouver un créneau disponible
-                const availableSlot = findAvailableSlot(distribution.timetable, teacher.name);
+                const availableSlot = findAvailableSlot(distribution.timetable, teacher.name, availableSlots);
                 
                 if (availableSlot) {
                     // Placer le cours
                     distribution.timetable[availableSlot.day][availableSlot.timeSlot] = {
                         teacher: teacher.name,
-                        subject: teacher.subject
+                        subject: teacher.subject,
+                        activityType: teacher.activityType
                     };
                     
                     teacher.remainingHours--;
                     distribution.teachers.push({
                         teacher: teacher.name,
                         subject: teacher.subject,
+                        activityType: teacher.activityType,
                         day: availableSlot.day,
-                        timeSlot: availableSlot.timeSlot
+                        timeSlot: availableSlot.timeSlot,
+                        timePeriod: getTimePeriod(availableSlot.timeSlot)
                     });
                 } else {
-                    // Si aucun créneau disponible, on arrête
-                    break;
+                    // Si aucun créneau disponible, élargir la recherche à tous les créneaux
+                    const backupSlot = findAvailableSlot(distribution.timetable, teacher.name, allTimeSlots);
+                    if (backupSlot) {
+                        distribution.timetable[backupSlot.day][backupSlot.timeSlot] = {
+                            teacher: teacher.name,
+                            subject: teacher.subject,
+                            activityType: teacher.activityType
+                        };
+                        
+                        teacher.remainingHours--;
+                        distribution.teachers.push({
+                            teacher: teacher.name,
+                            subject: teacher.subject,
+                            activityType: teacher.activityType,
+                            day: backupSlot.day,
+                            timeSlot: backupSlot.timeSlot,
+                            timePeriod: getTimePeriod(backupSlot.timeSlot)
+                        });
+                    } else {
+                        // Si vraiment aucun créneau disponible, on arrête
+                        break;
+                    }
                 }
             }
             
@@ -1710,18 +2064,18 @@
             const timetable = {};
             days.forEach(day => {
                 timetable[day] = {};
-                timeSlots.forEach(slot => {
+                allTimeSlots.forEach(slot => {
                     timetable[day][slot] = null;
                 });
             });
             return timetable;
         }
 
-        function findAvailableSlot(timetable, teacherName) {
+        function findAvailableSlot(timetable, teacherName, slots) {
             // Créer une liste de tous les créneaux possibles
             const allSlots = [];
             days.forEach(day => {
-                timeSlots.forEach(slot => {
+                slots.forEach(slot => {
                     allSlots.push({ day, timeSlot: slot });
                 });
             });
@@ -1742,7 +2096,7 @@
 
         function isTeacherAlreadyScheduled(timetable, teacherName, day, timeSlot) {
             // Vérifier si l'enseignant a déjà cours ce jour-là
-            for (const slot of timeSlots) {
+            for (const slot of allTimeSlots) {
                 if (timetable[day][slot] && timetable[day][slot].teacher === teacherName) {
                     return true;
                 }
@@ -1780,13 +2134,19 @@
                         <tbody>
             `;
             
-            timeSlots.forEach(slot => {
-                html += `<tr><td class="time-col">${slot}</td>`;
+            allTimeSlots.forEach(slot => {
+                const periodBadge = getTimePeriodBadge(slot);
+                html += `<tr><td class="time-col">${slot} ${periodBadge}</td>`;
                 days.forEach(day => {
                     const course = distribution.timetable[day][slot];
                     html += `<td class="${course ? 'hour-cell' : ''}">`;
                     if (course) {
-                        html += `<strong>${course.teacher}</strong><br><small><i class="fas fa-book"></i> ${course.subject}</small>`;
+                        const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                        html += `<div class="activity-${activityType.color.toLowerCase()}">
+                            <strong>${course.teacher}</strong><br>
+                            <small><i class="fas fa-book"></i> ${course.subject}</small><br>
+                            <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
+                        </div>`;
                     } else {
                         html += '<i class="fas fa-times" style="color: #ccc;"></i>';
                     }
@@ -1807,7 +2167,9 @@
                                 <tr>
                                     <th><i class="fas fa-user-tie"></i> Enseignant</th>
                                     <th><i class="fas fa-book"></i> Matière</th>
+                                    <th><i class="fas fa-tasks"></i> Type d'activité</th>
                                     <th><i class="fas fa-clock"></i> Heures programmées</th>
+                                    <th><i class="fas fa-sun"></i> Répartition par période</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1816,23 +2178,37 @@
             // Compter les heures par enseignant
             const teacherSummary = {};
             distribution.teachers.forEach(course => {
-                const key = `${course.teacher}-${course.subject}`;
+                const key = `${course.teacher}-${course.subject}-${course.activityType}`;
                 if (!teacherSummary[key]) {
                     teacherSummary[key] = {
                         teacher: course.teacher,
                         subject: course.subject,
-                        hours: 0
+                        activityType: course.activityType,
+                        hours: 0,
+                        morningHours: 0,
+                        afternoonHours: 0
                     };
                 }
                 teacherSummary[key].hours++;
+                if (course.timePeriod === 'morning') {
+                    teacherSummary[key].morningHours++;
+                } else if (course.timePeriod === 'afternoon') {
+                    teacherSummary[key].afternoonHours++;
+                }
             });
             
             Object.values(teacherSummary).forEach(summary => {
+                const activityType = ACTIVITY_TYPES[summary.activityType] || ACTIVITY_TYPES['Cours'];
                 html += `
                     <tr>
                         <td>${summary.teacher}</td>
                         <td>${summary.subject}</td>
+                        <td><span class="badge ${activityType.badgeClass}">${summary.activityType}</span></td>
                         <td>${summary.hours}</td>
+                        <td>
+                            <small>Matin: ${summary.morningHours}h</small><br>
+                            <small>Après-midi: ${summary.afternoonHours}h</small>
+                        </td>
                     </tr>
                 `;
             });
@@ -1865,8 +2241,10 @@
                     className: currentDistribution.className,
                     cycle: currentDistribution.cycle,
                     subject: courseData.subject,
+                    activityType: courseData.activityType,
                     day: courseData.day,
-                    timeSlot: courseData.timeSlot
+                    timeSlot: courseData.timeSlot,
+                    timePeriod: courseData.timePeriod
                 };
                 
                 courses.push(course);
@@ -1944,6 +2322,8 @@
                 displayAllData();
             } else if (tabName === 'dashboard') {
                 updateDashboard();
+            } else if (tabName === 'manual') {
+                filterTimeSlots();
             }
         }
 
@@ -1957,9 +2337,16 @@
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             const classes = [...new Set(courses.map(c => c.className))];
             
-            updateSelectOptions('selectTeacher', teachers);
-            updateSelectOptions('filterTeacher', teachers);
-            updateSelectOptions('selectClass', classes);
+            // Mettre à jour tous les filtres nécessaires
+            ['selectTeacher', 'filterTeacher', 'selectTeacherSpecific', 'selectTeacherAll'].forEach(id => {
+                updateSelectOptions(id, teachers);
+            });
+            
+            ['selectClass', 'filterClass', 'selectClassSpecific'].forEach(id => {
+                if (document.getElementById(id)) {
+                    updateSelectOptions(id, classes);
+                }
+            });
         }
 
         function updateTeacherFilters() {
@@ -2005,6 +2392,8 @@
             const selectedTeacher = document.getElementById('selectTeacher').value;
             const selectedCycle = document.getElementById('selectCycle').value;
             const selectedClass = document.getElementById('selectClass').value;
+            const selectedActivityType = document.getElementById('selectActivityType').value;
+            const selectedTimePeriod = document.getElementById('selectTimePeriod').value;
             
             const timetableBody = document.getElementById('timetableBody');
             timetableBody.innerHTML = '';
@@ -2013,6 +2402,8 @@
             if (selectedTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === selectedTeacher);
             if (selectedCycle) filteredCourses = filteredCourses.filter(c => c.cycle === selectedCycle);
             if (selectedClass) filteredCourses = filteredCourses.filter(c => c.className === selectedClass);
+            if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
+            if (selectedTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === selectedTimePeriod);
             
             generateTimetableHTML(filteredCourses);
         }
@@ -2021,8 +2412,11 @@
             const teacher = document.getElementById('selectTeacherSpecific').value;
             if (!teacher) return;
             
+            const selectedActivityType = document.getElementById('selectTeacherActivityType').value;
+            
             const courses = getCourses();
-            const filteredCourses = courses.filter(c => c.teacherName === teacher);
+            let filteredCourses = courses.filter(c => c.teacherName === teacher);
+            if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
             
             generateTimetableHTML(filteredCourses);
         }
@@ -2031,8 +2425,11 @@
             const classe = document.getElementById('selectClassSpecific').value;
             if (!classe) return;
             
+            const selectedActivityType = document.getElementById('selectClassActivityType').value;
+            
             const courses = getCourses();
-            const filteredCourses = courses.filter(c => c.className === classe);
+            let filteredCourses = courses.filter(c => c.className === classe);
+            if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
             
             generateTimetableHTML(filteredCourses);
         }
@@ -2041,8 +2438,11 @@
             const teacher = document.getElementById('selectTeacherAll').value;
             if (!teacher) return;
             
+            const selectedActivityType = document.getElementById('selectTeacherAllActivityType').value;
+            
             const courses = getCourses();
-            const filteredCourses = courses.filter(c => c.teacherName === teacher);
+            let filteredCourses = courses.filter(c => c.teacherName === teacher);
+            if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
             
             generateTimetableHTML(filteredCourses);
         }
@@ -2051,9 +2451,10 @@
             const timetableBody = document.getElementById('timetableBody');
             timetableBody.innerHTML = '';
             
-            timeSlots.forEach(slot => {
+            allTimeSlots.forEach(slot => {
+                const periodBadge = getTimePeriodBadge(slot);
                 const row = document.createElement('tr');
-                row.innerHTML = `<td class="time-col">${slot}</td>`;
+                row.innerHTML = `<td class="time-col">${slot} ${periodBadge}</td>`;
                 
                 days.forEach(day => {
                     const cell = document.createElement('td');
@@ -2064,15 +2465,18 @@
                         dayCourses.forEach(course => {
                             const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
                             const seriesInfo = getSeriesFromClassName(course.className);
+                            const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                            const activityClass = `activity-${activityType.color.toLowerCase()}`;
                             let classDisplay = course.className;
                             if (seriesInfo.badge) {
                                 classDisplay = `${course.className} ${seriesInfo.badge}`;
                             }
                             
-                            content += `<div class="${cycleClass}">
+                            content += `<div class="${cycleClass} ${activityClass}">
                                 <strong>${course.className}</strong><br>
                                 <small><i class="fas fa-book"></i> ${course.subject}</small><br>
-                                <small><i class="fas fa-user-tie"></i> ${course.teacherName}</small>
+                                <small><i class="fas fa-user-tie"></i> ${course.teacherName}</small><br>
+                                <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
                             </div>`;
                         });
                         cell.innerHTML = content;
@@ -2091,6 +2495,8 @@
             const courses = getCourses();
             const filterTeacher = document.getElementById('filterTeacher').value;
             const filterCycle = document.getElementById('filterCycle').value;
+            const filterActivityType = document.getElementById('filterActivityType').value;
+            const filterTimePeriod = document.getElementById('filterTimePeriod').value;
             
             const allDataBody = document.getElementById('allDataBody');
             allDataBody.innerHTML = '';
@@ -2098,11 +2504,13 @@
             let filteredCourses = courses;
             if (filterTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === filterTeacher);
             if (filterCycle) filteredCourses = filteredCourses.filter(c => c.cycle === filterCycle);
+            if (filterActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === filterActivityType);
+            if (filterTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === filterTimePeriod);
             
             if (filteredCourses.length === 0) {
                 allDataBody.innerHTML = `
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px;">
+                        <td colspan="9" style="text-align: center; padding: 20px;">
                             <i class="fas fa-info-circle" style="font-size: 24px; color: #6c757d; margin-bottom: 10px; display: block;"></i>
                             Aucun cours trouvé avec les filtres sélectionnés
                         </td>
@@ -2114,6 +2522,11 @@
             filteredCourses.forEach(course => {
                 const row = document.createElement('tr');
                 const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
+                const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                const timePeriodBadge = course.timePeriod === 'morning' ? 
+                    '<span class="badge badge-exam">Matin</span>' : 
+                    '<span class="badge badge-tp">Après-midi</span>';
+                
                 row.className = cycleClass;
                 
                 row.innerHTML = `
@@ -2121,8 +2534,10 @@
                     <td><i class="fas fa-users"></i> ${course.className}</td>
                     <td><i class="fas fa-layer-group"></i> ${course.cycle}</td>
                     <td><i class="fas fa-book"></i> ${course.subject}</td>
+                    <td><span class="badge ${activityType.badgeClass}">${course.activityType}</span></td>
                     <td><i class="fas fa-calendar-day"></i> ${course.day}</td>
                     <td><i class="fas fa-clock"></i> ${course.timeSlot}</td>
+                    <td>${timePeriodBadge}</td>
                     <td>
                         <button class="btn btn-danger btn-sm" onclick="deleteCourse(${course.id})">
                             <i class="fas fa-trash"></i> Supprimer
@@ -2210,6 +2625,12 @@
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             const totalHours = courses.length;
             
+            // Compter par type d'activité
+            const activityCounts = {};
+            courses.forEach(course => {
+                activityCounts[course.activityType] = (activityCounts[course.activityType] || 0) + 1;
+            });
+            
             document.getElementById('total-teachers').textContent = teachers.length;
             document.getElementById('total-courses').textContent = courses.length;
             document.getElementById('total-hours').textContent = totalHours;
@@ -2218,12 +2639,16 @@
             const recentActivities = document.getElementById('recent-activities');
             if (courses.length > 0) {
                 const recentCourses = courses.slice(-5).reverse();
-                recentActivities.innerHTML = recentCourses.map(course => `
-                    <div style="padding: 10px; border-bottom: 1px solid #eee;">
-                        <strong>${course.teacherName}</strong> - ${course.subject}<br>
-                        <small>${course.className} • ${course.day} ${course.timeSlot}</small>
-                    </div>
-                `).join('');
+                recentActivities.innerHTML = recentCourses.map(course => {
+                    const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                    return `
+                        <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                            <strong>${course.teacherName}</strong> - ${course.subject}<br>
+                            <small>${course.className} • ${course.day} ${course.timeSlot} • 
+                            <span class="badge ${activityType.badgeClass}">${course.activityType}</span></small>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 recentActivities.innerHTML = '<p><i class="fas fa-info-circle"></i> Aucune activité récente</p>';
             }
@@ -2238,29 +2663,37 @@
         document.getElementById('courseForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const course = {
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                teacherName: document.getElementById('teacherName').value,
-                className: document.getElementById('manualClass').value,
-                cycle: document.getElementById('manualCycle').value,
-                subject: document.getElementById('manualSubject').value,
-                day: Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value)[0],
-                timeSlot: document.getElementById('manualTimeSlot').value
-            };
+            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
             
-            if (!course.day) {
+            if (selectedDays.length === 0) {
                 showNotification('Veuillez sélectionner au moins un jour', 'error');
                 return;
             }
             
-            const courses = getCourses();
-            courses.push(course);
-            localStorage.setItem('courses', JSON.stringify(courses));
+            // Créer un cours pour chaque jour sélectionné
+            selectedDays.forEach(day => {
+                const course = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    teacherName: document.getElementById('teacherName').value,
+                    className: document.getElementById('manualClass').value,
+                    cycle: document.getElementById('manualCycle').value,
+                    subject: document.getElementById('manualSubject').value,
+                    activityType: document.getElementById('activityType').value,
+                    day: day,
+                    timeSlot: document.getElementById('manualTimeSlot').value,
+                    timePeriod: getTimePeriod(document.getElementById('manualTimeSlot').value)
+                };
+                
+                const courses = getCourses();
+                courses.push(course);
+                localStorage.setItem('courses', JSON.stringify(courses));
+            });
             
-            showNotification('Cours enregistré avec succès!', 'success');
+            showNotification(`${selectedDays.length} cours enregistrés avec succès!`, 'success');
             this.reset();
             updateFilters();
             updateDashboard();
+            filterTimeSlots(); // Réinitialiser les créneaux
         });
 
         // Initialisation
@@ -2284,7 +2717,13 @@
                 // Initialiser les options de classe
                 updateClassOptions();
                 updateManualClassOptions();
+                
+                // Initialiser les créneaux horaires
+                filterTimeSlots();
             }
+            
+            // Initialiser les événements pour la période
+            document.getElementById('timePeriod').addEventListener('change', filterTimeSlots);
         });
     </script>
 </body>
