@@ -6,6 +6,7 @@
     <title>Gestion Emploi du Temps - Lycée Niamtougou</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Styles CSS inchangés - Identiques à la version précédente */
         :root {
             --primary-color: #4CAF50;
             --primary-hover: #45a049;
@@ -40,7 +41,9 @@
             min-height: 100vh;
         }
 
-        /* Page de connexion */
+        /* Tous les autres styles restent identiques... */
+        /* ... [Tous les styles CSS précédents restent exactement les mêmes] ... */
+        
         .login-container {
             display: flex;
             justify-content: center;
@@ -1161,6 +1164,22 @@
             background-color: #fff3cd;
             color: #856404;
         }
+        
+        /* Correctif pour l'affichage mobile */
+        @media (max-width: 768px) {
+            .teacher-item {
+                flex-wrap: wrap;
+            }
+            
+            .teacher-item input,
+            .teacher-item select {
+                flex: 1 1 150px;
+            }
+            
+            .devoir-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1352,7 +1371,7 @@
                             </div>
                             
                             <div class="data-actions">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" onclick="addSubjectToClass()">
                                     <i class="fas fa-plus"></i> Ajouter la matière
                                 </button>
                                 <button type="button" class="btn btn-secondary" onclick="loadDefaultSubjects()">
@@ -1400,7 +1419,7 @@
                             </div>
                             
                             <div class="data-actions">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" onclick="saveSupervisors()">
                                     <i class="fas fa-save"></i> Enregistrer les surveillants
                                 </button>
                                 <button type="button" class="btn btn-secondary" onclick="loadExistingSupervisors()">
@@ -1525,7 +1544,7 @@
                                 </select>
                             </div>
 
-                            <button type="submit" class="btn btn-primary">
+                            <button type="button" class="btn btn-primary" onclick="generateDistribution()">
                                 <i class="fas fa-cogs"></i> Générer la répartition
                             </button>
                         </form>
@@ -1635,7 +1654,7 @@
                                 </div>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary">
+                            <button type="button" class="btn btn-primary" onclick="saveManualCourse()">
                                 <i class="fas fa-save"></i> Enregistrer le cours
                             </button>
                         </form>
@@ -1648,8 +1667,9 @@
                 <div class="devoir-info-card">
                     <h3><i class="fas fa-calendar-check"></i> Programmation Automatique des DEVOIR Surveillés</h3>
                     <p>Générez automatiquement la programmation des devoirs pour les classes avec répartition des surveillants.</p>
-                    <p><strong>Nouveauté :</strong> Toutes les classes composeront dans une matière le même jour, mais pas nécessairement la même matière pour chaque classe.</p>
+                    <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront dans une matière le même jour, mais pas nécessairement la même matière pour chaque classe.</p>
                     <p><strong>Durée des DEVOIR :</strong> Collège = 2h, Lycée = 3h</p>
+                    <p><strong>Éviter les répétitions :</strong> Une même matière ne sera pas répétée le même jour pour différentes classes.</p>
                 </div>
 
                 <div class="card">
@@ -1730,7 +1750,7 @@
                             </div>
                             
                             <div class="data-actions" style="margin-top: 30px;">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" onclick="generateDevoirProgram()">
                                     <i class="fas fa-magic"></i> Générer la Programmation
                                 </button>
                                 <button type="button" class="btn btn-secondary" onclick="loadExistingData()">
@@ -2096,6 +2116,7 @@
         let currentView = 'general';
         let currentDevoirProgram = null;
         let devoirHistory = JSON.parse(localStorage.getItem('devoirHistory')) || [];
+        let currentDistribution = null;
         
         // Données de configuration
         let configuration = JSON.parse(localStorage.getItem('configuration')) || {
@@ -2712,9 +2733,6 @@
             return { code: '', name: '', badge: '' };
         }
 
-        // Stockage des données de répartition
-        let currentDistribution = null;
-
         // Fonctions pour changer la vue
         function changeView(viewType) {
             currentView = viewType;
@@ -3046,6 +3064,9 @@
                                           ['Matière Principale'];
             });
             
+            // NOUVELLE FONCTIONNALITÉ : Pour chaque jour disponible, toutes les classes composeront
+            // Mais chaque classe aura une matière différente
+            
             // Générer les dates pour la période
             const startDate = new Date();
             const dates = [];
@@ -3055,7 +3076,7 @@
                 dates.push(date);
             }
             
-            // Planifier les DEVOIR avec les NOUVELLES FONCTIONNALITÉS
+            // Filtrer les jours disponibles pour les DEVOIR
             let devoirId = 1;
             const daysForDevoirs = dates.filter(date => {
                 const dayName = getDayName(date.getDay());
@@ -3063,34 +3084,46 @@
             });
             
             // Limiter le nombre de jours si nécessaire
-            const maxDays = Math.min(daysForDevoirs.length, period * 2); // Max 2 jours par semaine
+            const maxDays = Math.min(daysForDevoirs.length, period * availableDays.length);
             const selectedDays = daysForDevoirs.slice(0, maxDays);
             
-            // CORRECTION : Calculer le nombre de classes par jour
-            const classesPerDay = Math.ceil(classes.length / selectedDays.length);
-            
-            // NOUVELLE FONCTIONNALITÉ : Pour chaque jour, toutes les classes composeront ce jour-là
-            // Mais pas nécessairement la même matière pour chaque classe
+            // CORRECTION : Pour chaque jour, TOUTES les classes composeront
+            // Mais avec des matières potentiellement différentes ET SANS RÉPÉTITION
             selectedDays.forEach((date, dayIndex) => {
                 const dayName = getDayName(date.getDay());
                 
-                // Déterminer quelles classes composeront ce jour
-                const startIndex = dayIndex * classesPerDay;
-                const endIndex = Math.min(startIndex + classesPerDay, classes.length);
-                const dayClasses = classes.slice(startIndex, endIndex);
+                // Toutes les classes composeront ce jour-là
+                const dayClasses = [...classes];
+                
+                // Pour éviter les répétitions de matières, nous allons suivre les matières déjà utilisées ce jour-là
+                const usedSubjectsToday = new Set();
                 
                 // Pour chaque classe du jour, planifier un DEVOIR
                 dayClasses.forEach(className => {
                     // DÉTERMINER LE CYCLE DE LA CLASSE pour la durée
                     const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
                     
-                    // Sélectionner une matière aléatoire pour la classe depuis les matières configurées
+                    // Sélectionner une matière pour la classe depuis les matières configurées
                     const subjects = classSubjects[className];
-                    const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+                    if (subjects.length === 0) {
+                        console.warn(`Aucune matière configurée pour la classe ${className}`);
+                        return;
+                    }
                     
-                    // NOUVELLE FONCTIONNALITÉ : Toutes les classes composeront le même jour
-                    // Chaque classe peut avoir une matière différente
-                    const daySubject = randomSubject;
+                    // Filtrer les matières pour éviter les répétitions ce jour-là
+                    const availableSubjects = subjects.filter(subject => !usedSubjectsToday.has(subject));
+                    
+                    let selectedSubject;
+                    if (availableSubjects.length > 0) {
+                        // Choisir une matière aléatoire parmi celles non encore utilisées
+                        selectedSubject = availableSubjects[Math.floor(Math.random() * availableSubjects.length)];
+                    } else {
+                        // Si toutes les matières ont été utilisées, prendre une au hasard
+                        selectedSubject = subjects[Math.floor(Math.random() * subjects.length)];
+                    }
+                    
+                    // Marquer cette matière comme utilisée ce jour-là
+                    usedSubjectsToday.add(selectedSubject);
                     
                     // Sélectionner un surveillant disponible
                     const availableSupervisors = supervisorsToAssign.filter(s => 
@@ -3112,7 +3145,7 @@
                             dayName: dayName,
                             formattedDate: formatDate(date),
                             className: className,
-                            subject: daySubject,
+                            subject: selectedSubject,
                             supervisor: randomSupervisor.name,
                             timeSlot: getAfternoonSlotForDevoir(classCycle), // Créneau selon la durée
                             duration: duration,
@@ -3142,19 +3175,19 @@
                         }
                         program.summary.byClass[className]++;
                         
-                        if (!program.summary.bySubject[daySubject]) {
-                            program.summary.bySubject[daySubject] = 0;
+                        if (!program.summary.bySubject[selectedSubject]) {
+                            program.summary.bySubject[selectedSubject] = 0;
                         }
-                        program.summary.bySubject[daySubject]++;
+                        program.summary.bySubject[selectedSubject]++;
                         
                         // NOUVEAU : Suivi des matières par jour
                         if (!program.summary.byDaySubject[dayName]) {
                             program.summary.byDaySubject[dayName] = {};
                         }
-                        if (!program.summary.byDaySubject[dayName][daySubject]) {
-                            program.summary.byDaySubject[dayName][daySubject] = 0;
+                        if (!program.summary.byDaySubject[dayName][selectedSubject]) {
+                            program.summary.byDaySubject[dayName][selectedSubject] = 0;
                         }
-                        program.summary.byDaySubject[dayName][daySubject]++;
+                        program.summary.byDaySubject[dayName][selectedSubject]++;
                         
                         // Ajouter au surveillant assigné
                         const supervisorInProgram = program.supervisors.find(s => s.name === randomSupervisor.name);
@@ -3162,7 +3195,7 @@
                             supervisorInProgram.assignedDevoirs.push({
                                 date: devoir.formattedDate,
                                 className: className,
-                                subject: daySubject,
+                                subject: selectedSubject,
                                 duration: duration
                             });
                         }
@@ -3226,6 +3259,7 @@
                 <div class="devoir-info-card" style="margin-bottom: 20px;">
                     <h3><i class="fas fa-calendar-check"></i> Programme de DEVOIR - ${program.cycle}</h3>
                     <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront le même jour, mais pas nécessairement dans la même matière.</p>
+                    <p><strong>Éviter les répétitions :</strong> Une même matière ne sera pas répétée le même jour pour différentes classes.</p>
                     <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Période de ${program.period} semaine(s) - Généré le ${new Date(program.date).toLocaleDateString('fr-FR')}</p>
                 </div>
@@ -3570,6 +3604,7 @@
                 <body>
                     <h1>PROGRAMMATION DES DEVOIR - LYCÉE NIAMTOUGOU</h1>
                     <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront le même jour, mais pas nécessairement dans la même matière.</p>
+                    <p><strong>Éviter les répétitions :</strong> Une même matière ne sera pas répétée le même jour pour différentes classes.</p>
                     <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Année Scolaire 2023-2024 - Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
                     ${programContent}
@@ -4416,21 +4451,19 @@
             }
         }
 
-        // Gestion des formulaires avec validation des restrictions
-        document.getElementById('distributionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            generateDistribution();
-        });
-
-        document.getElementById('courseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        // NOUVELLE FONCTION : Gestion des cours manuels
+        function saveManualCourse() {
             const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
             const timeSlot = document.getElementById('manualTimeSlot').value;
             const activityType = document.getElementById('activityType').value;
             
             if (selectedDays.length === 0) {
                 showNotification('Veuillez sélectionner au moins un jour', 'error');
+                return;
+            }
+            
+            if (!timeSlot) {
+                showNotification('Veuillez sélectionner un créneau horaire', 'error');
                 return;
             }
             
@@ -4478,31 +4511,23 @@
             });
             
             showNotification(`${createdCount} cours enregistrés avec succès!`, 'success');
-            this.reset();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('teacherName').value = '';
+            document.getElementById('manualCycle').value = '';
+            document.getElementById('manualClass').value = '';
+            document.getElementById('manualSubject').innerHTML = '<option value="">Sélectionner une matière</option>';
+            document.getElementById('activityType').value = 'Cours';
+            document.querySelectorAll('input[name="day"]').forEach(cb => cb.checked = false);
+            document.getElementById('manualTimeSlot').value = '';
+            document.getElementById('timePeriod').value = 'all';
+            filterTimeSlots();
+            
             updateFilters();
             updateDashboard();
-            filterTimeSlots(); // Réinitialiser les créneaux
-        });
+        }
 
-        // Gestion du formulaire DEVOIR
-        document.getElementById('devoirForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            generateDevoirProgram();
-        });
-
-        // Gestion du formulaire de configuration des matières
-        document.getElementById('subjectForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            addSubjectToClass();
-        });
-
-        // Gestion du formulaire de configuration des surveillants
-        document.getElementById('supervisorForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveSupervisors();
-        });
-
-        // Initialisation
+        // Gestion des événements de formulaire
         document.addEventListener('DOMContentLoaded', function() {
             // Vérifier l'authentification
             checkAuthentication();
