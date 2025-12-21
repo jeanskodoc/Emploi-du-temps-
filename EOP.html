@@ -1648,6 +1648,8 @@
                 <div class="devoir-info-card">
                     <h3><i class="fas fa-calendar-check"></i> Programmation Automatique des DEVOIR Surveillés</h3>
                     <p>Générez automatiquement la programmation des devoirs pour les classes avec répartition des surveillants.</p>
+                    <p><strong>Nouveauté :</strong> Toutes les classes composeront dans une matière le même jour, mais pas nécessairement la même matière pour chaque classe.</p>
+                    <p><strong>Durée des DEVOIR :</strong> Collège = 2h, Lycée = 3h</p>
                 </div>
 
                 <div class="card">
@@ -2177,6 +2179,16 @@
                 allowedAfternoonActivityTypes: ['DEVOIR'] // Seulement DEVOIR l'après-midi
             }
         };
+
+        // NOUVELLE FONCTIONNALITÉ : Durée des DEVOIR selon le cycle
+        function getDevoirDuration(cycle) {
+            if (cycle === 'Collège') {
+                return '2h'; // Collège = 2 heures
+            } else if (cycle === 'Lycée') {
+                return '3h'; // Lycée = 3 heures
+            }
+            return '2h'; // Par défaut
+        }
 
         // Fonctions de gestion de la configuration
         function saveConfiguration() {
@@ -2941,7 +2953,7 @@
             return '';
         }
 
-        // Fonction pour générer la programmation des DEVOIR
+        // Fonction pour générer la programmation des DEVOIR avec les NOUVELLES FONCTIONNALITÉS
         function generateDevoirProgram() {
             const cycle = document.getElementById('devoirCycle').value;
             const period = parseInt(document.getElementById('devoirPeriod').value);
@@ -2988,8 +3000,8 @@
                 return;
             }
             
-            // Générer la programmation
-            const program = generateDevoirProgrammation(selectedClasses, supervisors, selectedDays, period, maxDevoirsPerDay, cycle);
+            // Générer la programmation AVEC LES NOUVELLES FONCTIONNALITÉS
+            const program = generateDevoirProgrammationWithNewFeatures(selectedClasses, supervisors, selectedDays, period, maxDevoirsPerDay, cycle);
             currentDevoirProgram = program;
             
             // Afficher les résultats
@@ -2999,7 +3011,8 @@
             showNotification('Programmation des DEVOIR générée avec succès!', 'success');
         }
 
-        function generateDevoirProgrammation(classes, supervisors, availableDays, period, maxDevoirsPerDay, cycle) {
+        // NOUVELLE FONCTION : Génération de programmation avec les nouvelles fonctionnalités
+        function generateDevoirProgrammationWithNewFeatures(classes, supervisors, availableDays, period, maxDevoirsPerDay, cycle) {
             const program = {
                 id: Date.now(),
                 date: new Date().toISOString(),
@@ -3017,7 +3030,8 @@
                     totalDevoirs: 0,
                     byDay: {},
                     byClass: {},
-                    bySubject: {}
+                    bySubject: {},
+                    byDaySubject: {} // NOUVEAU : Pour suivre les matières par jour
                 }
             };
             
@@ -3041,7 +3055,7 @@
                 dates.push(date);
             }
             
-            // Planifier les DEVOIR
+            // Planifier les DEVOIR avec les NOUVELLES FONCTIONNALITÉS
             let devoirId = 1;
             const daysForDevoirs = dates.filter(date => {
                 const dayName = getDayName(date.getDay());
@@ -3052,18 +3066,31 @@
             const maxDays = Math.min(daysForDevoirs.length, period * 2); // Max 2 jours par semaine
             const selectedDays = daysForDevoirs.slice(0, maxDays);
             
-            // Répartir les classes sur les jours disponibles
+            // CORRECTION : Calculer le nombre de classes par jour
             const classesPerDay = Math.ceil(classes.length / selectedDays.length);
             
+            // NOUVELLE FONCTIONNALITÉ : Pour chaque jour, toutes les classes composeront ce jour-là
+            // Mais pas nécessairement la même matière pour chaque classe
             selectedDays.forEach((date, dayIndex) => {
                 const dayName = getDayName(date.getDay());
-                const dayClasses = classes.slice(dayIndex * classesPerDay, (dayIndex + 1) * classesPerDay);
+                
+                // Déterminer quelles classes composeront ce jour
+                const startIndex = dayIndex * classesPerDay;
+                const endIndex = Math.min(startIndex + classesPerDay, classes.length);
+                const dayClasses = classes.slice(startIndex, endIndex);
                 
                 // Pour chaque classe du jour, planifier un DEVOIR
                 dayClasses.forEach(className => {
+                    // DÉTERMINER LE CYCLE DE LA CLASSE pour la durée
+                    const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
+                    
                     // Sélectionner une matière aléatoire pour la classe depuis les matières configurées
                     const subjects = classSubjects[className];
                     const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+                    
+                    // NOUVELLE FONCTIONNALITÉ : Toutes les classes composeront le même jour
+                    // Chaque classe peut avoir une matière différente
+                    const daySubject = randomSubject;
                     
                     // Sélectionner un surveillant disponible
                     const availableSupervisors = supervisorsToAssign.filter(s => 
@@ -3075,6 +3102,9 @@
                         // Choisir un surveillant au hasard
                         const randomSupervisor = availableSupervisors[Math.floor(Math.random() * availableSupervisors.length)];
                         
+                        // DÉTERMINER LA DURÉE selon le cycle
+                        const duration = getDevoirDuration(classCycle);
+                        
                         // Créer le DEVOIR
                         const devoir = {
                             id: devoirId++,
@@ -3082,11 +3112,12 @@
                             dayName: dayName,
                             formattedDate: formatDate(date),
                             className: className,
-                            subject: randomSubject,
+                            subject: daySubject,
                             supervisor: randomSupervisor.name,
-                            timeSlot: getRandomAfternoonSlot(),
-                            duration: '1h30',
-                            room: getRandomRoom(className)
+                            timeSlot: getAfternoonSlotForDevoir(classCycle), // Créneau selon la durée
+                            duration: duration,
+                            room: getRandomRoom(className),
+                            cycle: classCycle // Ajout du cycle pour affichage
                         };
                         
                         program.devoirs.push(devoir);
@@ -3111,10 +3142,19 @@
                         }
                         program.summary.byClass[className]++;
                         
-                        if (!program.summary.bySubject[randomSubject]) {
-                            program.summary.bySubject[randomSubject] = 0;
+                        if (!program.summary.bySubject[daySubject]) {
+                            program.summary.bySubject[daySubject] = 0;
                         }
-                        program.summary.bySubject[randomSubject]++;
+                        program.summary.bySubject[daySubject]++;
+                        
+                        // NOUVEAU : Suivi des matières par jour
+                        if (!program.summary.byDaySubject[dayName]) {
+                            program.summary.byDaySubject[dayName] = {};
+                        }
+                        if (!program.summary.byDaySubject[dayName][daySubject]) {
+                            program.summary.byDaySubject[dayName][daySubject] = 0;
+                        }
+                        program.summary.byDaySubject[dayName][daySubject]++;
                         
                         // Ajouter au surveillant assigné
                         const supervisorInProgram = program.supervisors.find(s => s.name === randomSupervisor.name);
@@ -3122,7 +3162,8 @@
                             supervisorInProgram.assignedDevoirs.push({
                                 date: devoir.formattedDate,
                                 className: className,
-                                subject: randomSubject
+                                subject: daySubject,
+                                duration: duration
                             });
                         }
                     }
@@ -3130,6 +3171,20 @@
             });
             
             return program;
+        }
+
+        // NOUVELLE FONCTION : Obtenir le créneau horaire selon la durée du DEVOIR
+        function getAfternoonSlotForDevoir(cycle) {
+            if (cycle === 'Collège') {
+                // Collège : 2 heures
+                const slots = ['14:30 - 16:30', '15:00 - 17:00', '15:30 - 17:30'];
+                return slots[Math.floor(Math.random() * slots.length)];
+            } else if (cycle === 'Lycée') {
+                // Lycée : 3 heures
+                const slots = ['14:30 - 17:30', '14:00 - 17:00', '15:00 - 18:00'];
+                return slots[Math.floor(Math.random() * slots.length)];
+            }
+            return '14:30 - 16:30'; // Par défaut
         }
 
         function getDayName(dayIndex) {
@@ -3144,11 +3199,6 @@
                 month: 'long',
                 day: 'numeric'
             });
-        }
-
-        function getRandomAfternoonSlot() {
-            const slots = ['14:30 - 16:00', '15:00 - 16:30', '16:00 - 17:30'];
-            return slots[Math.floor(Math.random() * slots.length)];
         }
 
         function getRandomRoom(className) {
@@ -3175,6 +3225,8 @@
             let html = `
                 <div class="devoir-info-card" style="margin-bottom: 20px;">
                     <h3><i class="fas fa-calendar-check"></i> Programme de DEVOIR - ${program.cycle}</h3>
+                    <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront le même jour, mais pas nécessairement dans la même matière.</p>
+                    <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Période de ${program.period} semaine(s) - Généré le ${new Date(program.date).toLocaleDateString('fr-FR')}</p>
                 </div>
                 
@@ -3223,14 +3275,14 @@
                                 </ul>
                             </div>
                             <div>
-                                <h4><i class="fas fa-book"></i> Matières les plus fréquentes:</h4>
+                                <h4><i class="fas fa-book"></i> Matières par jour:</h4>
                                 <ul style="margin: 10px 0; padding-left: 20px;">
-                                    ${Object.entries(program.summary.bySubject)
-                                        .sort((a, b) => b[1] - a[1])
-                                        .slice(0, 5)
-                                        .map(([subject, count]) => 
-                                            `<li><strong>${subject}:</strong> ${count} DEVOIR</li>`
-                                        ).join('')}
+                                    ${Object.entries(program.summary.byDaySubject).map(([day, subjects]) => {
+                                        const subjectList = Object.keys(subjects).map(subject => 
+                                            `${subject} (${subjects[subject]})`
+                                        ).join(', ');
+                                        return `<li><strong>${day}:</strong> ${subjectList}</li>`;
+                                    }).join('')}
                                 </ul>
                             </div>
                         </div>
@@ -3248,6 +3300,7 @@
                                     <tr>
                                         <th><i class="fas fa-calendar"></i> Date</th>
                                         <th><i class="fas fa-users"></i> Classe</th>
+                                        <th><i class="fas fa-layer-group"></i> Cycle</th>
                                         <th><i class="fas fa-book"></i> Matière</th>
                                         <th><i class="fas fa-clock"></i> Horaire</th>
                                         <th><i class="fas fa-door-open"></i> Salle</th>
@@ -3269,6 +3322,7 @@
                     <tr>
                         <td><i class="fas fa-calendar-day"></i> ${devoir.formattedDate}</td>
                         <td><i class="fas fa-users"></i> ${classDisplay}</td>
+                        <td><span class="badge ${devoir.cycle === 'Collège' ? 'badge-td' : 'badge-tp'}">${devoir.cycle}</span></td>
                         <td><i class="fas fa-book"></i> ${devoir.subject}</td>
                         <td><i class="fas fa-clock"></i> ${devoir.timeSlot}</td>
                         <td><i class="fas fa-door-open"></i> ${devoir.room}</td>
@@ -3314,6 +3368,7 @@
                                         <div class="subject-devoir-info">
                                             <strong>${devoir.className}</strong>
                                             <small>${devoir.subject} - ${devoir.date}</small>
+                                            <small>Durée: ${devoir.duration}</small>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -3348,10 +3403,15 @@
                     classDisplay = `${className} ${seriesInfo.badge}`;
                 }
                 
+                // Déterminer le cycle de la classe
+                const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
+                const duration = getDevoirDuration(classCycle);
+                
                 html += `
                     <div class="devoir-class-card">
                         <h4><i class="fas fa-users"></i> ${classDisplay}</h4>
                         <p><small><i class="fas fa-file-alt"></i> ${classDevoirs.length} DEVOIR programmé(s)</small></p>
+                        <p><small><i class="fas fa-hourglass-half"></i> Durée: ${duration}</small></p>
                         
                         ${classDevoirs.length > 0 ? `
                             <div style="margin-top: 15px;">
@@ -3361,6 +3421,7 @@
                                             <strong>${devoir.subject}</strong>
                                             <small>${devoir.formattedDate} - ${devoir.timeSlot}</small>
                                             <small><i class="fas fa-user-tie"></i> ${devoir.supervisor}</small>
+                                            <small><i class="fas fa-hourglass-half"></i> ${devoir.duration}</small>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -3508,6 +3569,8 @@
                 </head>
                 <body>
                     <h1>PROGRAMMATION DES DEVOIR - LYCÉE NIAMTOUGOU</h1>
+                    <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront le même jour, mais pas nécessairement dans la même matière.</p>
+                    <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Année Scolaire 2023-2024 - Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
                     ${programContent}
                 </body>
@@ -3525,10 +3588,10 @@
             }
             
             // Créer un format CSV simple
-            let csvContent = "Date,Classe,Matière,Horaire,Salle,Surveillant,Durée\n";
+            let csvContent = "Date,Classe,Cycle,Matière,Horaire,Salle,Surveillant,Durée\n";
             
             currentDevoirProgram.devoirs.forEach(devoir => {
-                csvContent += `"${devoir.formattedDate}","${devoir.className}","${devoir.subject}","${devoir.timeSlot}","${devoir.room}","${devoir.supervisor}","${devoir.duration}"\n`;
+                csvContent += `"${devoir.formattedDate}","${devoir.className}","${devoir.cycle}","${devoir.subject}","${devoir.timeSlot}","${devoir.room}","${devoir.supervisor}","${devoir.duration}"\n`;
             });
             
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
