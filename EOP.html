@@ -1009,6 +1009,158 @@
             background-color: #6c757d !important;
             color: white !important;
         }
+        
+        /* Styles pour l'onglet DEVOIR */
+        .devoir-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .devoir-info-card h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .devoir-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .devoir-class-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .devoir-class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        .devoir-class-card h4 {
+            color: var(--exam-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--exam-color);
+        }
+        
+        .supervisor-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            margin-bottom: 8px;
+        }
+        
+        .subject-devoir {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            border-left: 4px solid var(--exam-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .subject-devoir-info {
+            flex: 1;
+        }
+        
+        .subject-devoir-info strong {
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .subject-devoir-info small {
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        /* Timeline pour la programmation des devoirs */
+        .devoir-timeline {
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .devoir-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--exam-color);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 25px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--exam-color);
+            border: 2px solid white;
+            box-shadow: 0 0 0 3px var(--exam-color);
+        }
+        
+        .timeline-date {
+            font-weight: bold;
+            color: var(--exam-color);
+            margin-bottom: 5px;
+        }
+        
+        .timeline-content {
+            background: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Badge pour le statut des surveillants */
+        .supervisor-status {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+        
+        .status-available {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-busy {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
@@ -1057,6 +1209,7 @@
                 <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
                 <li><a href="#" onclick="switchTab('distribution')"><i class="fas fa-random"></i> Répartition Auto</a></li>
                 <li><a href="#" onclick="switchTab('manual')"><i class="fas fa-edit"></i> Saisie Manuelle</a></li>
+                <li><a href="#" onclick="switchTab('devoir')"><i class="fas fa-file-alt"></i> Programmation DEVOIR</a></li>
                 <li><a href="#" onclick="switchTab('timetable')"><i class="fas fa-calendar-alt"></i> Visualisation</a></li>
                 <li><a href="#" onclick="switchTab('all-data')"><i class="fas fa-database"></i> Toutes les données</a></li>
                 <li><a href="#" onclick="exportData()"><i class="fas fa-file-export"></i> Exporter</a></li>
@@ -1131,6 +1284,9 @@
                             <button class="btn btn-secondary" onclick="switchTab('manual')">
                                 <i class="fas fa-plus"></i> Ajouter un cours
                             </button>
+                            <button class="btn btn-neutral" onclick="switchTab('devoir')">
+                                <i class="fas fa-file-alt"></i> Programmer les DEVOIR
+                            </button>
                             <button class="btn btn-neutral" onclick="switchTab('timetable')">
                                 <i class="fas fa-calendar-alt"></i> Voir l'emploi du temps
                             </button>
@@ -1161,7 +1317,7 @@
 
                             <div class="form-group">
                                 <label for="distributionClass"><i class="fas fa-users"></i> Classe:</label>
-                                <select id="distributionClass" required>
+                                    <select id="distributionClass" required>
                                     <option value="">Sélectionner une classe</option>
                                     <!-- Les options seront mises à jour dynamiquement -->
                                 </select>
@@ -1321,6 +1477,143 @@
                 </div>
             </section>
 
+            <!-- DEVOIR Tab -->
+            <section id="devoir-tab" class="tab-content">
+                <div class="devoir-info-card">
+                    <h3><i class="fas fa-calendar-check"></i> Programmation Automatique des DEVOIR Surveillés</h3>
+                    <p>Générez automatiquement la programmation des devoirs pour les classes avec répartition des surveillants.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-cogs"></i> Configuration de la Programmation</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="devoirForm">
+                            <div class="form-columns">
+                                <div class="form-group">
+                                    <label for="devoirCycle"><i class="fas fa-layer-group"></i> Sélectionner le cycle:</label>
+                                    <select id="devoirCycle" required onchange="updateDevoirClassOptions()">
+                                        <option value="">Choisir un cycle</option>
+                                        <option value="Collège">Collège</option>
+                                        <option value="Lycée">Lycée</option>
+                                        <option value="all">Collège et Lycée</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="devoirPeriod"><i class="fas fa-calendar-week"></i> Période de programmation:</label>
+                                    <select id="devoirPeriod" required>
+                                        <option value="1">1 semaine</option>
+                                        <option value="2">2 semaines</option>
+                                        <option value="3">3 semaines</option>
+                                        <option value="4">4 semaines</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="maxDevoirsPerDay"><i class="fas fa-chart-line"></i> Maximum de devoirs par jour:</label>
+                                    <input type="number" id="maxDevoirsPerDay" value="2" min="1" max="4" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-day"></i> Jours disponibles pour les DEVOIR:</label>
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 10px;">
+                                    <label><input type="checkbox" name="devoirDay" value="Mardi" checked> <i class="fas fa-calendar"></i> Mardi (Après-midi)</label>
+                                    <label><input type="checkbox" name="devoirDay" value="Vendredi" checked> <i class="fas fa-calendar"></i> Vendredi (Après-midi)</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="devoirClasses"><i class="fas fa-users"></i> Classes à programmer (sélection multiple):</label>
+                                <select id="devoirClasses" multiple size="6" style="height: auto; min-height: 120px;">
+                                    <!-- Les options seront mises à jour dynamiquement -->
+                                </select>
+                                <small style="display: block; margin-top: 5px; color: #666;">
+                                    <i class="fas fa-info-circle"></i> Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs classes
+                                </small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-chalkboard-teacher"></i> Liste des enseignants disponibles pour surveillance:</label>
+                                <div id="supervisorsContainer">
+                                    <div class="teacher-item">
+                                        <input type="text" class="supervisor-name" placeholder="Nom et prénom de l'enseignant" required>
+                                        <select class="supervisor-disponibility" required>
+                                            <option value="full">Disponible à plein temps</option>
+                                            <option value="partial">Disponibilité partielle</option>
+                                            <option value="limited">Disponibilité limitée</option>
+                                        </select>
+                                        <input type="number" class="supervisor-max" placeholder="Max surveillances/semaine" min="1" max="10" value="3" required>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="addSupervisor()">
+                                    <i class="fas fa-plus"></i> Ajouter un surveillant
+                                </button>
+                            </div>
+                            
+                            <div class="data-actions" style="margin-top: 30px;">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-magic"></i> Générer la Programmation
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="loadExistingData()">
+                                    <i class="fas fa-sync"></i> Charger depuis les données existantes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="devoirResults" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h2><i class="fas fa-calendar-alt"></i> Programmation Générée des DEVOIR</h2>
+                        <div class="data-actions">
+                            <button class="btn btn-secondary" onclick="saveDevoirProgram()">
+                                <i class="fas fa-save"></i> Enregistrer dans l'emploi du temps
+                            </button>
+                            <button class="btn btn-neutral" onclick="printDevoirProgram()">
+                                <i class="fas fa-print"></i> Imprimer la programmation
+                            </button>
+                            <button class="btn btn-warning" onclick="exportDevoirProgram()">
+                                <i class="fas fa-file-excel"></i> Exporter en Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="devoirProgramContainer"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> Historique des Programmes DEVOIR</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-calendar"></i> Date de création</th>
+                                        <th><i class="fas fa-layer-group"></i> Cycle</th>
+                                        <th><i class="fas fa-users"></i> Classes</th>
+                                        <th><i class="fas fa-file-alt"></i> Nombre de DEVOIR</th>
+                                        <th><i class="fas fa-calendar-week"></i> Période</th>
+                                        <th><i class="fas fa-cog"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="devoirHistoryBody">
+                                    <!-- L'historique sera chargé ici -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Timetable Tab -->
             <section id="timetable-tab" class="tab-content">
                 <div class="card">
@@ -1378,7 +1671,7 @@
                             
                             <div class="filter-group">
                                 <label for="selectClass"><i class="fas fa-users"></i> Classe:</label>
-                                <select id="selectClass" onchange="generateTimetable()">
+                                    <select id="selectClass" onchange="generateTimetable()">
                                     <option value="">-- Toutes --</option>
                                 </select>
                             </div>
@@ -1605,8 +1898,31 @@
             ]
         };
 
+        // Matières par niveau et cycle
+        const MATIERES_BY_CYCLE = {
+            'Collège': {
+                '6ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS'],
+                '5ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie'],
+                '4ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie', 'Espagnol'],
+                '3ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie', 'Espagnol', 'Technologie']
+            },
+            'Lycée': {
+                '2nd C': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie'],
+                '2nd D': ['Français', 'Mathématiques', 'Histoire-Géo', 'SES', 'Anglais', 'EPS', 'Physique-Chimie'],
+                '2nd L': ['Français', 'Mathématiques', 'Histoire-Géo', 'Anglais', 'EPS', 'Espagnol', 'Philosophie'],
+                '1ère C': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie', 'Philosophie'],
+                '1ère D': ['Français', 'Mathématiques', 'Histoire-Géo', 'SES', 'Anglais', 'EPS', 'Physique-Chimie', 'Philosophie'],
+                '1ère A': ['Français', 'Philosophie', 'Histoire-Géo', 'Anglais', 'EPS', 'Espagnol', 'Latin', 'Arts'],
+                'Tle C': ['Philosophie', 'Mathématiques', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie'],
+                'Tle D': ['Philosophie', 'Mathématiques', 'SES', 'Anglais', 'EPS', 'Physique-Chimie'],
+                'Tle A': ['Philosophie', 'Français', 'Histoire-Géo', 'Anglais', 'EPS', 'Espagnol', 'Latin', 'Arts']
+            }
+        };
+
         // Variables globales
         let currentView = 'general';
+        let currentDevoirProgram = null;
+        let devoirHistory = JSON.parse(localStorage.getItem('devoirHistory')) || [];
         
         // Créneaux horaires classés par période
         const morningSlots = [
@@ -1756,6 +2072,91 @@
                     classSelect.appendChild(option);
                 });
             }
+        }
+
+        // Fonctions pour l'onglet DEVOIR
+        function updateDevoirClassOptions() {
+            const cycle = document.getElementById('devoirCycle').value;
+            const classSelect = document.getElementById('devoirClasses');
+            
+            classSelect.innerHTML = '';
+            
+            if (cycle === 'all') {
+                // Ajouter toutes les classes de Collège et Lycée
+                const allClasses = [...CLASSES_BY_CYCLE['Collège'], ...CLASSES_BY_CYCLE['Lycée']];
+                allClasses.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    option.selected = true; // Sélectionner par défaut
+                    classSelect.appendChild(option);
+                });
+            } else if (cycle && CLASSES_BY_CYCLE[cycle]) {
+                CLASSES_BY_CYCLE[cycle].forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    option.selected = true; // Sélectionner par défaut
+                    classSelect.appendChild(option);
+                });
+            }
+        }
+
+        function addSupervisor() {
+            const container = document.getElementById('supervisorsContainer');
+            const supervisorDiv = document.createElement('div');
+            supervisorDiv.className = 'teacher-item';
+            supervisorDiv.innerHTML = `
+                <input type="text" class="supervisor-name" placeholder="Nom et prénom de l'enseignant" required>
+                <select class="supervisor-disponibility" required>
+                    <option value="full">Disponible à plein temps</option>
+                    <option value="partial">Disponibilité partielle</option>
+                    <option value="limited">Disponibilité limitée</option>
+                </select>
+                <input type="number" class="supervisor-max" placeholder="Max surveillances/semaine" min="1" max="10" value="3" required>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(supervisorDiv);
+        }
+
+        function removeSupervisor(button) {
+            const container = document.getElementById('supervisorsContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        // Fonction pour charger les données existantes
+        function loadExistingData() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            
+            // Charger les enseignants existants comme surveillants
+            const container = document.getElementById('supervisorsContainer');
+            container.innerHTML = '';
+            
+            teachers.forEach(teacher => {
+                const supervisorDiv = document.createElement('div');
+                supervisorDiv.className = 'teacher-item';
+                supervisorDiv.innerHTML = `
+                    <input type="text" class="supervisor-name" value="${teacher}" required>
+                    <select class="supervisor-disponibility" required>
+                        <option value="full">Disponible à plein temps</option>
+                        <option value="partial">Disponibilité partielle</option>
+                        <option value="limited">Disponibilité limitée</option>
+                    </select>
+                    <input type="number" class="supervisor-max" value="3" min="1" max="10" required>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                container.appendChild(supervisorDiv);
+            });
+            
+            showNotification(`${teachers.length} enseignants chargés comme surveillants`, 'success');
         }
 
         // Fonction pour obtenir les informations de série
@@ -2028,6 +2429,606 @@
             }
             
             return '';
+        }
+
+        // Fonction pour générer la programmation des DEVOIR
+        function generateDevoirProgram() {
+            const cycle = document.getElementById('devoirCycle').value;
+            const period = parseInt(document.getElementById('devoirPeriod').value);
+            const maxDevoirsPerDay = parseInt(document.getElementById('maxDevoirsPerDay').value);
+            
+            // Récupérer les classes sélectionnées
+            const classSelect = document.getElementById('devoirClasses');
+            const selectedClasses = Array.from(classSelect.selectedOptions).map(opt => opt.value);
+            
+            if (selectedClasses.length === 0) {
+                showNotification('Veuillez sélectionner au moins une classe', 'error');
+                return;
+            }
+            
+            // Récupérer les surveillants
+            const supervisors = [];
+            const supervisorItems = document.querySelectorAll('#supervisorsContainer .teacher-item');
+            
+            supervisorItems.forEach(item => {
+                const name = item.querySelector('.supervisor-name').value;
+                const disponibility = item.querySelector('.supervisor-disponibility').value;
+                const maxSupervisions = parseInt(item.querySelector('.supervisor-max').value);
+                
+                if (name && maxSupervisions) {
+                    supervisors.push({ 
+                        name, 
+                        disponibility, 
+                        maxSupervisions,
+                        currentSupervisions: 0,
+                        schedule: {}
+                    });
+                }
+            });
+            
+            if (supervisors.length === 0) {
+                showNotification('Veuillez ajouter au moins un surveillant', 'error');
+                return;
+            }
+            
+            // Récupérer les jours sélectionnés pour les DEVOIR
+            const selectedDays = Array.from(document.querySelectorAll('input[name="devoirDay"]:checked')).map(cb => cb.value);
+            if (selectedDays.length === 0) {
+                showNotification('Veuillez sélectionner au moins un jour pour les DEVOIR', 'error');
+                return;
+            }
+            
+            // Générer la programmation
+            const program = generateDevoirProgrammation(selectedClasses, supervisors, selectedDays, period, maxDevoirsPerDay, cycle);
+            currentDevoirProgram = program;
+            
+            // Afficher les résultats
+            displayDevoirResults(program);
+            updateDevoirHistory();
+            
+            showNotification('Programmation des DEVOIR générée avec succès!', 'success');
+        }
+
+        function generateDevoirProgrammation(classes, supervisors, availableDays, period, maxDevoirsPerDay, cycle) {
+            const program = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                cycle: cycle,
+                classes: classes,
+                period: period,
+                devoirs: [],
+                supervisors: supervisors.map(s => ({
+                    name: s.name,
+                    disponibility: s.disponibility,
+                    maxSupervisions: s.maxSupervisions,
+                    assignedDevoirs: []
+                })),
+                summary: {
+                    totalDevoirs: 0,
+                    byDay: {},
+                    byClass: {},
+                    bySubject: {}
+                }
+            };
+            
+            // Créer une copie des surveillants pour la répartition
+            const supervisorsToAssign = supervisors.map(s => ({ ...s }));
+            
+            // Générer la liste des matières pour chaque classe
+            const classSubjects = {};
+            classes.forEach(className => {
+                // Déterminer le cycle de la classe
+                const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
+                classSubjects[className] = MATIERES_BY_CYCLE[classCycle][className] || ['Matière Principale'];
+            });
+            
+            // Générer les dates pour la période
+            const startDate = new Date();
+            const dates = [];
+            for (let i = 0; i < period * 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                dates.push(date);
+            }
+            
+            // Planifier les DEVOIR
+            let devoirId = 1;
+            const daysForDevoirs = dates.filter(date => {
+                const dayName = getDayName(date.getDay());
+                return availableDays.includes(dayName);
+            });
+            
+            // Limiter le nombre de jours si nécessaire
+            const maxDays = Math.min(daysForDevoirs.length, period * 2); // Max 2 jours par semaine
+            const selectedDays = daysForDevoirs.slice(0, maxDays);
+            
+            // Répartir les classes sur les jours disponibles
+            const classesPerDay = Math.ceil(classes.length / selectedDays.length);
+            
+            selectedDays.forEach((date, dayIndex) => {
+                const dayName = getDayName(date.getDay());
+                const dayClasses = classes.slice(dayIndex * classesPerDay, (dayIndex + 1) * classesPerDay);
+                
+                // Pour chaque classe du jour, planifier un DEVOIR
+                dayClasses.forEach(className => {
+                    // Sélectionner une matière aléatoire pour la classe
+                    const subjects = classSubjects[className];
+                    const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+                    
+                    // Sélectionner un surveillant disponible
+                    const availableSupervisors = supervisorsToAssign.filter(s => 
+                        s.currentSupervisions < s.maxSupervisions && 
+                        (!s.schedule[date.toDateString()] || s.schedule[date.toDateString()] < 2)
+                    );
+                    
+                    if (availableSupervisors.length > 0) {
+                        // Choisir un surveillant au hasard
+                        const randomSupervisor = availableSupervisors[Math.floor(Math.random() * availableSupervisors.length)];
+                        
+                        // Créer le DEVOIR
+                        const devoir = {
+                            id: devoirId++,
+                            date: date.toISOString(),
+                            dayName: dayName,
+                            formattedDate: formatDate(date),
+                            className: className,
+                            subject: randomSubject,
+                            supervisor: randomSupervisor.name,
+                            timeSlot: getRandomAfternoonSlot(),
+                            duration: '1h30',
+                            room: getRandomRoom(className)
+                        };
+                        
+                        program.devoirs.push(devoir);
+                        
+                        // Mettre à jour les compteurs
+                        randomSupervisor.currentSupervisions++;
+                        if (!randomSupervisor.schedule[date.toDateString()]) {
+                            randomSupervisor.schedule[date.toDateString()] = 0;
+                        }
+                        randomSupervisor.schedule[date.toDateString()]++;
+                        
+                        // Mettre à jour le résumé
+                        program.summary.totalDevoirs++;
+                        
+                        if (!program.summary.byDay[dayName]) {
+                            program.summary.byDay[dayName] = 0;
+                        }
+                        program.summary.byDay[dayName]++;
+                        
+                        if (!program.summary.byClass[className]) {
+                            program.summary.byClass[className] = 0;
+                        }
+                        program.summary.byClass[className]++;
+                        
+                        if (!program.summary.bySubject[randomSubject]) {
+                            program.summary.bySubject[randomSubject] = 0;
+                        }
+                        program.summary.bySubject[randomSubject]++;
+                        
+                        // Ajouter au surveillant assigné
+                        const supervisorInProgram = program.supervisors.find(s => s.name === randomSupervisor.name);
+                        if (supervisorInProgram) {
+                            supervisorInProgram.assignedDevoirs.push({
+                                date: devoir.formattedDate,
+                                className: className,
+                                subject: randomSubject
+                            });
+                        }
+                    }
+                });
+            });
+            
+            return program;
+        }
+
+        function getDayName(dayIndex) {
+            const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+            return days[dayIndex];
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function getRandomAfternoonSlot() {
+            const slots = ['14:30 - 16:00', '15:00 - 16:30', '16:00 - 17:30'];
+            return slots[Math.floor(Math.random() * slots.length)];
+        }
+
+        function getRandomRoom(className) {
+            // Déterminer le bâtiment selon la classe
+            if (className.includes('6ème') || className.includes('5ème')) {
+                const rooms = ['Salle 101', 'Salle 102', 'Salle 103'];
+                return rooms[Math.floor(Math.random() * rooms.length)];
+            } else if (className.includes('4ème') || className.includes('3ème')) {
+                const rooms = ['Salle 201', 'Salle 202', 'Salle 203'];
+                return rooms[Math.floor(Math.random() * rooms.length)];
+            } else if (className.includes('2nd') || className.includes('1ère')) {
+                const rooms = ['Salle 301', 'Salle 302', 'Salle 303'];
+                return rooms[Math.floor(Math.random() * rooms.length)];
+            } else {
+                const rooms = ['Salle 401', 'Salle 402', 'Salle 403'];
+                return rooms[Math.floor(Math.random() * rooms.length)];
+            }
+        }
+
+        function displayDevoirResults(program) {
+            const container = document.getElementById('devoirProgramContainer');
+            const resultsDiv = document.getElementById('devoirResults');
+            
+            let html = `
+                <div class="devoir-info-card" style="margin-bottom: 20px;">
+                    <h3><i class="fas fa-calendar-check"></i> Programme de DEVOIR - ${program.cycle}</h3>
+                    <p>Période de ${program.period} semaine(s) - Généré le ${new Date(program.date).toLocaleDateString('fr-FR')}</p>
+                </div>
+                
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header" style="background: var(--exam-color);">
+                        <h3><i class="fas fa-chart-bar"></i> Récapitulatif</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: rgba(156, 39, 176, 0.1); color: var(--exam-color);">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3>${program.summary.totalDevoirs}</h3>
+                                    <p>DEVOIR programmés</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: rgba(33, 150, 243, 0.1); color: var(--secondary-color);">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3>${program.classes.length}</h3>
+                                    <p>Classes concernées</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background: rgba(76, 175, 80, 0.1); color: var(--primary-color);">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3>${program.supervisors.length}</h3>
+                                    <p>Surveillants assignés</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-columns" style="margin-top: 20px;">
+                            <div>
+                                <h4><i class="fas fa-calendar-day"></i> Répartition par jour:</h4>
+                                <ul style="margin: 10px 0; padding-left: 20px;">
+                                    ${Object.entries(program.summary.byDay).map(([day, count]) => 
+                                        `<li><strong>${day}:</strong> ${count} DEVOIR</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4><i class="fas fa-book"></i> Matières les plus fréquentes:</h4>
+                                <ul style="margin: 10px 0; padding-left: 20px;">
+                                    ${Object.entries(program.summary.bySubject)
+                                        .sort((a, b) => b[1] - a[1])
+                                        .slice(0, 5)
+                                        .map(([subject, count]) => 
+                                            `<li><strong>${subject}:</strong> ${count} DEVOIR</li>`
+                                        ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header" style="background: var(--exam-color);">
+                        <h3><i class="fas fa-list-alt"></i> Détail des DEVOIR programmés</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-calendar"></i> Date</th>
+                                        <th><i class="fas fa-users"></i> Classe</th>
+                                        <th><i class="fas fa-book"></i> Matière</th>
+                                        <th><i class="fas fa-clock"></i> Horaire</th>
+                                        <th><i class="fas fa-door-open"></i> Salle</th>
+                                        <th><i class="fas fa-user-tie"></i> Surveillant</th>
+                                        <th><i class="fas fa-hourglass-half"></i> Durée</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            program.devoirs.forEach(devoir => {
+                const seriesInfo = getSeriesFromClassName(devoir.className);
+                let classDisplay = devoir.className;
+                if (seriesInfo.badge) {
+                    classDisplay = `${devoir.className} ${seriesInfo.badge}`;
+                }
+                
+                html += `
+                    <tr>
+                        <td><i class="fas fa-calendar-day"></i> ${devoir.formattedDate}</td>
+                        <td><i class="fas fa-users"></i> ${classDisplay}</td>
+                        <td><i class="fas fa-book"></i> ${devoir.subject}</td>
+                        <td><i class="fas fa-clock"></i> ${devoir.timeSlot}</td>
+                        <td><i class="fas fa-door-open"></i> ${devoir.room}</td>
+                        <td><i class="fas fa-user-tie"></i> ${devoir.supervisor}</td>
+                        <td><i class="fas fa-hourglass-half"></i> ${devoir.duration}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header" style="background: var(--secondary-color);">
+                        <h3><i class="fas fa-chalkboard-teacher"></i> Répartition des Surveillants</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="devoir-grid">
+            `;
+            
+            program.supervisors.forEach(supervisor => {
+                const supervisionCount = supervisor.assignedDevoirs.length;
+                const statusClass = supervisionCount >= supervisor.maxSupervisions ? 'status-busy' : 
+                                  supervisionCount > 0 ? 'status-pending' : 'status-available';
+                
+                html += `
+                    <div class="devoir-class-card">
+                        <h4>
+                            <i class="fas fa-user-tie"></i> ${supervisor.name}
+                            <span class="supervisor-status ${statusClass}">${supervisionCount}/${supervisor.maxSupervisions}</span>
+                        </h4>
+                        <p><small><i class="fas fa-info-circle"></i> ${supervisor.disponibility}</small></p>
+                        
+                        ${supervisor.assignedDevoirs.length > 0 ? `
+                            <div style="margin-top: 15px;">
+                                <h5><i class="fas fa-tasks"></i> DEVOIR assignés:</h5>
+                                ${supervisor.assignedDevoirs.map(devoir => `
+                                    <div class="subject-devoir">
+                                        <div class="subject-devoir-info">
+                                            <strong>${devoir.className}</strong>
+                                            <small>${devoir.subject} - ${devoir.date}</small>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <p style="text-align: center; padding: 20px; color: #666;">
+                                <i class="fas fa-info-circle"></i> Aucun DEVOIR assigné
+                            </p>
+                        `}
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-calendar-alt"></i> Vue par Classe</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="devoir-grid">
+            `;
+            
+            program.classes.forEach(className => {
+                const classDevoirs = program.devoirs.filter(d => d.className === className);
+                const seriesInfo = getSeriesFromClassName(className);
+                let classDisplay = className;
+                if (seriesInfo.badge) {
+                    classDisplay = `${className} ${seriesInfo.badge}`;
+                }
+                
+                html += `
+                    <div class="devoir-class-card">
+                        <h4><i class="fas fa-users"></i> ${classDisplay}</h4>
+                        <p><small><i class="fas fa-file-alt"></i> ${classDevoirs.length} DEVOIR programmé(s)</small></p>
+                        
+                        ${classDevoirs.length > 0 ? `
+                            <div style="margin-top: 15px;">
+                                ${classDevoirs.map(devoir => `
+                                    <div class="subject-devoir">
+                                        <div class="subject-devoir-info">
+                                            <strong>${devoir.subject}</strong>
+                                            <small>${devoir.formattedDate} - ${devoir.timeSlot}</small>
+                                            <small><i class="fas fa-user-tie"></i> ${devoir.supervisor}</small>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <p style="text-align: center; padding: 20px; color: #666;">
+                                <i class="fas fa-info-circle"></i> Aucun DEVOIR programmé
+                            </p>
+                        `}
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function saveDevoirProgram() {
+            if (!currentDevoirProgram) {
+                showNotification('Aucune programmation à enregistrer', 'error');
+                return;
+            }
+            
+            // Sauvegarder chaque DEVOIR dans le localStorage
+            const courses = getCourses();
+            let savedCount = 0;
+            
+            currentDevoirProgram.devoirs.forEach(devoir => {
+                // Déterminer le cycle de la classe
+                const cycle = CLASSES_BY_CYCLE['Collège'].includes(devoir.className) ? 'Collège' : 'Lycée';
+                
+                const course = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    teacherName: devoir.supervisor,
+                    className: devoir.className,
+                    cycle: cycle,
+                    subject: devoir.subject,
+                    activityType: 'DEVOIR',
+                    day: devoir.dayName,
+                    timeSlot: devoir.timeSlot,
+                    timePeriod: 'afternoon',
+                    devoirInfo: {
+                        date: devoir.formattedDate,
+                        duration: devoir.duration,
+                        room: devoir.room,
+                        programId: currentDevoirProgram.id
+                    }
+                };
+                
+                courses.push(course);
+                savedCount++;
+            });
+            
+            localStorage.setItem('courses', JSON.stringify(courses));
+            
+            // Ajouter à l'historique
+            devoirHistory.unshift({
+                id: currentDevoirProgram.id,
+                date: currentDevoirProgram.date,
+                cycle: currentDevoirProgram.cycle,
+                classes: currentDevoirProgram.classes.length,
+                devoirs: currentDevoirProgram.summary.totalDevoirs,
+                period: currentDevoirProgram.period
+            });
+            
+            // Garder seulement les 10 derniers programmes
+            devoirHistory = devoirHistory.slice(0, 10);
+            localStorage.setItem('devoirHistory', JSON.stringify(devoirHistory));
+            
+            showNotification(`${savedCount} DEVOIR enregistrés dans l'emploi du temps!`, 'success');
+            updateFilters();
+            updateDashboard();
+            updateDevoirHistory();
+            
+            // Passer à l'onglet de visualisation
+            switchTab('timetable');
+        }
+
+        function updateDevoirHistory() {
+            const historyBody = document.getElementById('devoirHistoryBody');
+            historyBody.innerHTML = '';
+            
+            if (devoirHistory.length === 0) {
+                historyBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-info-circle" style="font-size: 24px; color: #6c757d; margin-bottom: 10px; display: block;"></i>
+                            Aucun programme DEVOIR enregistré
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            devoirHistory.forEach(program => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><i class="fas fa-calendar"></i> ${new Date(program.date).toLocaleDateString('fr-FR')}</td>
+                    <td><i class="fas fa-layer-group"></i> ${program.cycle}</td>
+                    <td><i class="fas fa-users"></i> ${program.classes} classes</td>
+                    <td><i class="fas fa-file-alt"></i> ${program.devoirs} DEVOIR</td>
+                    <td><i class="fas fa-calendar-week"></i> ${program.period} semaine(s)</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="loadDevoirProgram(${program.id})">
+                            <i class="fas fa-eye"></i> Voir
+                        </button>
+                    </td>
+                `;
+                historyBody.appendChild(row);
+            });
+        }
+
+        function loadDevoirProgram(programId) {
+            // Cette fonction pourrait charger un programme spécifique depuis l'historique
+            // Pour l'instant, on affiche un message
+            showNotification('Fonctionnalité à venir: Chargement des programmes sauvegardés', 'warning');
+        }
+
+        function printDevoirProgram() {
+            const programContent = document.getElementById('devoirProgramContainer').innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Programmation DEVOIR - Lycée Niamtougou</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #9C27B0; }
+                        h2 { color: #333; border-bottom: 2px solid #9C27B0; padding-bottom: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .summary { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                        .page-break { page-break-before: always; }
+                    </style>
+                </head>
+                <body>
+                    <h1>PROGRAMMATION DES DEVOIR - LYCÉE NIAMTOUGOU</h1>
+                    <p>Année Scolaire 2023-2024 - Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
+                    ${programContent}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function exportDevoirProgram() {
+            if (!currentDevoirProgram) {
+                showNotification('Aucune programmation à exporter', 'warning');
+                return;
+            }
+            
+            // Créer un format CSV simple
+            let csvContent = "Date,Classe,Matière,Horaire,Salle,Surveillant,Durée\n";
+            
+            currentDevoirProgram.devoirs.forEach(devoir => {
+                csvContent += `"${devoir.formattedDate}","${devoir.className}","${devoir.subject}","${devoir.timeSlot}","${devoir.room}","${devoir.supervisor}","${devoir.duration}"\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `devoir_program_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            showNotification('Programmation exportée en CSV', 'success');
         }
 
         // Fonction pour générer la répartition aléatoire avec restrictions
@@ -2479,6 +3480,9 @@
                 updateDashboard();
             } else if (tabName === 'manual') {
                 filterTimeSlots();
+            } else if (tabName === 'devoir') {
+                updateDevoirClassOptions();
+                updateDevoirHistory();
             }
         }
 
@@ -2736,10 +3740,12 @@
         function clearAllData() {
             if (confirm('Voulez-vous vraiment supprimer TOUTES les données?')) {
                 localStorage.removeItem('courses');
+                localStorage.removeItem('devoirHistory');
                 updateFilters();
                 generateTimetable();
                 displayAllData();
                 updateDashboard();
+                updateDevoirHistory();
                 showNotification('Toutes les données ont été supprimées', 'success');
             }
         }
@@ -2894,6 +3900,12 @@
             filterTimeSlots(); // Réinitialiser les créneaux
         });
 
+        // Gestion du formulaire DEVOIR
+        document.getElementById('devoirForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateDevoirProgram();
+        });
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
             // Vérifier l'authentification
@@ -2908,13 +3920,18 @@
                 generateTimetable();
                 displayAllData();
                 updateDashboard();
+                updateDevoirHistory();
                 
                 // Ajouter un enseignant par défaut
                 addTeacher();
                 
+                // Ajouter un surveillant par défaut
+                addSupervisor();
+                
                 // Initialiser les options de classe
                 updateClassOptions();
                 updateManualClassOptions();
+                updateDevoirClassOptions();
                 
                 // Initialiser les créneaux horaires
                 filterTimeSlots();
