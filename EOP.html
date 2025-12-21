@@ -1513,6 +1513,13 @@
                             </div>
                             
                             <div class="filter-group">
+                                <label for="filterClass"><i class="fas fa-users"></i> Filtrer par classe:</label>
+                                <select id="filterClass" onchange="displayAllData()">
+                                    <option value="">-- Toutes --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
                                 <label for="filterActivityType"><i class="fas fa-tasks"></i> Filtrer par type d'activité:</label>
                                 <select id="filterActivityType" onchange="displayAllData()">
                                     <option value="">-- Tous --</option>
@@ -1747,7 +1754,7 @@
         // Stockage des données de répartition
         let currentDistribution = null;
 
-        // Fonctions pour changer la vue
+        // Fonctions pour changer la vue - CORRIGÉE
         function changeView(viewType) {
             currentView = viewType;
             
@@ -1755,7 +1762,12 @@
             document.querySelectorAll('.view-option-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            
+            // Trouver le bouton cliqué
+            const clickedButton = event.target.closest('.view-option-btn');
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
             
             // Afficher/masquer les filtres appropriés
             document.getElementById('generalFilters').style.display = 'none';
@@ -1771,14 +1783,17 @@
                 case 'teacher':
                     document.getElementById('teacherFilters').style.display = 'flex';
                     updateTeacherFilters();
+                    generateTeacherTimetable();
                     break;
                 case 'class':
                     document.getElementById('classFilters').style.display = 'flex';
                     updateClassFilters();
+                    generateClassTimetable();
                     break;
                 case 'teacherAll':
                     document.getElementById('teacherAllFilters').style.display = 'flex';
                     updateTeacherAllFilters();
+                    generateTeacherAllClassesTimetable();
                     break;
             }
         }
@@ -2332,6 +2347,7 @@
             return JSON.parse(localStorage.getItem('courses')) || [];
         }
 
+        // Fonction pour mettre à jour les filtres - CORRIGÉE
         function updateFilters() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
@@ -2339,12 +2355,18 @@
             
             // Mettre à jour tous les filtres nécessaires
             ['selectTeacher', 'filterTeacher', 'selectTeacherSpecific', 'selectTeacherAll'].forEach(id => {
-                updateSelectOptions(id, teachers);
+                const select = document.getElementById(id);
+                if (select) {
+                    updateSelectOptions(select, teachers);
+                }
             });
             
-            ['selectClass', 'filterClass', 'selectClassSpecific'].forEach(id => {
-                if (document.getElementById(id)) {
-                    updateSelectOptions(id, classes);
+            // Mettre à jour les filtres de classe
+            const classSelectors = ['selectClass', 'selectClassSpecific', 'filterClass'];
+            classSelectors.forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    updateSelectOptions(select, classes);
                 }
             });
         }
@@ -2352,37 +2374,38 @@
         function updateTeacherFilters() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
-            updateSelectOptions('selectTeacherSpecific', teachers);
+            updateSelectOptions(document.getElementById('selectTeacherSpecific'), teachers);
         }
 
         function updateClassFilters() {
             const courses = getCourses();
             const classes = [...new Set(courses.map(c => c.className))];
-            updateSelectOptions('selectClassSpecific', classes);
+            updateSelectOptions(document.getElementById('selectClassSpecific'), classes);
         }
 
         function updateTeacherAllFilters() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
-            updateSelectOptions('selectTeacherAll', teachers);
+            updateSelectOptions(document.getElementById('selectTeacherAll'), teachers);
         }
 
-        function updateSelectOptions(selectId, options) {
-            const select = document.getElementById(selectId);
-            if (!select) return;
+        // Fonction améliorée pour mettre à jour les options des sélecteurs
+        function updateSelectOptions(selectElement, options) {
+            if (!selectElement) return;
             
-            const currentValue = select.value;
-            select.innerHTML = '<option value="">-- Tous --</option>';
+            const currentValue = selectElement.value;
+            const isSpecific = selectElement.id.includes('Specific') || selectElement.id.includes('TeacherAll');
+            selectElement.innerHTML = '<option value="">' + (isSpecific ? '-- Sélectionner --' : '-- Tous --') + '</option>';
             
-            options.forEach(option => {
+            options.sort().forEach(option => {
                 const optionElement = document.createElement('option');
                 optionElement.value = option;
                 optionElement.textContent = option;
-                select.appendChild(optionElement);
+                selectElement.appendChild(optionElement);
             });
             
             if (options.includes(currentValue)) {
-                select.value = currentValue;
+                selectElement.value = currentValue;
             }
         }
 
@@ -2495,6 +2518,7 @@
             const courses = getCourses();
             const filterTeacher = document.getElementById('filterTeacher').value;
             const filterCycle = document.getElementById('filterCycle').value;
+            const filterClass = document.getElementById('filterClass').value;
             const filterActivityType = document.getElementById('filterActivityType').value;
             const filterTimePeriod = document.getElementById('filterTimePeriod').value;
             
@@ -2504,6 +2528,7 @@
             let filteredCourses = courses;
             if (filterTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === filterTeacher);
             if (filterCycle) filteredCourses = filteredCourses.filter(c => c.cycle === filterCycle);
+            if (filterClass) filteredCourses = filteredCourses.filter(c => c.className === filterClass);
             if (filterActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === filterActivityType);
             if (filterTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === filterTimePeriod);
             
