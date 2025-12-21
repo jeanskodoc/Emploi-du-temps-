@@ -996,6 +996,19 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
+        
+        /* Cellules réservées */
+        .reserved-cell {
+            background-color: #f8f9fa !important;
+            color: #6c757d !important;
+            font-style: italic;
+            border-left: 4px solid #6c757d !important;
+        }
+        
+        .reserved-badge {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -1131,6 +1144,9 @@
                 <div class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-random"></i> Répartition Automatique des Horaires</h2>
+                        <div style="font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px;">
+                            <i class="fas fa-info-circle"></i> Restrictions: Mercredi PM (réservé), Mardi/Vendredi PM (DEVOIR uniquement)
+                        </div>
                     </div>
                     <div class="card-body">
                         <form id="distributionForm">
@@ -1214,6 +1230,9 @@
                 <div class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-edit"></i> Saisie Manuelle des Cours</h2>
+                        <div style="font-size: 0.9rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px;">
+                            <i class="fas fa-info-circle"></i> Restrictions: Mercredi PM (réservé), Mardi/Vendredi PM (DEVOIR uniquement)
+                        </div>
                     </div>
                     <div class="card-body">
                         <form id="courseForm">
@@ -1646,6 +1665,25 @@
         };
         
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+        
+        // Jours avec restrictions
+        const RESTRICTED_DAYS = {
+            'Mercredi': {
+                restricted: true,
+                allowedSlots: morningSlots, // Seulement le matin
+                allowedActivityTypes: ['Cours', 'TD', 'TP', 'TM'] // Pas de DEVOIR l'après-midi
+            },
+            'Mardi': {
+                restricted: false,
+                restrictedAfternoon: true, // Après-midi réservé pour DEVOIR
+                allowedAfternoonActivityTypes: ['DEVOIR'] // Seulement DEVOIR l'après-midi
+            },
+            'Vendredi': {
+                restricted: false,
+                restrictedAfternoon: true, // Après-midi réservé pour DEVOIR
+                allowedAfternoonActivityTypes: ['DEVOIR'] // Seulement DEVOIR l'après-midi
+            }
+        };
 
         // Gestion de l'authentification
         function handleLogin(event) {
@@ -1949,8 +1987,50 @@
             
             return `<span class="time-period-badge ${badgeClass}">${badgeText}</span>`;
         }
+        
+        // Fonction pour vérifier si un créneau est réservé
+        function isSlotReserved(day, slot, activityType) {
+            const timePeriod = getTimePeriod(slot);
+            const dayRestrictions = RESTRICTED_DAYS[day];
+            
+            if (!dayRestrictions) return false;
+            
+            // Vérifier les restrictions pour Mercredi
+            if (day === 'Mercredi' && dayRestrictions.restricted) {
+                if (timePeriod === 'afternoon') {
+                    return true; // Après-midi entièrement réservé
+                }
+            }
+            
+            // Vérifier les restrictions pour Mardi et Vendredi après-midi
+            if (dayRestrictions.restrictedAfternoon && timePeriod === 'afternoon') {
+                if (!dayRestrictions.allowedAfternoonActivityTypes.includes(activityType)) {
+                    return true; // Seuls les DEVOIR sont autorisés l'après-midi
+                }
+            }
+            
+            return false;
+        }
+        
+        // Fonction pour obtenir le texte de restriction
+        function getRestrictionText(day, slot) {
+            const timePeriod = getTimePeriod(slot);
+            const dayRestrictions = RESTRICTED_DAYS[day];
+            
+            if (!dayRestrictions) return '';
+            
+            if (day === 'Mercredi' && timePeriod === 'afternoon') {
+                return 'Réservé';
+            }
+            
+            if (dayRestrictions.restrictedAfternoon && timePeriod === 'afternoon') {
+                return 'DEVOIR uniquement';
+            }
+            
+            return '';
+        }
 
-        // Fonction pour générer la répartition aléatoire
+        // Fonction pour générer la répartition aléatoire avec restrictions
         function generateDistribution() {
             const cycle = document.getElementById('distributionCycle').value;
             const className = document.getElementById('distributionClass').value;
@@ -1984,8 +2064,8 @@
                 return;
             }
             
-            // Générer la répartition
-            const distribution = generateRandomDistribution(teachers, totalHours, cycle, className, preferredTimePeriod);
+            // Générer la répartition avec restrictions
+            const distribution = generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod);
             currentDistribution = distribution;
             
             // Afficher les résultats
@@ -1994,7 +2074,7 @@
             showNotification('Répartition générée avec succès!', 'success');
         }
 
-        function generateRandomDistribution(teachers, totalHours, cycle, className, preferredTimePeriod) {
+        function generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod) {
             const distribution = {
                 cycle,
                 className,
@@ -2017,7 +2097,50 @@
                 availableSlots = afternoonSlots;
             }
             
-            // Placer les heures de manière aléatoire
+            // Placer d'abord les DEVOIR sur les après-midi de Mardi et Vendredi
+            const devoirTeachers = teachersToPlace.filter(t => t.activityType === 'DEVOIR');
+            devoirTeachers.forEach(teacher => {
+                // Essayer de placer les DEVOIR sur Mardi et Vendredi après-midi
+                const devoirDays = ['Mardi', 'Vendredi'];
+                const afternoonSlotsForDevoir = afternoonSlots.filter(slot => 
+                    !isSlotReserved('Mercredi', slot, 'DEVOIR') // Pas le mercredi
+                );
+                
+                let devoirPlaced = 0;
+                const maxDevoirs = Math.min(teacher.remainingHours, 2); // Max 2 DEVOIR par semaine
+                
+                for (let i = 0; i < maxDevoirs && devoirPlaced < teacher.remainingHours; i++) {
+                    const day = devoirDays[i % devoirDays.length];
+                    
+                    // Trouver un créneau après-midi disponible pour DEVOIR
+                    for (const slot of afternoonSlotsForDevoir) {
+                        if (!distribution.timetable[day][slot] && 
+                            !isTeacherAlreadyScheduled(distribution.timetable, teacher.name, day, slot) &&
+                            !isSlotReserved(day, slot, teacher.activityType)) {
+                            
+                            distribution.timetable[day][slot] = {
+                                teacher: teacher.name,
+                                subject: teacher.subject,
+                                activityType: teacher.activityType
+                            };
+                            
+                            teacher.remainingHours--;
+                            distribution.teachers.push({
+                                teacher: teacher.name,
+                                subject: teacher.subject,
+                                activityType: teacher.activityType,
+                                day: day,
+                                timeSlot: slot,
+                                timePeriod: getTimePeriod(slot)
+                            });
+                            devoirPlaced++;
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            // Placer les heures restantes de manière aléatoire
             while (teachersToPlace.some(teacher => teacher.remainingHours > 0)) {
                 // Choisir un enseignant au hasard qui a encore des heures à placer
                 const availableTeachers = teachersToPlace.filter(t => t.remainingHours > 0);
@@ -2026,8 +2149,8 @@
                 const randomTeacherIndex = Math.floor(Math.random() * availableTeachers.length);
                 const teacher = availableTeachers[randomTeacherIndex];
                 
-                // Trouver un créneau disponible
-                const availableSlot = findAvailableSlot(distribution.timetable, teacher.name, availableSlots);
+                // Trouver un créneau disponible en respectant les restrictions
+                const availableSlot = findAvailableSlotWithRestrictions(distribution.timetable, teacher.name, teacher.activityType, availableSlots);
                 
                 if (availableSlot) {
                     // Placer le cours
@@ -2048,7 +2171,7 @@
                     });
                 } else {
                     // Si aucun créneau disponible, élargir la recherche à tous les créneaux
-                    const backupSlot = findAvailableSlot(distribution.timetable, teacher.name, allTimeSlots);
+                    const backupSlot = findAvailableSlotWithRestrictions(distribution.timetable, teacher.name, teacher.activityType, allTimeSlots);
                     if (backupSlot) {
                         distribution.timetable[backupSlot.day][backupSlot.timeSlot] = {
                             teacher: teacher.name,
@@ -2086,7 +2209,7 @@
             return timetable;
         }
 
-        function findAvailableSlot(timetable, teacherName, slots) {
+        function findAvailableSlotWithRestrictions(timetable, teacherName, activityType, slots) {
             // Créer une liste de tous les créneaux possibles
             const allSlots = [];
             days.forEach(day => {
@@ -2098,10 +2221,11 @@
             // Mélanger les créneaux
             shuffleArray(allSlots);
             
-            // Trouver le premier créneau disponible où l'enseignant n'a pas déjà cours
+            // Trouver le premier créneau disponible qui respecte les restrictions
             for (const slot of allSlots) {
                 if (!timetable[slot.day][slot.timeSlot] && 
-                    !isTeacherAlreadyScheduled(timetable, teacherName, slot.day, slot.timeSlot)) {
+                    !isTeacherAlreadyScheduled(timetable, teacherName, slot.day, slot.timeSlot) &&
+                    !isSlotReserved(slot.day, slot.timeSlot, activityType)) {
                     return slot;
                 }
             }
@@ -2154,13 +2278,21 @@
                 html += `<tr><td class="time-col">${slot} ${periodBadge}</td>`;
                 days.forEach(day => {
                     const course = distribution.timetable[day][slot];
-                    html += `<td class="${course ? 'hour-cell' : ''}">`;
+                    const restrictionText = getRestrictionText(day, slot);
+                    
+                    html += `<td class="${course ? 'hour-cell' : ''} ${restrictionText ? 'reserved-cell' : ''}">`;
+                    
                     if (course) {
                         const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
                         html += `<div class="activity-${activityType.color.toLowerCase()}">
                             <strong>${course.teacher}</strong><br>
                             <small><i class="fas fa-book"></i> ${course.subject}</small><br>
                             <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
+                        </div>`;
+                    } else if (restrictionText) {
+                        html += `<div class="reserved-cell" style="padding: 8px; text-align: center;">
+                            <i class="fas fa-ban" style="color: #6c757d;"></i><br>
+                            <small>${restrictionText}</small>
                         </div>`;
                     } else {
                         html += '<i class="fas fa-times" style="color: #ccc;"></i>';
@@ -2232,6 +2364,14 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="restrictions-info" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: var(--border-radius);">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Informations sur les restrictions:</h5>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Mercredi après-midi:</strong> Entièrement réservé (pas de cours)</li>
+                        <li><strong>Mardi après-midi:</strong> Réservé uniquement pour les DEVOIR surveillés</li>
+                        <li><strong>Vendredi après-midi:</strong> Réservé uniquement pour les DEVOIR surveillés</li>
+                    </ul>
                 </div>
             `;
             
@@ -2482,6 +2622,7 @@
                 days.forEach(day => {
                     const cell = document.createElement('td');
                     const dayCourses = courses.filter(c => c.day === day && c.timeSlot === slot);
+                    const restrictionText = getRestrictionText(day, slot);
                     
                     if (dayCourses.length > 0) {
                         let content = '';
@@ -2503,6 +2644,12 @@
                             </div>`;
                         });
                         cell.innerHTML = content;
+                    } else if (restrictionText) {
+                        cell.innerHTML = `<div class="reserved-cell" style="padding: 15px; text-align: center;">
+                            <i class="fas fa-ban" style="font-size: 1.2rem; color: #6c757d; margin-bottom: 5px;"></i><br>
+                            <small style="font-style: italic; color: #6c757d;">${restrictionText}</small>
+                        </div>`;
+                        cell.className = 'reserved-cell';
                     } else {
                         cell.innerHTML = '<i class="fas fa-times" style="color: #ccc;"></i>';
                     }
@@ -2679,7 +2826,7 @@
             }
         }
 
-        // Gestion des formulaires
+        // Gestion des formulaires avec validation des restrictions
         document.getElementById('distributionForm').addEventListener('submit', function(e) {
             e.preventDefault();
             generateDistribution();
@@ -2689,13 +2836,38 @@
             e.preventDefault();
             
             const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
+            const timeSlot = document.getElementById('manualTimeSlot').value;
+            const activityType = document.getElementById('activityType').value;
             
             if (selectedDays.length === 0) {
                 showNotification('Veuillez sélectionner au moins un jour', 'error');
                 return;
             }
             
+            // Vérifier les restrictions pour chaque jour sélectionné
+            const invalidDays = [];
+            selectedDays.forEach(day => {
+                if (isSlotReserved(day, timeSlot, activityType)) {
+                    invalidDays.push(day);
+                }
+            });
+            
+            if (invalidDays.length > 0) {
+                const dayNames = invalidDays.join(', ');
+                let errorMessage = '';
+                
+                if (invalidDays.includes('Mercredi')) {
+                    errorMessage = 'Le mercredi après-midi est entièrement réservé.';
+                } else {
+                    errorMessage = `Les après-midi de ${dayNames} sont réservés uniquement pour les DEVOIR surveillés.`;
+                }
+                
+                showNotification(`Impossible d'ajouter le cours: ${errorMessage}`, 'error');
+                return;
+            }
+            
             // Créer un cours pour chaque jour sélectionné
+            let createdCount = 0;
             selectedDays.forEach(day => {
                 const course = {
                     id: Date.now() + Math.floor(Math.random() * 1000),
@@ -2703,18 +2875,19 @@
                     className: document.getElementById('manualClass').value,
                     cycle: document.getElementById('manualCycle').value,
                     subject: document.getElementById('manualSubject').value,
-                    activityType: document.getElementById('activityType').value,
+                    activityType: activityType,
                     day: day,
-                    timeSlot: document.getElementById('manualTimeSlot').value,
-                    timePeriod: getTimePeriod(document.getElementById('manualTimeSlot').value)
+                    timeSlot: timeSlot,
+                    timePeriod: getTimePeriod(timeSlot)
                 };
                 
                 const courses = getCourses();
                 courses.push(course);
                 localStorage.setItem('courses', JSON.stringify(courses));
+                createdCount++;
             });
             
-            showNotification(`${selectedDays.length} cours enregistrés avec succès!`, 'success');
+            showNotification(`${createdCount} cours enregistrés avec succès!`, 'success');
             this.reset();
             updateFilters();
             updateDashboard();
