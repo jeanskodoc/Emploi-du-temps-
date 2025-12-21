@@ -1207,6 +1207,7 @@
             </div>
             <ul class="nav-links">
                 <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+                <li><a href="#" onclick="switchTab('configuration')"><i class="fas fa-cog"></i> Configuration</a></li>
                 <li><a href="#" onclick="switchTab('distribution')"><i class="fas fa-random"></i> Répartition Auto</a></li>
                 <li><a href="#" onclick="switchTab('manual')"><i class="fas fa-edit"></i> Saisie Manuelle</a></li>
                 <li><a href="#" onclick="switchTab('devoir')"><i class="fas fa-file-alt"></i> Programmation DEVOIR</a></li>
@@ -1259,6 +1260,15 @@
                             <p>Heures/semaine</p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-subjects">0</h3>
+                            <p>Matières configurées</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -1278,11 +1288,11 @@
                     </div>
                     <div class="card-body">
                         <div class="data-actions">
-                            <button class="btn btn-primary" onclick="switchTab('distribution')">
-                                <i class="fas fa-random"></i> Répartition automatique
+                            <button class="btn btn-primary" onclick="switchTab('configuration')">
+                                <i class="fas fa-cog"></i> Configurer matières/surveillants
                             </button>
-                            <button class="btn btn-secondary" onclick="switchTab('manual')">
-                                <i class="fas fa-plus"></i> Ajouter un cours
+                            <button class="btn btn-secondary" onclick="switchTab('distribution')">
+                                <i class="fas fa-random"></i> Répartition automatique
                             </button>
                             <button class="btn btn-neutral" onclick="switchTab('devoir')">
                                 <i class="fas fa-file-alt"></i> Programmer les DEVOIR
@@ -1290,6 +1300,160 @@
                             <button class="btn btn-neutral" onclick="switchTab('timetable')">
                                 <i class="fas fa-calendar-alt"></i> Voir l'emploi du temps
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Tab -->
+            <section id="configuration-tab" class="tab-content">
+                <div class="devoir-info-card">
+                    <h3><i class="fas fa-cogs"></i> Configuration des Matières et Surveillants</h3>
+                    <p>Configurez ici les matières par classe et les surveillants avant de procéder à la répartition des devoirs.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-book"></i> Gestion des Matières par Classe</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="subjectForm">
+                            <div class="form-columns">
+                                <div class="form-group">
+                                    <label for="configCycle"><i class="fas fa-layer-group"></i> Cycle:</label>
+                                    <select id="configCycle" required onchange="updateConfigClassOptions()">
+                                        <option value="">Sélectionner un cycle</option>
+                                        <option value="Collège">Collège</option>
+                                        <option value="Lycée">Lycée</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="configClass"><i class="fas fa-users"></i> Classe:</label>
+                                    <select id="configClass" required onchange="loadClassSubjects()">
+                                        <option value="">Sélectionner une classe</option>
+                                        <!-- Les options seront mises à jour dynamiquement -->
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="subjectName"><i class="fas fa-book"></i> Nouvelle matière:</label>
+                                    <input type="text" id="subjectName" placeholder="Nom de la matière" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label><i class="fas fa-list"></i> Matières de la classe:</label>
+                                <div id="classSubjectsList" style="margin: 10px 0; padding: 15px; background: var(--light-gray); border-radius: var(--border-radius); min-height: 100px;">
+                                    <p style="color: #666; text-align: center;">
+                                        <i class="fas fa-info-circle"></i> Sélectionnez une classe pour voir ses matières
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="data-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Ajouter la matière
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="loadDefaultSubjects()">
+                                    <i class="fas fa-download"></i> Charger les matières par défaut
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chalkboard-teacher"></i> Gestion des Surveillants</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="supervisorForm">
+                            <div class="form-group">
+                                <label><i class="fas fa-user-tie"></i> Liste des surveillants:</label>
+                                <div id="supervisorsListContainer" style="margin: 15px 0;">
+                                    <div class="teacher-item">
+                                        <input type="text" class="supervisor-input" placeholder="Nom et prénom du surveillant" required>
+                                        <select class="supervisor-type">
+                                            <option value="enseignant">Enseignant</option>
+                                            <option value="administratif">Personnel administratif</option>
+                                            <option value="externe">Personnel externe</option>
+                                        </select>
+                                        <input type="number" class="supervisor-capacity" placeholder="Capacité max" min="1" max="10" value="3" required>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisorItem(this)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="addSupervisorItem()">
+                                    <i class="fas fa-plus"></i> Ajouter un surveillant
+                                </button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="supervisorDisponibility"><i class="fas fa-calendar"></i> Disponibilité par défaut:</label>
+                                <select id="supervisorDisponibility" required>
+                                    <option value="full">Disponible à plein temps</option>
+                                    <option value="partial">Disponibilité partielle</option>
+                                    <option value="limited">Disponibilité limitée</option>
+                                </select>
+                            </div>
+                            
+                            <div class="data-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Enregistrer les surveillants
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="loadExistingSupervisors()">
+                                    <i class="fas fa-sync"></i> Charger depuis les enseignants existants
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar"></i> Vue d'ensemble de la configuration</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-icon secondary">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="totalConfiguredSubjects">0</h3>
+                                    <p>Matières configurées</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon warning">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="totalConfiguredSupervisors">0</h3>
+                                    <p>Surveillants enregistrés</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon primary">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="totalConfiguredClasses">0</h3>
+                                    <p>Classes configurées</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="data-actions" style="margin-top: 20px;">
+                            <button class="btn btn-neutral" onclick="exportConfiguration()">
+                                <i class="fas fa-file-export"></i> Exporter la configuration
+                            </button>
+                            <button class="btn btn-warning" onclick="importConfiguration()">
+                                <i class="fas fa-file-import"></i> Importer la configuration
+                            </button>
+                            <input type="file" id="configFileInput" accept=".json" style="display: none;" onchange="handleConfigImport(this)">
                         </div>
                     </div>
                 </div>
@@ -1409,7 +1573,7 @@
                                 
                                 <div class="form-group">
                                     <label for="manualClass"><i class="fas fa-users"></i> Classe:</label>
-                                    <select id="manualClass" required>
+                                    <select id="manualClass" required onchange="updateManualSubjects()">
                                         <option value="">Sélectionner une classe</option>
                                         <!-- Les options seront mises à jour dynamiquement -->
                                     </select>
@@ -1417,7 +1581,9 @@
                                 
                                 <div class="form-group">
                                     <label for="manualSubject"><i class="fas fa-book"></i> Matière:</label>
-                                    <input type="text" id="manualSubject" required>
+                                    <select id="manualSubject" required>
+                                        <option value="">Sélectionner une matière</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="form-group">
@@ -1536,10 +1702,12 @@
                             </div>
                             
                             <div class="form-group">
-                                <label><i class="fas fa-chalkboard-teacher"></i> Liste des enseignants disponibles pour surveillance:</label>
-                                <div id="supervisorsContainer">
+                                <label><i class="fas fa-chalkboard-teacher"></i> Liste des surveillants disponibles:</label>
+                                <div id="supervisorsContainer" style="margin: 15px 0;">
                                     <div class="teacher-item">
-                                        <input type="text" class="supervisor-name" placeholder="Nom et prénom de l'enseignant" required>
+                                        <select class="supervisor-name" required>
+                                            <option value="">Sélectionner un surveillant</option>
+                                        </select>
                                         <select class="supervisor-disponibility" required>
                                             <option value="full">Disponible à plein temps</option>
                                             <option value="partial">Disponibilité partielle</option>
@@ -1553,6 +1721,9 @@
                                 </div>
                                 <button type="button" class="btn btn-secondary" onclick="addSupervisor()">
                                     <i class="fas fa-plus"></i> Ajouter un surveillant
+                                </button>
+                                <button type="button" class="btn btn-neutral" onclick="loadConfiguredSupervisors()">
+                                    <i class="fas fa-sync"></i> Charger depuis la configuration
                                 </button>
                             </div>
                             
@@ -1898,8 +2069,8 @@
             ]
         };
 
-        // Matières par niveau et cycle
-        const MATIERES_BY_CYCLE = {
+        // Matières par défaut par niveau et cycle
+        const DEFAULT_MATIERES_BY_CYCLE = {
             'Collège': {
                 '6ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS'],
                 '5ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS', 'Physique-Chimie'],
@@ -1923,6 +2094,12 @@
         let currentView = 'general';
         let currentDevoirProgram = null;
         let devoirHistory = JSON.parse(localStorage.getItem('devoirHistory')) || [];
+        
+        // Données de configuration
+        let configuration = JSON.parse(localStorage.getItem('configuration')) || {
+            subjects: {}, // { "6ème": ["Français", "Mathématiques", ...], ... }
+            supervisors: [] // [{ name: "Nom", type: "enseignant", capacity: 3, disponibility: "full" }, ...]
+        };
         
         // Créneaux horaires classés par période
         const morningSlots = [
@@ -2001,6 +2178,316 @@
             }
         };
 
+        // Fonctions de gestion de la configuration
+        function saveConfiguration() {
+            localStorage.setItem('configuration', JSON.stringify(configuration));
+        }
+
+        function updateConfigurationStats() {
+            const totalSubjects = Object.values(configuration.subjects).reduce((sum, subjects) => sum + subjects.length, 0);
+            const totalSupervisors = configuration.supervisors.length;
+            const totalClasses = Object.keys(configuration.subjects).length;
+            
+            document.getElementById('totalConfiguredSubjects').textContent = totalSubjects;
+            document.getElementById('totalConfiguredSupervisors').textContent = totalSupervisors;
+            document.getElementById('totalConfiguredClasses').textContent = totalClasses;
+            document.getElementById('total-subjects').textContent = totalSubjects;
+        }
+
+        function loadClassSubjects() {
+            const className = document.getElementById('configClass').value;
+            const subjectsList = document.getElementById('classSubjectsList');
+            
+            if (!className) {
+                subjectsList.innerHTML = '<p style="color: #666; text-align: center;"><i class="fas fa-info-circle"></i> Sélectionnez une classe pour voir ses matières</p>';
+                return;
+            }
+            
+            const subjects = configuration.subjects[className] || [];
+            
+            if (subjects.length === 0) {
+                subjectsList.innerHTML = '<p style="color: #666; text-align: center;"><i class="fas fa-info-circle"></i> Aucune matière configurée pour cette classe</p>';
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px;">';
+            subjects.forEach((subject, index) => {
+                html += `
+                    <div style="background: white; padding: 10px 15px; border-radius: var(--border-radius); border: 1px solid var(--medium-gray); display: flex; align-items: center; gap: 10px;">
+                        <span>${subject}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeSubject('${className}', ${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            subjectsList.innerHTML = html;
+        }
+
+        function addSubjectToClass() {
+            const className = document.getElementById('configClass').value;
+            const subjectName = document.getElementById('subjectName').value.trim();
+            
+            if (!className) {
+                showNotification('Veuillez sélectionner une classe', 'error');
+                return;
+            }
+            
+            if (!subjectName) {
+                showNotification('Veuillez saisir le nom de la matière', 'error');
+                return;
+            }
+            
+            if (!configuration.subjects[className]) {
+                configuration.subjects[className] = [];
+            }
+            
+            // Vérifier si la matière existe déjà
+            if (configuration.subjects[className].includes(subjectName)) {
+                showNotification('Cette matière existe déjà pour cette classe', 'warning');
+                return;
+            }
+            
+            configuration.subjects[className].push(subjectName);
+            saveConfiguration();
+            updateConfigurationStats();
+            loadClassSubjects();
+            
+            document.getElementById('subjectName').value = '';
+            showNotification(`Matière "${subjectName}" ajoutée à la classe ${className}`, 'success');
+        }
+
+        function removeSubject(className, index) {
+            if (confirm('Voulez-vous vraiment supprimer cette matière?')) {
+                configuration.subjects[className].splice(index, 1);
+                saveConfiguration();
+                updateConfigurationStats();
+                loadClassSubjects();
+                showNotification('Matière supprimée', 'success');
+            }
+        }
+
+        function loadDefaultSubjects() {
+            const cycle = document.getElementById('configCycle').value;
+            const className = document.getElementById('configClass').value;
+            
+            if (!cycle || !className) {
+                showNotification('Veuillez sélectionner un cycle et une classe', 'error');
+                return;
+            }
+            
+            const defaultSubjects = DEFAULT_MATIERES_BY_CYCLE[cycle]?.[className];
+            
+            if (!defaultSubjects) {
+                showNotification('Aucune matière par défaut pour cette classe', 'warning');
+                return;
+            }
+            
+            if (!configuration.subjects[className]) {
+                configuration.subjects[className] = [];
+            }
+            
+            let addedCount = 0;
+            defaultSubjects.forEach(subject => {
+                if (!configuration.subjects[className].includes(subject)) {
+                    configuration.subjects[className].push(subject);
+                    addedCount++;
+                }
+            });
+            
+            saveConfiguration();
+            updateConfigurationStats();
+            loadClassSubjects();
+            showNotification(`${addedCount} matières par défaut chargées pour ${className}`, 'success');
+        }
+
+        function addSupervisorItem() {
+            const container = document.getElementById('supervisorsListContainer');
+            const supervisorDiv = document.createElement('div');
+            supervisorDiv.className = 'teacher-item';
+            supervisorDiv.innerHTML = `
+                <input type="text" class="supervisor-input" placeholder="Nom et prénom du surveillant" required>
+                <select class="supervisor-type">
+                    <option value="enseignant">Enseignant</option>
+                    <option value="administratif">Personnel administratif</option>
+                    <option value="externe">Personnel externe</option>
+                </select>
+                <input type="number" class="supervisor-capacity" placeholder="Capacité max" min="1" max="10" value="3" required>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisorItem(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(supervisorDiv);
+        }
+
+        function removeSupervisorItem(button) {
+            const container = document.getElementById('supervisorsListContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        function saveSupervisors() {
+            const supervisorItems = document.querySelectorAll('#supervisorsListContainer .teacher-item');
+            const supervisors = [];
+            
+            supervisorItems.forEach(item => {
+                const name = item.querySelector('.supervisor-input').value.trim();
+                const type = item.querySelector('.supervisor-type').value;
+                const capacity = parseInt(item.querySelector('.supervisor-capacity').value);
+                const disponibility = document.getElementById('supervisorDisponibility').value;
+                
+                if (name && !isNaN(capacity)) {
+                    supervisors.push({
+                        name,
+                        type,
+                        capacity,
+                        disponibility
+                    });
+                }
+            });
+            
+            configuration.supervisors = supervisors;
+            saveConfiguration();
+            updateConfigurationStats();
+            showNotification(`${supervisors.length} surveillants enregistrés`, 'success');
+        }
+
+        function loadExistingSupervisors() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            
+            if (teachers.length === 0) {
+                showNotification('Aucun enseignant trouvé dans les données existantes', 'warning');
+                return;
+            }
+            
+            // Ajouter les enseignants comme surveillants
+            const container = document.getElementById('supervisorsListContainer');
+            container.innerHTML = '';
+            
+            teachers.forEach(teacher => {
+                const supervisorDiv = document.createElement('div');
+                supervisorDiv.className = 'teacher-item';
+                supervisorDiv.innerHTML = `
+                    <input type="text" class="supervisor-input" value="${teacher}" required>
+                    <select class="supervisor-type">
+                        <option value="enseignant" selected>Enseignant</option>
+                        <option value="administratif">Personnel administratif</option>
+                        <option value="externe">Personnel externe</option>
+                    </select>
+                    <input type="number" class="supervisor-capacity" value="3" min="1" max="10" required>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisorItem(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                container.appendChild(supervisorDiv);
+            });
+            
+            showNotification(`${teachers.length} enseignants chargés comme surveillants`, 'success');
+        }
+
+        function loadConfiguredSupervisors() {
+            const container = document.getElementById('supervisorsContainer');
+            container.innerHTML = '';
+            
+            if (configuration.supervisors.length === 0) {
+                // Ajouter un surveillant vide par défaut
+                addSupervisor();
+                showNotification('Aucun surveillant configuré', 'warning');
+                return;
+            }
+            
+            configuration.supervisors.forEach(supervisor => {
+                const supervisorDiv = document.createElement('div');
+                supervisorDiv.className = 'teacher-item';
+                supervisorDiv.innerHTML = `
+                    <select class="supervisor-name" required>
+                        <option value="">Sélectionner un surveillant</option>
+                        <option value="${supervisor.name}" selected>${supervisor.name} (${supervisor.type})</option>
+                    </select>
+                    <select class="supervisor-disponibility" required>
+                        <option value="full" ${supervisor.disponibility === 'full' ? 'selected' : ''}>Disponible à plein temps</option>
+                        <option value="partial" ${supervisor.disponibility === 'partial' ? 'selected' : ''}>Disponibilité partielle</option>
+                        <option value="limited" ${supervisor.disponibility === 'limited' ? 'selected' : ''}>Disponibilité limitée</option>
+                    </select>
+                    <input type="number" class="supervisor-max" value="${supervisor.capacity}" min="1" max="10" required>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                container.appendChild(supervisorDiv);
+            });
+            
+            showNotification(`${configuration.supervisors.length} surveillants chargés depuis la configuration`, 'success');
+        }
+
+        function exportConfiguration() {
+            const dataStr = JSON.stringify(configuration, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = `configuration_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('Configuration exportée avec succès');
+        }
+
+        function importConfiguration() {
+            document.getElementById('configFileInput').click();
+        }
+
+        function handleConfigImport(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedConfig = JSON.parse(e.target.result);
+                    
+                    if (confirm(`Importer la configuration? Cela écrasera la configuration actuelle.`)) {
+                        configuration = importedConfig;
+                        saveConfiguration();
+                        updateConfigurationStats();
+                        showNotification('Configuration importée avec succès', 'success');
+                        
+                        // Recharger les matières si une classe est sélectionnée
+                        const selectedClass = document.getElementById('configClass').value;
+                        if (selectedClass) {
+                            loadClassSubjects();
+                        }
+                    }
+                } catch (error) {
+                    showNotification('Erreur lors de l\'importation: ' + error.message, 'error');
+                }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // Fonction pour mettre à jour les matières dans le formulaire manuel
+        function updateManualSubjects() {
+            const className = document.getElementById('manualClass').value;
+            const subjectSelect = document.getElementById('manualSubject');
+            
+            subjectSelect.innerHTML = '<option value="">Sélectionner une matière</option>';
+            
+            if (className && configuration.subjects[className]) {
+                configuration.subjects[className].forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    subjectSelect.appendChild(option);
+                });
+            }
+        }
+
         // Gestion de l'authentification
         function handleLogin(event) {
             event.preventDefault();
@@ -2074,6 +2561,22 @@
             }
         }
 
+        function updateConfigClassOptions() {
+            const cycle = document.getElementById('configCycle').value;
+            const classSelect = document.getElementById('configClass');
+            
+            classSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
+            
+            if (cycle && CLASSES_BY_CYCLE[cycle]) {
+                CLASSES_BY_CYCLE[cycle].forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classSelect.appendChild(option);
+                });
+            }
+        }
+
         // Fonctions pour l'onglet DEVOIR
         function updateDevoirClassOptions() {
             const cycle = document.getElementById('devoirCycle').value;
@@ -2107,7 +2610,12 @@
             const supervisorDiv = document.createElement('div');
             supervisorDiv.className = 'teacher-item';
             supervisorDiv.innerHTML = `
-                <input type="text" class="supervisor-name" placeholder="Nom et prénom de l'enseignant" required>
+                <select class="supervisor-name" required>
+                    <option value="">Sélectionner un surveillant</option>
+                    ${configuration.supervisors.map(s => 
+                        `<option value="${s.name}">${s.name} (${s.type})</option>`
+                    ).join('')}
+                </select>
                 <select class="supervisor-disponibility" required>
                     <option value="full">Disponible à plein temps</option>
                     <option value="partial">Disponibilité partielle</option>
@@ -2142,7 +2650,9 @@
                 const supervisorDiv = document.createElement('div');
                 supervisorDiv.className = 'teacher-item';
                 supervisorDiv.innerHTML = `
-                    <input type="text" class="supervisor-name" value="${teacher}" required>
+                    <select class="supervisor-name" required>
+                        <option value="${teacher}" selected>${teacher}</option>
+                    </select>
                     <select class="supervisor-disponibility" required>
                         <option value="full">Disponible à plein temps</option>
                         <option value="partial">Disponibilité partielle</option>
@@ -2193,7 +2703,7 @@
         // Stockage des données de répartition
         let currentDistribution = null;
 
-        // Fonctions pour changer la vue - CORRIGÉE
+        // Fonctions pour changer la vue
         function changeView(viewType) {
             currentView = viewType;
             
@@ -2514,12 +3024,12 @@
             // Créer une copie des surveillants pour la répartition
             const supervisorsToAssign = supervisors.map(s => ({ ...s }));
             
-            // Générer la liste des matières pour chaque classe
+            // Générer la liste des matières pour chaque classe depuis la configuration
             const classSubjects = {};
             classes.forEach(className => {
-                // Déterminer le cycle de la classe
-                const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
-                classSubjects[className] = MATIERES_BY_CYCLE[classCycle][className] || ['Matière Principale'];
+                // Récupérer les matières configurées pour cette classe
+                classSubjects[className] = configuration.subjects[className] || 
+                                          ['Matière Principale'];
             });
             
             // Générer les dates pour la période
@@ -2551,7 +3061,7 @@
                 
                 // Pour chaque classe du jour, planifier un DEVOIR
                 dayClasses.forEach(className => {
-                    // Sélectionner une matière aléatoire pour la classe
+                    // Sélectionner une matière aléatoire pour la classe depuis les matières configurées
                     const subjects = classSubjects[className];
                     const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
                     
@@ -3478,11 +3988,19 @@
                 displayAllData();
             } else if (tabName === 'dashboard') {
                 updateDashboard();
+                updateConfigurationStats();
             } else if (tabName === 'manual') {
                 filterTimeSlots();
             } else if (tabName === 'devoir') {
                 updateDevoirClassOptions();
                 updateDevoirHistory();
+                // Charger automatiquement les surveillants configurés
+                setTimeout(() => {
+                    loadConfiguredSupervisors();
+                }, 100);
+            } else if (tabName === 'configuration') {
+                updateConfigurationStats();
+                updateConfigClassOptions();
             }
         }
 
@@ -3491,7 +4009,7 @@
             return JSON.parse(localStorage.getItem('courses')) || [];
         }
 
-        // Fonction pour mettre à jour les filtres - CORRIGÉE
+        // Fonction pour mettre à jour les filtres
         function updateFilters() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
@@ -3741,11 +4259,14 @@
             if (confirm('Voulez-vous vraiment supprimer TOUTES les données?')) {
                 localStorage.removeItem('courses');
                 localStorage.removeItem('devoirHistory');
+                localStorage.removeItem('configuration');
+                configuration = { subjects: {}, supervisors: [] };
                 updateFilters();
                 generateTimetable();
                 displayAllData();
                 updateDashboard();
                 updateDevoirHistory();
+                updateConfigurationStats();
                 showNotification('Toutes les données ont été supprimées', 'success');
             }
         }
@@ -3906,6 +4427,18 @@
             generateDevoirProgram();
         });
 
+        // Gestion du formulaire de configuration des matières
+        document.getElementById('subjectForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            addSubjectToClass();
+        });
+
+        // Gestion du formulaire de configuration des surveillants
+        document.getElementById('supervisorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSupervisors();
+        });
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
             // Vérifier l'authentification
@@ -3921,17 +4454,19 @@
                 displayAllData();
                 updateDashboard();
                 updateDevoirHistory();
+                updateConfigurationStats();
                 
                 // Ajouter un enseignant par défaut
                 addTeacher();
                 
-                // Ajouter un surveillant par défaut
-                addSupervisor();
+                // Ajouter un surveillant par défaut dans la configuration
+                addSupervisorItem();
                 
                 // Initialiser les options de classe
                 updateClassOptions();
                 updateManualClassOptions();
                 updateDevoirClassOptions();
+                updateConfigClassOptions();
                 
                 // Initialiser les créneaux horaires
                 filterTimeSlots();
