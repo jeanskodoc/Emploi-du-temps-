@@ -3639,16 +3639,22 @@
             showNotification('Programmation exportée en CSV', 'success');
         }
 
-        // Fonction pour générer la répartition aléatoire avec restrictions
+        // CORRECTION : Fonction pour générer la répartition aléatoire avec restrictions
         function generateDistribution() {
             const cycle = document.getElementById('distributionCycle').value;
             const className = document.getElementById('distributionClass').value;
             const totalHours = parseInt(document.getElementById('totalHours').value);
             const preferredTimePeriod = document.getElementById('preferredTimePeriod').value;
             
+            // Vérifier que tous les champs requis sont remplis
+            if (!cycle || !className) {
+                showNotification('Veuillez sélectionner un cycle et une classe', 'error');
+                return;
+            }
+            
             // Récupérer les données des enseignants
             const teachers = [];
-            const teacherItems = document.querySelectorAll('.teacher-item');
+            const teacherItems = document.querySelectorAll('#teachersContainer .teacher-item');
             
             teacherItems.forEach(item => {
                 const name = item.querySelector('.teacher-name').value;
@@ -3656,13 +3662,19 @@
                 const activityType = item.querySelector('.teacher-activity-type').value;
                 const hours = parseInt(item.querySelector('.teacher-hours').value);
                 
-                if (name && subject && hours) {
-                    teachers.push({ name, subject, activityType, hours });
+                if (name && subject && hours && !isNaN(hours)) {
+                    teachers.push({ 
+                        name, 
+                        subject, 
+                        activityType, 
+                        hours,
+                        remainingHours: hours  // Ajouter le compteur d'heures restantes
+                    });
                 }
             });
             
             if (teachers.length === 0) {
-                showNotification('Veuillez ajouter au moins un enseignant', 'error');
+                showNotification('Veuillez ajouter au moins un enseignant avec des heures valides', 'error');
                 return;
             }
             
@@ -3683,6 +3695,7 @@
             showNotification('Répartition générée avec succès!', 'success');
         }
 
+        // CORRECTION : Fonction pour générer la répartition aléatoire avec restrictions
         function generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod) {
             const distribution = {
                 cycle,
@@ -3859,6 +3872,7 @@
             }
         }
 
+        // CORRECTION : Fonction pour afficher les résultats de la répartition
         function displayDistributionResults(distribution) {
             const container = document.getElementById('distributionTableContainer');
             const resultsDiv = document.getElementById('distributionResults');
@@ -4099,6 +4113,9 @@
             } else if (tabName === 'configuration') {
                 updateConfigurationStats();
                 updateConfigClassOptions();
+            } else if (tabName === 'distribution') {
+                // Initialiser les options de classe pour la répartition
+                updateClassOptions();
             }
         }
 
