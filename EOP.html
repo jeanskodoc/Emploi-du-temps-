@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion Emploi du Temps - Lycée Niamtougou</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Ajout de jsPDF pour la génération de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -24,6 +26,7 @@
             --td-color: #2196F3;
             --tp-color: #FF9800;
             --tm-color: #795548;
+            --save-color: #673AB7;
         }
 
         * {
@@ -327,9 +330,32 @@
             color: white;
         }
 
+        .btn-save {
+            background: var(--save-color);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #5E35B1;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
         .btn-sm {
             padding: 8px 15px;
             font-size: 14px;
+        }
+
+        /* Nouveau bouton PDF */
+        .btn-pdf {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
         }
 
         /* Teacher List */
@@ -456,6 +482,11 @@
             color: white;
         }
 
+        .badge-save {
+            background-color: var(--save-color);
+            color: white;
+        }
+
         /* Distribution Tables */
         .distribution-table {
             width: 100%;
@@ -528,6 +559,11 @@
             color: var(--warning-color);
         }
 
+        .stat-icon.save {
+            background: rgba(103, 58, 183, 0.1);
+            color: var(--save-color);
+        }
+
         .stat-info h3 {
             font-size: 2rem;
             margin-bottom: 5px;
@@ -565,6 +601,12 @@
             background-color: #fff3cd;
             color: #856404;
             border-left: 4px solid var(--warning-color);
+        }
+
+        .notification.save {
+            background-color: #e8eaf6;
+            color: #311b92;
+            border-left: 4px solid var(--save-color);
         }
 
         /* Filters */
@@ -628,6 +670,12 @@
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
             }
+            
+            /* Afficher les détails des devoirs dans l'impression */
+            .exam-print-details {
+                display: block !important;
+                page-break-inside: avoid;
+            }
         }
 
         /* Styles pour les écrans mobiles (jusqu'à 480px) */
@@ -650,7 +698,7 @@
             
             .login-form input {
                 padding: 10px 12px;
-                font-size: 16px; /* Éviter le zoom sur iOS */
+                font-size: 16px;
             }
             
             .app-container {
@@ -996,6 +1044,152 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
+        
+        /* Exam specific styles */
+        .exam-container {
+            background-color: rgba(156, 39, 176, 0.05);
+            border: 2px solid var(--exam-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .exam-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(156, 39, 176, 0.1);
+            border-radius: var(--border-radius);
+        }
+        
+        .exam-icon {
+            color: var(--exam-color);
+            font-size: 1.5rem;
+        }
+        
+        /* Multi-class selection */
+        .class-selection-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            background-color: var(--light-gray);
+        }
+        
+        .class-selection-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .class-selection-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Date picker */
+        .date-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-input {
+            flex: 1;
+        }
+        
+        /* Exam schedule calendar */
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .calendar-day {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--medium-gray);
+        }
+        
+        .calendar-day-header {
+            background-color: var(--exam-color);
+            color: white;
+            padding: 10px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin: -15px -15px 15px -15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .calendar-exam-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--exam-color);
+            background-color: rgba(156, 39, 176, 0.1);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        /* Warning and info boxes */
+        .info-box {
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+        
+        .warning-box {
+            padding: 15px;
+            background-color: #fff3cd;
+            border-left: 4px solid var(--warning-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+        
+        /* Save button styles */
+        .save-section {
+            background-color: rgba(103, 58, 183, 0.05);
+            border: 2px solid var(--save-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .save-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--save-color);
+        }
+        
+        .exam-print-details {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--medium-gray);
+        }
+        
+        /* Saved exams indicator */
+        .saved-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: var(--save-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -1044,6 +1238,7 @@
                 <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
                 <li><a href="#" onclick="switchTab('distribution')"><i class="fas fa-random"></i> Répartition Auto</a></li>
                 <li><a href="#" onclick="switchTab('manual')"><i class="fas fa-edit"></i> Saisie Manuelle</a></li>
+                <li><a href="#" onclick="switchTab('exams')"><i class="fas fa-file-alt"></i> Planification DEVOIR</a></li>
                 <li><a href="#" onclick="switchTab('timetable')"><i class="fas fa-calendar-alt"></i> Visualisation</a></li>
                 <li><a href="#" onclick="switchTab('all-data')"><i class="fas fa-database"></i> Toutes les données</a></li>
                 <li><a href="#" onclick="exportData()"><i class="fas fa-file-export"></i> Exporter</a></li>
@@ -1093,6 +1288,15 @@
                             <p>Heures/semaine</p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon save">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-saved-exams">0</h3>
+                            <p>DEVOIR enregistrés</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -1118,8 +1322,11 @@
                             <button class="btn btn-secondary" onclick="switchTab('manual')">
                                 <i class="fas fa-plus"></i> Ajouter un cours
                             </button>
-                            <button class="btn btn-neutral" onclick="switchTab('timetable')">
-                                <i class="fas fa-calendar-alt"></i> Voir l'emploi du temps
+                            <button class="btn btn-neutral" onclick="switchTab('exams')" style="background-color: var(--exam-color);">
+                                <i class="fas fa-file-alt"></i> Planifier DEVOIR
+                            </button>
+                            <button class="btn btn-save" onclick="viewSavedExams()">
+                                <i class="fas fa-eye"></i> Voir les DEVOIR enregistrés
                             </button>
                         </div>
                     </div>
@@ -1302,6 +1509,185 @@
                 </div>
             </section>
 
+            <!-- Exams Tab -->
+            <section id="exams-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header" style="background-color: var(--exam-color);">
+                        <h2><i class="fas fa-file-alt"></i> Planification des DEVOIRS Surveillés</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="exam-container">
+                            <div class="exam-info">
+                                <i class="fas fa-info-circle exam-icon"></i>
+                                <div>
+                                    <h4>Planification des DEVOIRS</h4>
+                                    <p>Planifiez les DEVOIRS pour plusieurs classes et matières avec des dates précises.</p>
+                                    <p><strong>Horaires spécifiques :</strong> Collège à 15h00 | Lycée à 14h30</p>
+                                    <p><strong>Jours disponibles :</strong> Mardi, Jeudi, Vendredi</p>
+                                </div>
+                            </div>
+                            
+                            <form id="examForm">
+                                <div class="warning-box">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Information importante :</strong> Les DEVOIRS du collège débutent à 15h00 et ceux du lycée à 14h30.
+                                </div>
+                                
+                                <div class="form-columns">
+                                    <div class="form-group">
+                                        <label for="examStartDate"><i class="fas fa-calendar"></i> Date de début des DEVOIRS:</label>
+                                        <input type="date" id="examStartDate" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="examEndDate"><i class="fas fa-calendar"></i> Date de fin des DEVOIRS:</label>
+                                        <input type="date" id="examEndDate" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="examDuration"><i class="fas fa-clock"></i> Durée d'un DEVOIR (en heures):</label>
+                                        <select id="examDuration" required>
+                                            <option value="1">1 heure</option>
+                                            <option value="2" selected>2 heures</option>
+                                            <option value="3">3 heures</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-users"></i> Sélection des classes pour les DEVOIRS:</label>
+                                    <div class="class-selection-container">
+                                        <div style="margin-bottom: 10px;">
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllClasses('college')">
+                                                <i class="fas fa-check"></i> Tout sélectionner (Collège)
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllClasses('lycee')">
+                                                <i class="fas fa-check"></i> Tout sélectionner (Lycée)
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAllClasses()">
+                                                <i class="fas fa-times"></i> Tout désélectionner
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="collegeClassesContainer" style="margin-bottom: 15px;">
+                                            <h4><i class="fas fa-school"></i> Classes du Collège (Début à 15h00)</h4>
+                                            <div id="collegeClassesList"></div>
+                                        </div>
+                                        
+                                        <div id="lyceeClassesContainer">
+                                            <h4><i class="fas fa-graduation-cap"></i> Classes du Lycée (Début à 14h30)</h4>
+                                            <div id="lyceeClassesList"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-book"></i> Matières à évaluer:</label>
+                                    <div id="subjectsContainer">
+                                        <div class="teacher-item">
+                                            <input type="text" class="subject-name" placeholder="Nom de la matière" required>
+                                            <select class="subject-cycle" required>
+                                                <option value="Collège">Collège</option>
+                                                <option value="Lycée">Lycée</option>
+                                            </select>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeSubject(this)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" onclick="addSubject()">
+                                        <i class="fas fa-plus"></i> Ajouter une matière
+                                    </button>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-chalkboard-teacher"></i> Enseignants disponibles pour surveillance:</label>
+                                    <div id="supervisorsContainer">
+                                        <div class="teacher-item">
+                                            <input type="text" class="supervisor-name" placeholder="Nom du surveillant" required>
+                                            <input type="text" class="supervisor-subject" placeholder="Matière enseignée" required>
+                                            <select class="supervisor-cycle" required>
+                                                <option value="">Cycle d'enseignement</option>
+                                                <option value="Collège">Collège</option>
+                                                <option value="Lycée">Lycée</option>
+                                                <option value="Les deux">Les deux</option>
+                                            </select>
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" onclick="addSupervisor()">
+                                        <i class="fas fa-plus"></i> Ajouter un surveillant
+                                    </button>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-calendar-day"></i> Jours pour les DEVOIRS:</label>
+                                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                        <label><input type="checkbox" name="examDay" value="Mardi" checked> <i class="fas fa-calendar"></i> Mardi</label>
+                                        <label><input type="checkbox" name="examDay" value="Jeudi" checked> <i class="fas fa-calendar"></i> Jeudi</label>
+                                        <label><input type="checkbox" name="examDay" value="Vendredi" checked> <i class="fas fa-calendar"></i> Vendredi</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label><i class="fas fa-cogs"></i> Options de planification:</label>
+                                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                        <label><input type="checkbox" id="avoidSameDay" checked> Éviter plusieurs DEVOIRS le même jour pour une classe</label>
+                                        <label><input type="checkbox" id="avoidSameSupervisor" checked> Éviter plusieurs DEVOIRS le même jour pour un surveillant</label>
+                                        <label><input type="checkbox" id="balanceExams" checked> Équilibrer le nombre de DEVOIRS par classe</label>
+                                    </div>
+                                </div>
+                                
+                                <!-- CORRECTION : Changement du type de bouton et ajout d'un gestionnaire d'événement direct -->
+                                <button type="button" class="btn btn-primary" style="background-color: var(--exam-color);" onclick="generateExamPlan()">
+                                    <i class="fas fa-cogs"></i> Générer la planification des DEVOIRS
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div id="examResults" class="card" style="display: none; margin-top: 20px; border-color: var(--exam-color);">
+                            <div class="card-header" style="background-color: var(--exam-color);">
+                                <h2><i class="fas fa-calendar-alt"></i> Calendrier des DEVOIRS Généré</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="examCalendarContainer"></div>
+                                
+                                <!-- Section Enregistrer les DEVOIRS -->
+                                <div class="save-section">
+                                    <div class="save-header">
+                                        <i class="fas fa-save" style="font-size: 1.5rem;"></i>
+                                        <h3>Enregistrer la planification des DEVOIRS</h3>
+                                    </div>
+                                    <p>Une fois que vous avez généré la planification, vous pouvez l'enregistrer pour :</p>
+                                    <ul style="margin: 10px 0 20px 20px;">
+                                        <li>La visualiser dans l'emploi du temps</li>
+                                        <li>L'imprimer avec les autres cours</li>
+                                        <li>L'exporter avec toutes les données</li>
+                                        <li>Générer un PDF de la programmation</li>
+                                    </ul>
+                                    <div class="data-actions">
+                                        <button class="btn btn-save" onclick="saveExams()">
+                                            <i class="fas fa-save"></i> Enregistrer les DEVOIRS dans l'emploi du temps
+                                        </button>
+                                        <button class="btn btn-neutral" onclick="printExamSchedule()">
+                                            <i class="fas fa-print"></i> Imprimer le calendrier
+                                        </button>
+                                        <button class="btn btn-pdf" onclick="generateExamPDF()">
+                                            <i class="fas fa-file-pdf"></i> Générer PDF
+                                        </button>
+                                    </div>
+                                    <div class="exam-print-details" id="examPrintDetails">
+                                        <!-- Les détails des examens enregistrés seront affichés ici -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Timetable Tab -->
             <section id="timetable-tab" class="tab-content">
                 <div class="card">
@@ -1323,6 +1709,12 @@
                             <button class="btn btn-neutral" onclick="printTimetable()">
                                 <i class="fas fa-print"></i> Imprimer l'emploi du temps
                             </button>
+                            <button class="btn btn-save" onclick="viewSavedExams()">
+                                <i class="fas fa-eye"></i> Voir les DEVOIR enregistrés
+                            </button>
+                            <button class="btn btn-pdf" onclick="generateTimetablePDF()">
+                                <i class="fas fa-file-pdf"></i> Générer PDF
+                            </button>
                         </div>
 
                         <div class="view-options no-print">
@@ -1337,6 +1729,9 @@
                             </button>
                             <button class="view-option-btn" onclick="changeView('teacherAll')">
                                 <i class="fas fa-chalkboard-teacher"></i> Enseignant (Toutes classes)
+                            </button>
+                            <button class="view-option-btn" onclick="changeView('examsOnly')">
+                                <i class="fas fa-file-alt"></i> DEVOIRS seulement
                             </button>
                         </div>
                         
@@ -1449,6 +1844,32 @@
                             </div>
                         </div>
                         
+                        <div class="filters no-print" id="examsFilters" style="display: none;">
+                            <div class="filter-group">
+                                <label for="selectExamClass"><i class="fas fa-users"></i> Classe:</label>
+                                    <select id="selectExamClass" onchange="generateExamsOnlyTimetable()">
+                                    <option value="">-- Toutes --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectExamSupervisor"><i class="fas fa-user-tie"></i> Surveillant:</label>
+                                <select id="selectExamSupervisor" onchange="generateExamsOnlyTimetable()">
+                                    <option value="">-- Tous --</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="selectExamDateRange"><i class="fas fa-calendar"></i> Période:</label>
+                                <select id="selectExamDateRange" onchange="generateExamsOnlyTimetable()">
+                                    <option value="all">Toutes les dates</option>
+                                    <option value="thisWeek">Cette semaine</option>
+                                    <option value="nextWeek">Semaine prochaine</option>
+                                    <option value="thisMonth">Ce mois</option>
+                                </select>
+                            </div>
+                        </div>
+                        
                         <div id="timetableContainer" class="print-section">
                             <div class="print-header" style="text-align: center; margin-bottom: 20px; display: none;">
                                 <h2>EMPLOI DU TEMPS - LYCÉE NIAMTOUGOU</h2>
@@ -1471,6 +1892,16 @@
                                 </tbody>
                             </table>
                         </div>
+                        
+                        <!-- Section pour afficher les DEVOIRS enregistrés -->
+                        <div id="savedExamsSection" class="card" style="display: none; margin-top: 20px;">
+                            <div class="card-header" style="background-color: var(--save-color);">
+                                <h2><i class="fas fa-save"></i> DEVOIRS Enregistrés</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="savedExamsContainer"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1492,6 +1923,12 @@
                             <input type="file" id="fileInput2" accept=".json" onchange="importData(this)" class="sr-only">
                             <button class="btn btn-danger delete-btn" onclick="clearAllData()">
                                 <i class="fas fa-trash"></i> Supprimer toutes les données
+                            </button>
+                            <button class="btn btn-save" onclick="viewSavedExams()">
+                                <i class="fas fa-eye"></i> Voir les DEVOIR enregistrés
+                            </button>
+                            <button class="btn btn-pdf" onclick="generateAllDataPDF()">
+                                <i class="fas fa-file-pdf"></i> Générer PDF
                             </button>
                         </div>
                         
@@ -1530,6 +1967,15 @@
                                     <option value="">-- Toutes --</option>
                                     <option value="morning">Matin uniquement</option>
                                     <option value="afternoon">Après-midi uniquement</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filterSavedExams"><i class="fas fa-save"></i> DEVOIRS enregistrés:</label>
+                                <select id="filterSavedExams" onchange="displayAllData()">
+                                    <option value="">-- Tous --</option>
+                                    <option value="saved">DEVOIRS seulement</option>
+                                    <option value="notsaved">Hors DEVOIRS</option>
                                 </select>
                             </div>
                         </div>
@@ -1581,6 +2027,9 @@
 
         // Variables globales
         let currentView = 'general';
+        let currentExamDistribution = null;
+        let selectedClasses = [];
+        let savedExams = [];
         
         // Créneaux horaires classés par période
         const morningSlots = [
@@ -1598,6 +2047,22 @@
         ];
         
         const allTimeSlots = [...morningSlots, ...afternoonSlots];
+        
+        // Horaires spécifiques pour les DEVOIRS
+        const EXAM_START_TIMES = {
+            'Collège': '15:00',
+            'Lycée': '14:30'
+        };
+        
+        // Durées possibles pour les DEVOIRS
+        const EXAM_DURATIONS = {
+            '1': '1 heure',
+            '2': '2 heures',
+            '3': '3 heures'
+        };
+        
+        // Jours pour les DEVOIR
+        const examDays = ['Mardi', 'Jeudi', 'Vendredi'];
         
         // Types d'activités avec leurs couleurs et icônes
         const ACTIVITY_TYPES = {
@@ -1654,6 +2119,8 @@
                 document.getElementById('login-page').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
                 showNotification('Connexion réussie!', 'success');
+                initializeSavedExams();
+                initializeApp();
             } else {
                 // Échec de connexion
                 errorDiv.style.display = 'flex';
@@ -1668,6 +2135,8 @@
             if (isAuthenticated) {
                 document.getElementById('login-page').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
+                initializeSavedExams();
+                initializeApp();
             } else {
                 document.getElementById('login-page').style.display = 'flex';
                 document.getElementById('app').style.display = 'none';
@@ -1678,6 +2147,27 @@
             localStorage.removeItem('isAuthenticated');
             checkAuthentication();
             showNotification('Déconnexion réussie', 'success');
+        }
+
+        // Initialiser l'application
+        function initializeApp() {
+            updateFilters();
+            generateTimetable();
+            displayAllData();
+            updateDashboard();
+            
+            // Ajouter un enseignant par défaut
+            addTeacher();
+            
+            // Initialiser les options de classe
+            updateClassOptions();
+            updateManualClassOptions();
+            
+            // Initialiser les créneaux horaires
+            filterTimeSlots();
+            
+            // Initialiser la sélection des classes pour les DEVOIRS
+            initializeClassSelection();
         }
 
         // Fonctions pour mettre à jour les options de classe
@@ -1711,6 +2201,69 @@
                     classSelect.appendChild(option);
                 });
             }
+        }
+
+        // Initialiser la sélection des classes pour les DEVOIRS
+        function initializeClassSelection() {
+            const collegeList = document.getElementById('collegeClassesList');
+            const lyceeList = document.getElementById('lyceeClassesList');
+            
+            collegeList.innerHTML = '';
+            lyceeList.innerHTML = '';
+            
+            // Classes du Collège
+            CLASSES_BY_CYCLE['Collège'].forEach(className => {
+                const classItem = document.createElement('div');
+                classItem.className = 'class-selection-item';
+                classItem.innerHTML = `
+                    <input type="checkbox" id="class-${className}" value="${className}" data-cycle="Collège">
+                    <label for="class-${className}">${className} <small>(Début à 15h00)</small></label>
+                `;
+                collegeList.appendChild(classItem);
+            });
+            
+            // Classes du Lycée
+            CLASSES_BY_CYCLE['Lycée'].forEach(className => {
+                const classItem = document.createElement('div');
+                classItem.className = 'class-selection-item';
+                classItem.innerHTML = `
+                    <input type="checkbox" id="class-${className}" value="${className}" data-cycle="Lycée">
+                    <label for="class-${className}">${className} <small>(Début à 14h30)</small></label>
+                `;
+                lyceeList.appendChild(classItem);
+            });
+            
+            // Ajouter les événements pour les cases à cocher
+            document.querySelectorAll('.class-selection-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedClasses);
+            });
+            
+            updateSelectedClasses();
+        }
+
+        function updateSelectedClasses() {
+            selectedClasses = [];
+            document.querySelectorAll('.class-selection-item input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedClasses.push({
+                    name: checkbox.value,
+                    cycle: checkbox.dataset.cycle
+                });
+            });
+        }
+
+        function selectAllClasses(type) {
+            const selector = type === 'college' ? '[data-cycle="Collège"]' : '[data-cycle="Lycée"]';
+            document.querySelectorAll(`.class-selection-item input[type="checkbox"]${selector}`).forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelectedClasses();
+        }
+
+        function deselectAllClasses() {
+            document.querySelectorAll('.class-selection-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelectedClasses();
         }
 
         // Fonction pour obtenir les informations de série
@@ -1755,13 +2308,25 @@
             document.querySelectorAll('.view-option-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            
+            // Activer le bouton cliqué
+            const clickedBtn = event.target.closest('.view-option-btn');
+            if (clickedBtn) {
+                clickedBtn.classList.add('active');
+            }
             
             // Afficher/masquer les filtres appropriés
             document.getElementById('generalFilters').style.display = 'none';
             document.getElementById('teacherFilters').style.display = 'none';
             document.getElementById('classFilters').style.display = 'none';
             document.getElementById('teacherAllFilters').style.display = 'none';
+            document.getElementById('examsFilters').style.display = 'none';
+            
+            // Masquer la section des DEVOIRS enregistrés
+            const savedExamsSection = document.getElementById('savedExamsSection');
+            if (savedExamsSection) {
+                savedExamsSection.style.display = 'none';
+            }
             
             switch(viewType) {
                 case 'general':
@@ -1771,14 +2336,22 @@
                 case 'teacher':
                     document.getElementById('teacherFilters').style.display = 'flex';
                     updateTeacherFilters();
+                    generateTeacherTimetable();
                     break;
                 case 'class':
                     document.getElementById('classFilters').style.display = 'flex';
                     updateClassFilters();
+                    generateClassTimetable();
                     break;
                 case 'teacherAll':
                     document.getElementById('teacherAllFilters').style.display = 'flex';
                     updateTeacherAllFilters();
+                    generateTeacherAllClassesTimetable();
+                    break;
+                case 'examsOnly':
+                    document.getElementById('examsFilters').style.display = 'flex';
+                    updateExamFilters();
+                    generateExamsOnlyTimetable();
                     break;
             }
         }
@@ -1826,6 +2399,18 @@
                     const teacherAll = document.getElementById('selectTeacherAll').value;
                     printSubtitle.textContent = `Emploi du temps de ${teacherAll} (Toutes classes)`;
                     break;
+                    
+                case 'examsOnly':
+                    printSubtitle.textContent = 'Calendrier des DEVOIRS - Vue détaillée';
+                    break;
+            }
+            
+            // Afficher les détails des DEVOIRS dans l'impression
+            if (currentView === 'examsOnly') {
+                const savedExamsSection = document.getElementById('savedExamsSection');
+                if (savedExamsSection && savedExamsSection.style.display !== 'none') {
+                    savedExamsSection.classList.add('exam-print-details');
+                }
             }
             
             // Lancer l'impression
@@ -1834,7 +2419,351 @@
             // Masquer le header après impression
             setTimeout(() => {
                 printHeader.style.display = 'none';
+                if (currentView === 'examsOnly') {
+                    const savedExamsSection = document.getElementById('savedExamsSection');
+                    if (savedExamsSection) {
+                        savedExamsSection.classList.remove('exam-print-details');
+                    }
+                }
             }, 500);
+        }
+
+        // NOUVELLE FONCTION : Générer un PDF de l'emploi du temps
+        function generateTimetablePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            const title = "EMPLOI DU TEMPS - LYCÉE NIAMTOUGOU";
+            const currentDate = new Date().toLocaleDateString('fr-FR');
+            
+            // Titre
+            doc.setFontSize(18);
+            doc.text(title, 140, 15, { align: 'center' });
+            
+            // Sous-titre selon la vue
+            let subtitle = '';
+            switch(currentView) {
+                case 'general':
+                    const teacher = document.getElementById('selectTeacher').value;
+                    const cycle = document.getElementById('selectCycle').value;
+                    const classe = document.getElementById('selectClass').value;
+                    subtitle = 'Vue Générale';
+                    if (teacher) subtitle += ` - Enseignant: ${teacher}`;
+                    if (cycle) subtitle += ` - Cycle: ${cycle}`;
+                    if (classe) subtitle += ` - Classe: ${classe}`;
+                    break;
+                case 'teacher':
+                    const teacherSpecific = document.getElementById('selectTeacherSpecific').value;
+                    subtitle = `Emploi du temps de ${teacherSpecific}`;
+                    break;
+                case 'class':
+                    const classSpecific = document.getElementById('selectClassSpecific').value;
+                    subtitle = `Emploi du temps de la ${classSpecific}`;
+                    break;
+                case 'teacherAll':
+                    const teacherAll = document.getElementById('selectTeacherAll').value;
+                    subtitle = `Emploi du temps de ${teacherAll} (Toutes classes)`;
+                    break;
+                case 'examsOnly':
+                    subtitle = 'Calendrier des DEVOIRS';
+                    break;
+            }
+            
+            doc.setFontSize(12);
+            doc.text(subtitle, 140, 25, { align: 'center' });
+            doc.text(`Généré le: ${currentDate}`, 140, 32, { align: 'center' });
+            
+            // Ajouter une ligne de séparation
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            doc.line(20, 40, 270, 40);
+            
+            // Coordonnées pour le tableau
+            const startX = 20;
+            const startY = 50;
+            const cellWidth = 40;
+            const cellHeight = 15;
+            
+            // En-tête du tableau
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            
+            const headers = ['Horaire', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+            for (let i = 0; i < headers.length; i++) {
+                doc.rect(startX + i * cellWidth, startY, cellWidth, cellHeight);
+                doc.text(headers[i], startX + i * cellWidth + cellWidth/2, startY + cellHeight/2 + 3, { align: 'center' });
+            }
+            
+            // Récupérer les données de l'emploi du temps
+            const courses = getCourses();
+            const selectedTeacher = document.getElementById('selectTeacher').value;
+            const selectedCycle = document.getElementById('selectCycle').value;
+            const selectedClass = document.getElementById('selectClass').value;
+            const selectedActivityType = document.getElementById('selectActivityType').value;
+            const selectedTimePeriod = document.getElementById('selectTimePeriod').value;
+            
+            let filteredCourses = courses;
+            if (selectedTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === selectedTeacher);
+            if (selectedCycle) filteredCourses = filteredCourses.filter(c => c.cycle === selectedCycle);
+            if (selectedClass) filteredCourses = filteredCourses.filter(c => c.className === selectedClass);
+            if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
+            if (selectedTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === selectedTimePeriod);
+            
+            // Remplir le tableau
+            doc.setFont(undefined, 'normal');
+            let currentY = startY + cellHeight;
+            
+            allTimeSlots.forEach((slot, index) => {
+                // Dessiner la ligne
+                for (let i = 0; i < headers.length; i++) {
+                    doc.rect(startX + i * cellWidth, currentY, cellWidth, cellHeight);
+                }
+                
+                // Cellule horaire
+                doc.text(slot, startX + cellWidth/2, currentY + cellHeight/2 + 3, { align: 'center' });
+                
+                // Remplir les jours
+                days.forEach((day, dayIndex) => {
+                    const dayCourses = filteredCourses.filter(c => c.day === day && c.timeSlot === slot);
+                    if (dayCourses.length > 0) {
+                        let content = '';
+                        dayCourses.forEach(course => {
+                            content += `${course.className}\n${course.subject}\n${course.teacherName}`;
+                        });
+                        doc.setFontSize(8);
+                        doc.text(content, startX + (dayIndex + 1) * cellWidth + 2, currentY + 5);
+                        doc.setFontSize(10);
+                    }
+                });
+                
+                currentY += cellHeight;
+            });
+            
+            // Ajouter une légende
+            currentY += 10;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text("Légende:", 20, currentY);
+            doc.setFont(undefined, 'normal');
+            
+            currentY += 7;
+            Object.entries(ACTIVITY_TYPES).forEach(([type, info], index) => {
+                const x = 20 + (index % 3) * 80;
+                const y = currentY + Math.floor(index / 3) * 10;
+                
+                doc.setFillColor(info.borderColor.replace('#', ''));
+                doc.rect(x, y, 5, 5, 'F');
+                doc.text(` ${type}`, x + 8, y + 4);
+            });
+            
+            // Sauvegarder le PDF
+            doc.save(`emploi_du_temps_${currentDate.replace(/\//g, '-')}.pdf`);
+            
+            showNotification('PDF généré avec succès!', 'save');
+        }
+
+        // NOUVELLE FONCTION : Générer un PDF des DEVOIRS
+        function generateExamPDF() {
+            if (!currentExamDistribution) {
+                showNotification('Aucun calendrier de DEVOIR à exporter en PDF', 'error');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('portrait');
+            const title = "CALENDRIER DES DEVOIRS - LYCÉE NIAMTOUGOU";
+            const currentDate = new Date().toLocaleDateString('fr-FR');
+            
+            // Titre
+            doc.setFontSize(18);
+            doc.text(title, 105, 15, { align: 'center' });
+            
+            // Informations sur la période
+            doc.setFontSize(12);
+            doc.text(`Période: Du ${formatDate(currentExamDistribution.startDate)} au ${formatDate(currentExamDistribution.endDate)}`, 
+                    105, 25, { align: 'center' });
+            doc.text(`Durée des DEVOIRS: ${currentExamDistribution.duration} heure(s)`, 105, 32, { align: 'center' });
+            doc.text(`Total des DEVOIRS: ${currentExamDistribution.summary.totalExams}`, 105, 39, { align: 'center' });
+            doc.text(`Généré le: ${currentDate}`, 105, 46, { align: 'center' });
+            
+            // Ajouter une ligne de séparation
+            doc.setDrawColor(156, 39, 176); // Couleur exam
+            doc.setLineWidth(0.5);
+            doc.line(20, 50, 190, 50);
+            
+            let currentY = 60;
+            
+            // Grouper les examens par date
+            const examsByDate = {};
+            currentExamDistribution.exams.forEach(exam => {
+                const dateKey = exam.formattedDate;
+                if (!examsByDate[dateKey]) {
+                    examsByDate[dateKey] = [];
+                }
+                examsByDate[dateKey].push(exam);
+            });
+            
+            // Afficher chaque date
+            Object.keys(examsByDate).forEach(date => {
+                // Vérifier si besoin d'une nouvelle page
+                if (currentY > 250) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+                
+                // Date
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(156, 39, 176); // Couleur exam
+                doc.text(date, 20, currentY);
+                currentY += 10;
+                
+                // Examens de cette date
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(0, 0, 0);
+                
+                examsByDate[date].forEach(exam => {
+                    const examText = `${exam.timeSlot} - ${exam.className} (${exam.cycle}) - ${exam.subject} - Surveillant: ${exam.supervisor}`;
+                    doc.text(examText, 25, currentY);
+                    currentY += 7;
+                });
+                
+                currentY += 5; // Espacement entre les dates
+            });
+            
+            // Statistiques
+            currentY += 10;
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text("Statistiques:", 20, currentY);
+            currentY += 10;
+            
+            // Par classe
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text("Par classe:", 25, currentY);
+            currentY += 7;
+            doc.setFont(undefined, 'normal');
+            
+            Object.entries(currentExamDistribution.summary.examsByClass).forEach(([className, count]) => {
+                doc.text(`${className}: ${count} DEVOIR(s)`, 30, currentY);
+                currentY += 6;
+            });
+            
+            currentY += 5;
+            
+            // Par matière
+            doc.setFont(undefined, 'bold');
+            doc.text("Par matière:", 25, currentY);
+            currentY += 7;
+            doc.setFont(undefined, 'normal');
+            
+            Object.entries(currentExamDistribution.summary.examsBySubject).forEach(([subject, count]) => {
+                doc.text(`${subject}: ${count} DEVOIR(s)`, 30, currentY);
+                currentY += 6;
+            });
+            
+            // Sauvegarder le PDF
+            doc.save(`calendrier_devoirs_${currentDate.replace(/\//g, '-')}.pdf`);
+            
+            showNotification('PDF des DEVOIRS généré avec succès!', 'save');
+        }
+
+        // NOUVELLE FONCTION : Générer un PDF de toutes les données
+        function generateAllDataPDF() {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                showNotification('Aucune donnée à exporter en PDF', 'warning');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            const title = "TOUTES LES DONNÉES - LYCÉE NIAMTOUGOU";
+            const currentDate = new Date().toLocaleDateString('fr-FR');
+            
+            // Titre
+            doc.setFontSize(18);
+            doc.text(title, 140, 15, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(`Total des cours: ${courses.length}`, 140, 25, { align: 'center' });
+            doc.text(`Généré le: ${currentDate}`, 140, 32, { align: 'center' });
+            
+            // En-tête du tableau
+            const headers = ['Enseignant', 'Classe', 'Cycle', 'Matière', 'Type', 'Jour', 'Créneau', 'Période'];
+            const colWidths = [30, 25, 20, 35, 20, 25, 30, 20];
+            
+            let startX = 10;
+            let currentY = 45;
+            
+            // Dessiner l'en-tête
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            
+            headers.forEach((header, i) => {
+                doc.rect(startX, currentY, colWidths[i], 10);
+                doc.text(header, startX + colWidths[i]/2, currentY + 7, { align: 'center' });
+                startX += colWidths[i];
+            });
+            
+            currentY += 10;
+            let page = 1;
+            
+            // Remplir le tableau
+            doc.setFont(undefined, 'normal');
+            
+            courses.forEach((course, index) => {
+                // Vérifier si besoin d'une nouvelle page
+                if (currentY > 180) {
+                    doc.addPage();
+                    currentY = 20;
+                    page++;
+                    
+                    // Ré-afficher l'en-tête sur la nouvelle page
+                    startX = 10;
+                    doc.setFont(undefined, 'bold');
+                    headers.forEach((header, i) => {
+                        doc.rect(startX, currentY, colWidths[i], 10);
+                        doc.text(header, startX + colWidths[i]/2, currentY + 7, { align: 'center' });
+                        startX += colWidths[i];
+                    });
+                    currentY += 10;
+                    doc.setFont(undefined, 'normal');
+                }
+                
+                startX = 10;
+                const rowData = [
+                    course.teacherName,
+                    course.className,
+                    course.cycle,
+                    course.subject,
+                    course.activityType,
+                    course.day,
+                    course.timeSlot,
+                    course.timePeriod
+                ];
+                
+                rowData.forEach((data, i) => {
+                    doc.rect(startX, currentY, colWidths[i], 10);
+                    doc.text(data.toString(), startX + 2, currentY + 7);
+                    startX += colWidths[i];
+                });
+                
+                currentY += 10;
+            });
+            
+            // Ajouter le numéro de page
+            const totalPages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text(`Page ${i} sur ${totalPages}`, 280, 200);
+            }
+            
+            // Sauvegarder le PDF
+            doc.save(`toutes_donnees_${currentDate.replace(/\//g, '-')}.pdf`);
+            
+            showNotification('PDF de toutes les données généré avec succès!', 'save');
         }
 
         // Fonctions pour la gestion des enseignants
@@ -1865,6 +2794,65 @@
 
         function removeTeacher(button) {
             const container = document.getElementById('teachersContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+        
+        // Fonctions pour la gestion des matières
+        function addSubject() {
+            const container = document.getElementById('subjectsContainer');
+            const subjectCount = container.children.length + 1;
+            
+            const subjectDiv = document.createElement('div');
+            subjectDiv.className = 'teacher-item';
+            subjectDiv.innerHTML = `
+                <input type="text" class="subject-name" placeholder="Nom de la matière" required>
+                <select class="subject-cycle" required>
+                    <option value="Collège">Collège</option>
+                    <option value="Lycée">Lycée</option>
+                </select>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeSubject(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(subjectDiv);
+        }
+
+        function removeSubject(button) {
+            const container = document.getElementById('subjectsContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+        
+        // Fonctions pour la gestion des surveillants
+        function addSupervisor() {
+            const container = document.getElementById('supervisorsContainer');
+            const supervisorCount = container.children.length + 1;
+            
+            const supervisorDiv = document.createElement('div');
+            supervisorDiv.className = 'teacher-item';
+            supervisorDiv.innerHTML = `
+                <input type="text" class="supervisor-name" placeholder="Nom du surveillant" required>
+                <input type="text" class="supervisor-subject" placeholder="Matière enseignée" required>
+                <select class="supervisor-cycle" required>
+                    <option value="">Cycle d'enseignement</option>
+                    <option value="Collège">Collège</option>
+                    <option value="Lycée">Lycée</option>
+                    <option value="Les deux">Les deux</option>
+                </select>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(supervisorDiv);
+        }
+
+        function removeSupervisor(button) {
+            const container = document.getElementById('supervisorsContainer');
             if (container.children.length > 1) {
                 button.parentElement.remove();
             }
@@ -2261,6 +3249,788 @@
             switchTab('timetable');
         }
 
+        // CORRECTION : Fonction pour générer la planification des DEVOIRS - version corrigée
+        function generateExamPlan(event) {
+            if (event) event.preventDefault();
+            
+            // Récupérer les dates
+            const startDateStr = document.getElementById('examStartDate').value;
+            const endDateStr = document.getElementById('examEndDate').value;
+            
+            if (!startDateStr || !endDateStr) {
+                showNotification('Veuillez sélectionner les dates de début et de fin', 'error');
+                return;
+            }
+            
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+            
+            if (startDate > endDate) {
+                showNotification('La date de début doit être antérieure à la date de fin', 'error');
+                return;
+            }
+            
+            // Vérifier qu'il y a au moins une classe sélectionnée
+            if (selectedClasses.length === 0) {
+                showNotification('Veuillez sélectionner au moins une classe', 'error');
+                return;
+            }
+            
+            // Récupérer les matières
+            const subjects = [];
+            const subjectItems = document.querySelectorAll('#subjectsContainer .teacher-item');
+            
+            subjectItems.forEach(item => {
+                const name = item.querySelector('.subject-name').value;
+                const cycle = item.querySelector('.subject-cycle').value;
+                
+                if (name) {
+                    subjects.push({ name, cycle });
+                }
+            });
+            
+            if (subjects.length === 0) {
+                showNotification('Veuillez ajouter au moins une matière', 'error');
+                return;
+            }
+            
+            // Récupérer les surveillants
+            const supervisors = [];
+            const supervisorItems = document.querySelectorAll('#supervisorsContainer .teacher-item');
+            
+            supervisorItems.forEach(item => {
+                const name = item.querySelector('.supervisor-name').value;
+                const subject = item.querySelector('.supervisor-subject').value;
+                const cycle = item.querySelector('.supervisor-cycle').value;
+                
+                if (name && subject && cycle) {
+                    supervisors.push({ name, subject, cycle });
+                }
+            });
+            
+            if (supervisors.length === 0) {
+                showNotification('Veuillez ajouter au moins un surveillant', 'error');
+                return;
+            }
+            
+            // Récupérer les jours sélectionnés pour les DEVOIRS
+            const selectedExamDays = Array.from(document.querySelectorAll('input[name="examDay"]:checked')).map(cb => cb.value);
+            if (selectedExamDays.length === 0) {
+                showNotification('Veuillez sélectionner au moins un jour pour les DEVOIRS', 'error');
+                return;
+            }
+            
+            // Récupérer les options
+            const examDuration = parseInt(document.getElementById('examDuration').value);
+            const avoidSameDay = document.getElementById('avoidSameDay').checked;
+            const avoidSameSupervisor = document.getElementById('avoidSameSupervisor').checked;
+            const balanceExams = document.getElementById('balanceExams').checked;
+            
+            // Générer la planification des DEVOIRS
+            const examDistribution = generateExamSchedule(
+                startDate, endDate, selectedClasses, subjects, supervisors, 
+                selectedExamDays, examDuration, avoidSameDay, avoidSameSupervisor, balanceExams
+            );
+            
+            if (!examDistribution) {
+                showNotification('Erreur lors de la génération de la planification', 'error');
+                return;
+            }
+            
+            currentExamDistribution = examDistribution;
+            
+            // Afficher les résultats
+            displayExamResults(examDistribution);
+            
+            showNotification('Planification des DEVOIRS générée avec succès!', 'success');
+        }
+
+        function generateExamSchedule(startDate, endDate, classes, subjects, supervisors, examDays, duration, avoidSameDay, avoidSameSupervisor, balanceExams) {
+            const examDistribution = {
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                duration: duration,
+                exams: [],
+                summary: {
+                    totalExams: 0,
+                    examsByClass: {},
+                    examsBySubject: {},
+                    examsBySupervisor: {}
+                }
+            };
+            
+            // Calculer le nombre total de jours disponibles
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            const availableDates = [];
+            
+            // Générer la liste des dates disponibles (uniquement les jours sélectionnés)
+            for (let i = 0; i < totalDays; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                const dayOfWeek = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' });
+                
+                // Vérifier si c'est un jour autorisé pour les examens
+                if (examDays.includes(dayOfWeek)) {
+                    availableDates.push({
+                        date: new Date(currentDate),
+                        dayName: dayOfWeek,
+                        formattedDate: currentDate.toLocaleDateString('fr-FR', { 
+                            weekday: 'long', 
+                            day: 'numeric', 
+                            month: 'long', 
+                            year: 'numeric' 
+                        })
+                    });
+                }
+            }
+            
+            if (availableDates.length === 0) {
+                showNotification('Aucune date disponible avec les jours sélectionnés', 'error');
+                return null;
+            }
+            
+            // Préparer les matières par cycle
+            const subjectsByCycle = {
+                'Collège': subjects.filter(s => s.cycle === 'Collège').map(s => s.name),
+                'Lycée': subjects.filter(s => s.cycle === 'Lycée').map(s => s.name)
+            };
+            
+            // Préparer les surveillants par cycle et matière
+            const supervisorsByCycleAndSubject = {};
+            supervisors.forEach(supervisor => {
+                const cycles = supervisor.cycle === 'Les deux' ? ['Collège', 'Lycée'] : [supervisor.cycle];
+                cycles.forEach(cycle => {
+                    if (!supervisorsByCycleAndSubject[cycle]) {
+                        supervisorsByCycleAndSubject[cycle] = {};
+                    }
+                    if (!supervisorsByCycleAndSubject[cycle][supervisor.subject]) {
+                        supervisorsByCycleAndSubject[cycle][supervisor.subject] = [];
+                    }
+                    supervisorsByCycleAndSubject[cycle][supervisor.subject].push(supervisor.name);
+                });
+            });
+            
+            // Calculer le nombre d'examens par classe (équilibré si demandé)
+            const examsPerClass = {};
+            if (balanceExams) {
+                // Essayer d'avoir le même nombre d'examens par classe
+                const totalSubjects = subjects.length;
+                const targetExamsPerClass = Math.ceil(totalSubjects / 2);
+                
+                classes.forEach(cls => {
+                    examsPerClass[cls.name] = targetExamsPerClass;
+                });
+            } else {
+                // Une matière par classe
+                classes.forEach(cls => {
+                    examsPerClass[cls.name] = 1;
+                });
+            }
+            
+            // Planifier les examens
+            let dateIndex = 0;
+            const supervisorSchedule = {}; // Pour éviter qu'un surveillant ait plusieurs examens le même jour
+            const classSchedule = {}; // Pour éviter qu'une classe ait plusieurs examens le même jour
+            
+            classes.forEach(cls => {
+                const classExams = examsPerClass[cls.name];
+                const classSubjects = subjectsByCycle[cls.cycle] || [];
+                
+                if (classSubjects.length === 0) {
+                    console.warn(`Aucune matière disponible pour la classe ${cls.name} (${cls.cycle})`);
+                    return;
+                }
+                
+                // Sélectionner aléatoirement des matières pour cette classe
+                const selectedSubjects = [];
+                const availableSubjects = [...classSubjects];
+                
+                for (let i = 0; i < Math.min(classExams, availableSubjects.length); i++) {
+                    const randomIndex = Math.floor(Math.random() * availableSubjects.length);
+                    selectedSubjects.push(availableSubjects[randomIndex]);
+                    availableSubjects.splice(randomIndex, 1);
+                }
+                
+                // Planifier chaque examen
+                selectedSubjects.forEach(subject => {
+                    // Trouver une date disponible
+                    let examDate = null;
+                    let attempts = 0;
+                    const maxAttempts = availableDates.length * 2;
+                    
+                    while (!examDate && attempts < maxAttempts) {
+                        const dateInfo = availableDates[dateIndex % availableDates.length];
+                        const dateKey = dateInfo.date.toISOString().split('T')[0];
+                        
+                        // Vérifier les contraintes
+                        let canSchedule = true;
+                        
+                        if (avoidSameDay) {
+                            if (classSchedule[dateKey] && classSchedule[dateKey].includes(cls.name)) {
+                                canSchedule = false;
+                            }
+                        }
+                        
+                        // Si les contraintes sont respectées, planifier l'examen
+                        if (canSchedule) {
+                            examDate = dateInfo;
+                            
+                            // Mettre à jour les plannings
+                            if (!classSchedule[dateKey]) classSchedule[dateKey] = [];
+                            classSchedule[dateKey].push(cls.name);
+                        }
+                        
+                        dateIndex++;
+                        attempts++;
+                    }
+                    
+                    if (examDate) {
+                        // Trouver un surveillant disponible
+                        const availableSupervisors = supervisorsByCycleAndSubject[cls.cycle] && 
+                                                    supervisorsByCycleAndSubject[cls.cycle][subject] ?
+                                                    supervisorsByCycleAndSubject[cls.cycle][subject] : [];
+                        
+                        if (availableSupervisors.length === 0) {
+                            console.warn(`Aucun surveillant disponible pour ${subject} en ${cls.cycle}`);
+                            return;
+                        }
+                        
+                        // Choisir un surveillant
+                        let supervisor = null;
+                        if (avoidSameSupervisor) {
+                            const dateKey = examDate.date.toISOString().split('T')[0];
+                            if (!supervisorSchedule[dateKey]) supervisorSchedule[dateKey] = [];
+                            
+                            // Trouver un surveillant non déjà occupé ce jour-là
+                            const availableSupervisorsToday = availableSupervisors.filter(s => 
+                                !supervisorSchedule[dateKey].includes(s)
+                            );
+                            
+                            if (availableSupervisorsToday.length > 0) {
+                                const randomIndex = Math.floor(Math.random() * availableSupervisorsToday.length);
+                                supervisor = availableSupervisorsToday[randomIndex];
+                                supervisorSchedule[dateKey].push(supervisor);
+                            } else {
+                                // Tous les surveillants sont occupés, prendre un au hasard
+                                const randomIndex = Math.floor(Math.random() * availableSupervisors.length);
+                                supervisor = availableSupervisors[randomIndex];
+                                supervisorSchedule[dateKey].push(supervisor);
+                            }
+                        } else {
+                            const randomIndex = Math.floor(Math.random() * availableSupervisors.length);
+                            supervisor = availableSupervisors[randomIndex];
+                        }
+                        
+                        // Calculer l'heure de début selon le cycle
+                        const startTime = EXAM_START_TIMES[cls.cycle];
+                        let endTime = '';
+                        
+                        // Calculer l'heure de fin selon la durée
+                        const [startHour, startMinute] = startTime.split(':').map(Number);
+                        const endHour = startHour + parseInt(duration);
+                        endTime = `${endHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
+                        
+                        const timeSlot = `${startTime} - ${endTime}`;
+                        
+                        // Ajouter l'examen
+                        const exam = {
+                            id: Date.now() + Math.floor(Math.random() * 1000),
+                            date: examDate.date.toISOString().split('T')[0],
+                            formattedDate: examDate.formattedDate,
+                            dayName: examDate.dayName,
+                            className: cls.name,
+                            cycle: cls.cycle,
+                            subject: subject,
+                            supervisor: supervisor,
+                            duration: duration,
+                            timeSlot: timeSlot,
+                            startTime: startTime,
+                            endTime: endTime
+                        };
+                        
+                        examDistribution.exams.push(exam);
+                        
+                        // Mettre à jour les statistiques
+                        examDistribution.summary.totalExams++;
+                        
+                        if (!examDistribution.summary.examsByClass[cls.name]) {
+                            examDistribution.summary.examsByClass[cls.name] = 0;
+                        }
+                        examDistribution.summary.examsByClass[cls.name]++;
+                        
+                        if (!examDistribution.summary.examsBySubject[subject]) {
+                            examDistribution.summary.examsBySubject[subject] = 0;
+                        }
+                        examDistribution.summary.examsBySubject[subject]++;
+                        
+                        if (!examDistribution.summary.examsBySupervisor[supervisor]) {
+                            examDistribution.summary.examsBySupervisor[supervisor] = 0;
+                        }
+                        examDistribution.summary.examsBySupervisor[supervisor]++;
+                    }
+                });
+            });
+            
+            // Trier les examens par date
+            examDistribution.exams.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            return examDistribution;
+        }
+
+        function displayExamResults(examDistribution) {
+            const container = document.getElementById('examCalendarContainer');
+            const resultsDiv = document.getElementById('examResults');
+            
+            let html = `
+                <div class="exam-info">
+                    <i class="fas fa-info-circle exam-icon"></i>
+                    <div>
+                        <h4>Calendrier des DEVOIRS</h4>
+                        <p><strong>Période :</strong> Du ${formatDate(examDistribution.startDate)} au ${formatDate(examDistribution.endDate)}</p>
+                        <p><strong>Durée des DEVOIRS :</strong> ${examDistribution.duration} heure(s)</p>
+                        <p><strong>Total des DEVOIRS planifiés :</strong> ${examDistribution.summary.totalExams}</p>
+                    </div>
+                </div>
+                
+                <div class="calendar-container">
+            `;
+            
+            // Grouper les examens par date
+            const examsByDate = {};
+            examDistribution.exams.forEach(exam => {
+                if (!examsByDate[exam.formattedDate]) {
+                    examsByDate[exam.formattedDate] = [];
+                }
+                examsByDate[exam.formattedDate].push(exam);
+            });
+            
+            // Afficher les examens par date
+            Object.keys(examsByDate).forEach(date => {
+                const exams = examsByDate[date];
+                
+                html += `
+                    <div class="calendar-day">
+                        <div class="calendar-day-header">
+                            ${date}
+                        </div>
+                `;
+                
+                exams.forEach(exam => {
+                    html += `
+                        <div class="calendar-exam-item">
+                            <div><strong>${exam.className}</strong> <small>(${exam.cycle})</small></div>
+                            <div><i class="fas fa-book"></i> ${exam.subject}</div>
+                            <div><i class="fas fa-user-tie"></i> Surveillant: ${exam.supervisor}</div>
+                            <div><i class="fas fa-clock"></i> ${exam.timeSlot} (${exam.duration}h)</div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            html += `
+                </div>
+                
+                <div class="summary" style="margin-top: 20px;">
+                    <h4><i class="fas fa-chart-bar"></i> Récapitulatif</h4>
+                    <div class="form-columns">
+                        <div>
+                            <h5><i class="fas fa-users"></i> Par classe:</h5>
+                            <table class="distribution-table">
+                                <thead>
+                                    <tr>
+                                        <th>Classe</th>
+                                        <th>Nombre de DEVOIRS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            Object.entries(examDistribution.summary.examsByClass).forEach(([className, count]) => {
+                html += `
+                    <tr>
+                        <td>${className}</td>
+                        <td>${count}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div>
+                            <h5><i class="fas fa-book"></i> Par matière:</h5>
+                            <table class="distribution-table">
+                                <thead>
+                                    <tr>
+                                        <th>Matière</th>
+                                        <th>Nombre de DEVOIRS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            Object.entries(examDistribution.summary.examsBySubject).forEach(([subject, count]) => {
+                html += `
+                    <tr>
+                        <td>${subject}</td>
+                        <td>${count}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div>
+                            <h5><i class="fas fa-user-tie"></i> Par surveillant:</h5>
+                            <table class="distribution-table">
+                                <thead>
+                                    <tr>
+                                        <th>Surveillant</th>
+                                        <th>Nombre de DEVOIRS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            Object.entries(examDistribution.summary.examsBySupervisor).forEach(([supervisor, count]) => {
+                html += `
+                    <tr>
+                        <td>${supervisor}</td>
+                        <td>${count}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+            
+            // Faire défiler jusqu'aux résultats
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-FR', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            });
+        }
+
+        function printExamSchedule() {
+            if (!currentExamDistribution) {
+                showNotification('Aucun calendrier de DEVOIR à imprimer', 'error');
+                return;
+            }
+            
+            const printContent = document.getElementById('examCalendarContainer').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Calendrier des DEVOIRS - Lycée Niamtougou</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #9C27B0; text-align: center; }
+                        .calendar-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+                        .calendar-day { border: 2px solid #9C27B0; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+                        .calendar-day-header { background-color: #9C27B0; color: white; padding: 10px; border-radius: 6px 6px 0 0; margin: -15px -15px 15px -15px; text-align: center; font-weight: bold; }
+                        .calendar-exam-item { padding: 10px; margin-bottom: 10px; border-left: 4px solid #9C27B0; background-color: rgba(156, 39, 176, 0.1); }
+                        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        @media print { body { margin: 0; } .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>Calendrier des DEVOIRS - Lycée Niamtougou</h1>
+                    <p><strong>Période :</strong> Du ${formatDate(currentExamDistribution.startDate)} au ${formatDate(currentExamDistribution.endDate)}</p>
+                    <p><strong>Durée des DEVOIRS :</strong> ${currentExamDistribution.duration} heure(s)</p>
+                    <p><strong>Total des DEVOIRS :</strong> ${currentExamDistribution.summary.totalExams}</p>
+                    ${printContent}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
+
+        // Fonction pour enregistrer les DEVOIRS
+        function saveExams() {
+            if (!currentExamDistribution) {
+                showNotification('Aucune planification de DEVOIR à enregistrer', 'error');
+                return;
+            }
+            
+            // Sauvegarder chaque DEVOIR dans le localStorage
+            const courses = getCourses();
+            let savedCount = 0;
+            
+            currentExamDistribution.exams.forEach(examData => {
+                const course = {
+                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    teacherName: examData.supervisor,
+                    className: examData.className,
+                    cycle: examData.cycle,
+                    subject: examData.subject,
+                    activityType: 'DEVOIR',
+                    day: examData.dayName,
+                    date: examData.date,
+                    formattedDate: examData.formattedDate,
+                    timeSlot: examData.timeSlot,
+                    startTime: examData.startTime,
+                    endTime: examData.endTime,
+                    duration: examData.duration,
+                    timePeriod: 'afternoon',
+                    isSavedExam: true
+                };
+                
+                courses.push(course);
+                savedCount++;
+            });
+            
+            localStorage.setItem('courses', JSON.stringify(courses));
+            
+            // Ajouter aux DEVOIRS enregistrés
+            savedExams = [...savedExams, ...currentExamDistribution.exams];
+            
+            showNotification(`${savedCount} DEVOIRS enregistrés avec succès!`, 'success');
+            updateFilters();
+            updateDashboard();
+            
+            // Afficher les détails dans la section d'impression
+            displayExamPrintDetails();
+            
+            // Passer à l'onglet de visualisation
+            switchTab('timetable');
+        }
+
+        // Fonction pour afficher les détails d'impression des DEVOIRS
+        function displayExamPrintDetails() {
+            const printDetails = document.getElementById('examPrintDetails');
+            if (!printDetails) return;
+            
+            let html = `
+                <h4><i class="fas fa-info-circle"></i> Détails des DEVOIRS enregistrés</h4>
+                <p>Les ${currentExamDistribution.summary.totalExams} DEVOIRS ont été enregistrés dans l'emploi du temps.</p>
+                <p>Vous pouvez maintenant :</p>
+                <ol>
+                    <li>Les visualiser dans l'onglet "Visualisation"</li>
+                    <li>Les filtrer par type "DEVOIR"</li>
+                    <li>Les imprimer avec l'emploi du temps complet</li>
+                    <li>Les exporter avec toutes les données</li>
+                    <li>Générer un PDF de la programmation</li>
+                </ol>
+                <div class="data-actions">
+                    <button class="btn btn-save" onclick="viewSavedExams()">
+                        <i class="fas fa-eye"></i> Voir les DEVOIRS enregistrés
+                    </button>
+                    <button class="btn btn-neutral" onclick="switchTab('timetable')">
+                        <i class="fas fa-calendar-alt"></i> Aller à la visualisation
+                    </button>
+                    <button class="btn btn-pdf" onclick="generateExamPDF()">
+                        <i class="fas fa-file-pdf"></i> Générer PDF
+                    </button>
+                </div>
+            `;
+            
+            printDetails.innerHTML = html;
+            printDetails.style.display = 'block';
+        }
+
+        // Fonction pour initialiser les DEVOIRS enregistrés
+        function initializeSavedExams() {
+            const courses = getCourses();
+            savedExams = courses.filter(course => course.activityType === 'DEVOIR' && course.isSavedExam);
+        }
+
+        // Fonction pour afficher les DEVOIRS enregistrés
+        function viewSavedExams() {
+            const savedExamsSection = document.getElementById('savedExamsSection');
+            const savedExamsContainer = document.getElementById('savedExamsContainer');
+            
+            if (savedExams.length === 0) {
+                savedExamsContainer.innerHTML = `
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Aucun DEVOIR enregistré pour le moment.</p>
+                        <p>Générez et enregistrez d'abord une planification de DEVOIR.</p>
+                        <button class="btn btn-save" onclick="switchTab('exams')">
+                            <i class="fas fa-file-alt"></i> Planifier des DEVOIRS
+                        </button>
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div class="exam-info">
+                        <i class="fas fa-save" style="color: var(--save-color);"></i>
+                        <div>
+                            <h4>DEVOIRS enregistrés dans l'emploi du temps</h4>
+                            <p><strong>Total :</strong> ${savedExams.length} DEVOIRS enregistrés</p>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar"></i> Date</th>
+                                    <th><i class="fas fa-users"></i> Classe</th>
+                                    <th><i class="fas fa-book"></i> Matière</th>
+                                    <th><i class="fas fa-user-tie"></i> Surveillant</th>
+                                    <th><i class="fas fa-clock"></i> Horaire</th>
+                                    <th><i class="fas fa-cog"></i> Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                savedExams.forEach(exam => {
+                    html += `
+                        <tr>
+                            <td>${exam.formattedDate || exam.date}</td>
+                            <td>${exam.className}</td>
+                            <td>${exam.subject}</td>
+                            <td>${exam.teacherName}</td>
+                            <td>${exam.timeSlot}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteSavedExam(${exam.id})">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="data-actions" style="margin-top: 20px;">
+                        <button class="btn btn-save" onclick="printSavedExams()">
+                            <i class="fas fa-print"></i> Imprimer la liste
+                        </button>
+                        <button class="btn btn-pdf" onclick="generateExamPDF()">
+                            <i class="fas fa-file-pdf"></i> Générer PDF
+                        </button>
+                        <button class="btn btn-neutral" onclick="switchTab('timetable'); changeView('examsOnly');">
+                            <i class="fas fa-calendar-alt"></i> Voir dans l'emploi du temps
+                        </button>
+                    </div>
+                `;
+            }
+            
+            savedExamsContainer.innerHTML = html;
+            savedExamsSection.style.display = 'block';
+            
+            // Faire défiler jusqu'à la section
+            savedExamsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Fonction pour supprimer un DEVOIR enregistré
+        function deleteSavedExam(examId) {
+            if (confirm('Voulez-vous vraiment supprimer ce DEVOIR?')) {
+                let courses = getCourses();
+                courses = courses.filter(c => c.id != examId);
+                localStorage.setItem('courses', JSON.stringify(courses));
+                
+                // Mettre à jour la liste des DEVOIRS enregistrés
+                savedExams = savedExams.filter(exam => exam.id != examId);
+                
+                showNotification('DEVOIR supprimé avec succès', 'success');
+                viewSavedExams();
+                updateDashboard();
+                updateFilters();
+            }
+        }
+
+        // Fonction pour imprimer la liste des DEVOIRS enregistrés
+        function printSavedExams() {
+            if (savedExams.length === 0) {
+                showNotification('Aucun DEVOIR enregistré à imprimer', 'warning');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Liste des DEVOIRS enregistrés - Lycée Niamtougou</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #673AB7; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .exam-count { text-align: center; margin: 20px 0; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>Liste des DEVOIRS enregistrés - Lycée Niamtougou</h1>
+                    <div class="exam-count">
+                        <p><strong>Total des DEVOIRS :</strong> ${savedExams.length}</p>
+                        <p><strong>Date d'impression :</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Classe</th>
+                                <th>Matière</th>
+                                <th>Surveillant</th>
+                                <th>Horaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `);
+            
+            savedExams.forEach(exam => {
+                printWindow.document.write(`
+                    <tr>
+                        <td>${exam.formattedDate || exam.date}</td>
+                        <td>${exam.className}</td>
+                        <td>${exam.subject}</td>
+                        <td>${exam.teacherName}</td>
+                        <td>${exam.timeSlot}</td>
+                    </tr>
+                `);
+            });
+            
+            printWindow.document.write(`
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
+
         // Fonctions utilitaires
         function showNotification(message, type = 'success') {
             // Supprimer les notifications existantes
@@ -2270,17 +4040,21 @@
             notification.className = `notification ${type}`;
             
             const icon = type === 'success' ? 'check-circle' : 
-                         type === 'error' ? 'exclamation-circle' : 'exclamation-triangle';
+                         type === 'error' ? 'exclamation-circle' : 
+                         type === 'save' ? 'save' : 'exclamation-triangle';
             
             notification.innerHTML = `
                 <i class="fas fa-${icon}"></i>
                 <span>${message}</span>
-                <button onclick="this.parentElement.remove()" aria-label="Fermer la notification">
+                <button onclick="this.parentElement.remove()" aria-label="Fermer la notification" style="margin-left: auto; background: none; border: none; cursor: pointer;">
                     <i class="fas fa-times"></i>
                 </button>
             `;
             
-            document.querySelector('.main-content').insertBefore(notification, document.querySelector('.main-content').firstChild);
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.insertBefore(notification, mainContent.firstChild);
+            }
             
             setTimeout(() => {
                 if (notification.parentElement) {
@@ -2299,7 +4073,7 @@
             });
             
             // Activer le nouvel onglet
-            const activeNav = document.querySelector(`.nav-links a[onclick="switchTab('${tabName}')"]`);
+            const activeNav = document.querySelector(`.nav-links a[onclick*="${tabName}"]`);
             const activeContent = document.getElementById(`${tabName}-tab`);
             
             if (activeNav && activeContent) {
@@ -2313,6 +4087,12 @@
                 pageTitle.innerHTML = `${icon} ${text}`;
             }
             
+            // Masquer la section des DEVOIRS enregistrés
+            const savedExamsSection = document.getElementById('savedExamsSection');
+            if (savedExamsSection) {
+                savedExamsSection.style.display = 'none';
+            }
+            
             // Actions spécifiques à chaque onglet
             if (tabName === 'timetable') {
                 updateFilters();
@@ -2324,6 +4104,34 @@
                 updateDashboard();
             } else if (tabName === 'manual') {
                 filterTimeSlots();
+            } else if (tabName === 'exams') {
+                // S'assurer que la sélection des classes est initialisée
+                if (document.getElementById('collegeClassesList').innerHTML === '') {
+                    initializeClassSelection();
+                }
+                
+                // Ajouter un sujet et un surveillant par défaut si nécessaire
+                if (document.querySelectorAll('#subjectsContainer .teacher-item').length === 0) {
+                    addSubject();
+                }
+                if (document.querySelectorAll('#supervisorsContainer .teacher-item').length === 0) {
+                    addSupervisor();
+                }
+                
+                // Définir les dates par défaut (début = aujourd'hui + 7 jours, fin = début + 14 jours)
+                const today = new Date();
+                const startDate = new Date(today);
+                startDate.setDate(today.getDate() + 7);
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 14);
+                
+                document.getElementById('examStartDate').valueAsDate = startDate;
+                document.getElementById('examEndDate').valueAsDate = endDate;
+                
+                // Afficher les détails d'impression si des DEVOIRS ont été enregistrés
+                if (savedExams.length > 0) {
+                    displayExamPrintDetails();
+                }
             }
         }
 
@@ -2338,12 +4146,26 @@
             const classes = [...new Set(courses.map(c => c.className))];
             
             // Mettre à jour tous les filtres nécessaires
-            ['selectTeacher', 'filterTeacher', 'selectTeacherSpecific', 'selectTeacherAll'].forEach(id => {
-                updateSelectOptions(id, teachers);
+            const filterSelectors = [
+                'selectTeacher', 'filterTeacher', 'selectTeacherSpecific', 
+                'selectTeacherAll', 'selectExamSupervisor'
+            ];
+            
+            filterSelectors.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    updateSelectOptions(id, teachers);
+                }
             });
             
-            ['selectClass', 'filterClass', 'selectClassSpecific'].forEach(id => {
-                if (document.getElementById(id)) {
+            const classSelectors = [
+                'selectClass', 'filterClass', 'selectClassSpecific', 
+                'selectExamClass'
+            ];
+            
+            classSelectors.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
                     updateSelectOptions(id, classes);
                 }
             });
@@ -2365,6 +4187,15 @@
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             updateSelectOptions('selectTeacherAll', teachers);
+        }
+
+        function updateExamFilters() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            const classes = [...new Set(courses.map(c => c.className))];
+            
+            updateSelectOptions('selectExamSupervisor', teachers);
+            updateSelectOptions('selectExamClass', classes);
         }
 
         function updateSelectOptions(selectId, options) {
@@ -2396,6 +4227,8 @@
             const selectedTimePeriod = document.getElementById('selectTimePeriod').value;
             
             const timetableBody = document.getElementById('timetableBody');
+            if (!timetableBody) return;
+            
             timetableBody.innerHTML = '';
             
             let filteredCourses = courses;
@@ -2447,48 +4280,182 @@
             generateTimetableHTML(filteredCourses);
         }
 
-        function generateTimetableHTML(courses) {
+        // Nouvelle fonction pour générer uniquement les DEVOIRS
+        function generateExamsOnlyTimetable() {
+            const courses = getCourses();
+            const selectedClass = document.getElementById('selectExamClass').value;
+            const selectedSupervisor = document.getElementById('selectExamSupervisor').value;
+            const selectedDateRange = document.getElementById('selectExamDateRange').value;
+            
             const timetableBody = document.getElementById('timetableBody');
+            if (!timetableBody) return;
+            
             timetableBody.innerHTML = '';
             
-            allTimeSlots.forEach(slot => {
-                const periodBadge = getTimePeriodBadge(slot);
-                const row = document.createElement('tr');
-                row.innerHTML = `<td class="time-col">${slot} ${periodBadge}</td>`;
+            let filteredCourses = courses.filter(c => c.activityType === 'DEVOIR');
+            
+            if (selectedClass) filteredCourses = filteredCourses.filter(c => c.className === selectedClass);
+            if (selectedSupervisor) filteredCourses = filteredCourses.filter(c => c.teacherName === selectedSupervisor);
+            
+            // Filtrer par période de date
+            if (selectedDateRange !== 'all') {
+                const today = new Date();
+                let startDate, endDate;
                 
-                days.forEach(day => {
-                    const cell = document.createElement('td');
-                    const dayCourses = courses.filter(c => c.day === day && c.timeSlot === slot);
-                    
-                    if (dayCourses.length > 0) {
-                        let content = '';
-                        dayCourses.forEach(course => {
-                            const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
-                            const seriesInfo = getSeriesFromClassName(course.className);
-                            const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
-                            const activityClass = `activity-${activityType.color.toLowerCase()}`;
-                            let classDisplay = course.className;
-                            if (seriesInfo.badge) {
-                                classDisplay = `${course.className} ${seriesInfo.badge}`;
-                            }
-                            
-                            content += `<div class="${cycleClass} ${activityClass}">
-                                <strong>${course.className}</strong><br>
-                                <small><i class="fas fa-book"></i> ${course.subject}</small><br>
-                                <small><i class="fas fa-user-tie"></i> ${course.teacherName}</small><br>
-                                <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
-                            </div>`;
-                        });
-                        cell.innerHTML = content;
-                    } else {
-                        cell.innerHTML = '<i class="fas fa-times" style="color: #ccc;"></i>';
+                switch(selectedDateRange) {
+                    case 'thisWeek':
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay() + 1); // Lundi de cette semaine
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 4); // Vendredi de cette semaine
+                        break;
+                    case 'nextWeek':
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - today.getDay() + 8); // Lundi de la semaine prochaine
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 4); // Vendredi de la semaine prochaine
+                        break;
+                    case 'thisMonth':
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        break;
+                }
+                
+                filteredCourses = filteredCourses.filter(course => {
+                    if (!course.date) return false;
+                    const courseDate = new Date(course.date);
+                    return courseDate >= startDate && courseDate <= endDate;
+                });
+            }
+            
+            if (filteredCourses.length === 0) {
+                timetableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-calendar-times" style="font-size: 48px; color: #ccc; margin-bottom: 20px; display: block;"></i>
+                            <h3>Aucun DEVOIR trouvé avec les filtres sélectionnés</h3>
+                            <p style="margin-top: 10px;">Essayez de modifier les filtres ou vérifiez que des DEVOIRS ont été enregistrés.</p>
+                            <button class="btn btn-save" onclick="switchTab('exams')" style="margin-top: 20px;">
+                                <i class="fas fa-file-alt"></i> Planifier des DEVOIRS
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            generateTimetableHTML(filteredCourses);
+        }
+
+        function generateTimetableHTML(courses) {
+            const timetableBody = document.getElementById('timetableBody');
+            if (!timetableBody) return;
+            
+            // Pour la vue DEVOIRS seulement, afficher un tableau spécial
+            if (currentView === 'examsOnly' && courses.length > 0 && courses[0].activityType === 'DEVOIR') {
+                // Grouper les DEVOIRS par date
+                const examsByDate = {};
+                courses.forEach(course => {
+                    const dateKey = course.formattedDate || course.date;
+                    if (!examsByDate[dateKey]) {
+                        examsByDate[dateKey] = [];
                     }
-                    
-                    row.appendChild(cell);
+                    examsByDate[dateKey].push(course);
                 });
                 
-                timetableBody.appendChild(row);
-            });
+                // Afficher chaque date
+                Object.keys(examsByDate).forEach(date => {
+                    const dateExams = examsByDate[date];
+                    const row = document.createElement('tr');
+                    
+                    // Première ligne : Date
+                    row.innerHTML = `
+                        <td colspan="6" style="background-color: var(--exam-color); color: white; font-weight: bold; text-align: center; padding: 15px;">
+                            <i class="fas fa-calendar"></i> ${date}
+                        </td>
+                    `;
+                    timetableBody.appendChild(row);
+                    
+                    // Lignes pour chaque DEVOIR de cette date
+                    dateExams.forEach(exam => {
+                        const examRow = document.createElement('tr');
+                        examRow.innerHTML = `
+                            <td class="time-col">${exam.timeSlot}</td>
+                            <td colspan="5">
+                                <div class="activity-exam" style="padding: 10px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <strong>${exam.className}</strong> <small>(${exam.cycle})</small><br>
+                                            <small><i class="fas fa-book"></i> ${exam.subject}</small><br>
+                                            <small><i class="fas fa-user-tie"></i> ${exam.teacherName}</small>
+                                        </div>
+                                        <div>
+                                            <span class="badge badge-exam">DEVOIR</span>
+                                            <span class="badge badge-save">Enregistré</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+                        timetableBody.appendChild(examRow);
+                    });
+                });
+                
+                // Ajouter une ligne de total
+                const totalRow = document.createElement('tr');
+                totalRow.innerHTML = `
+                    <td colspan="6" style="background-color: #f0f0f0; font-weight: bold; text-align: center; padding: 15px;">
+                        <i class="fas fa-chart-bar"></i> Total : ${courses.length} DEVOIRS
+                    </td>
+                `;
+                timetableBody.appendChild(totalRow);
+                
+            } else {
+                // Vue normale pour les autres types
+                allTimeSlots.forEach(slot => {
+                    const periodBadge = getTimePeriodBadge(slot);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="time-col">${slot} ${periodBadge}</td>`;
+                    
+                    days.forEach(day => {
+                        const cell = document.createElement('td');
+                        const dayCourses = courses.filter(c => c.day === day && c.timeSlot === slot);
+                        
+                        if (dayCourses.length > 0) {
+                            let content = '';
+                            dayCourses.forEach(course => {
+                                const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
+                                const seriesInfo = getSeriesFromClassName(course.className);
+                                const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                                const activityClass = `activity-${activityType.color.toLowerCase()}`;
+                                let classDisplay = course.className;
+                                if (seriesInfo.badge) {
+                                    classDisplay = `${course.className} ${seriesInfo.badge}`;
+                                }
+                                
+                                let savedIndicator = '';
+                                if (course.isSavedExam) {
+                                    savedIndicator = '<span class="saved-indicator"><i class="fas fa-save"></i> Enregistré</span>';
+                                }
+                                
+                                content += `<div class="${cycleClass} ${activityClass}">
+                                    <strong>${course.className}</strong>${savedIndicator}<br>
+                                    <small><i class="fas fa-book"></i> ${course.subject}</small><br>
+                                    <small><i class="fas fa-user-tie"></i> ${course.teacherName}</small><br>
+                                    <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
+                                </div>`;
+                            });
+                            cell.innerHTML = content;
+                        } else {
+                            cell.innerHTML = '<i class="fas fa-times" style="color: #ccc;"></i>';
+                        }
+                        
+                        row.appendChild(cell);
+                    });
+                    
+                    timetableBody.appendChild(row);
+                });
+            }
         }
 
         function displayAllData() {
@@ -2497,8 +4464,11 @@
             const filterCycle = document.getElementById('filterCycle').value;
             const filterActivityType = document.getElementById('filterActivityType').value;
             const filterTimePeriod = document.getElementById('filterTimePeriod').value;
+            const filterSavedExams = document.getElementById('filterSavedExams').value;
             
             const allDataBody = document.getElementById('allDataBody');
+            if (!allDataBody) return;
+            
             allDataBody.innerHTML = '';
             
             let filteredCourses = courses;
@@ -2506,6 +4476,8 @@
             if (filterCycle) filteredCourses = filteredCourses.filter(c => c.cycle === filterCycle);
             if (filterActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === filterActivityType);
             if (filterTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === filterTimePeriod);
+            if (filterSavedExams === 'saved') filteredCourses = filteredCourses.filter(c => c.isSavedExam);
+            if (filterSavedExams === 'notsaved') filteredCourses = filteredCourses.filter(c => !c.isSavedExam);
             
             if (filteredCourses.length === 0) {
                 allDataBody.innerHTML = `
@@ -2529,8 +4501,13 @@
                 
                 row.className = cycleClass;
                 
+                let savedIndicator = '';
+                if (course.isSavedExam) {
+                    savedIndicator = '<span class="saved-indicator" title="DEVOIR enregistré"><i class="fas fa-save"></i></span>';
+                }
+                
                 row.innerHTML = `
-                    <td><i class="fas fa-user-tie"></i> ${course.teacherName}</td>
+                    <td><i class="fas fa-user-tie"></i> ${course.teacherName} ${savedIndicator}</td>
                     <td><i class="fas fa-users"></i> ${course.className}</td>
                     <td><i class="fas fa-layer-group"></i> ${course.cycle}</td>
                     <td><i class="fas fa-book"></i> ${course.subject}</td>
@@ -2553,6 +4530,10 @@
                 let courses = getCourses();
                 courses = courses.filter(c => c.id !== id);
                 localStorage.setItem('courses', JSON.stringify(courses));
+                
+                // Mettre à jour la liste des DEVOIRS enregistrés
+                savedExams = savedExams.filter(exam => exam.id != id);
+                
                 updateFilters();
                 generateTimetable();
                 displayAllData();
@@ -2564,6 +4545,7 @@
         function clearAllData() {
             if (confirm('Voulez-vous vraiment supprimer TOUTES les données?')) {
                 localStorage.removeItem('courses');
+                savedExams = [];
                 updateFilters();
                 generateTimetable();
                 displayAllData();
@@ -2579,7 +4561,14 @@
                 return;
             }
             
-            const dataStr = JSON.stringify(courses, null, 2);
+            // Inclure les informations sur les DEVOIRS enregistrés
+            const exportData = {
+                courses: courses,
+                savedExamsCount: savedExams.length,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
             const exportFileDefaultName = `emploi_du_temps_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -2588,7 +4577,7 @@
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
             
-            showNotification('Données exportées avec succès');
+            showNotification('Données exportées avec succès', 'save');
         }
 
         function importData(input) {
@@ -2598,18 +4587,33 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const importedCourses = JSON.parse(e.target.result);
-                    if (!Array.isArray(importedCourses)) throw new Error('Format de fichier invalide');
+                    const importedData = JSON.parse(e.target.result);
+                    let importedCourses = [];
+                    
+                    // Vérifier le format du fichier
+                    if (Array.isArray(importedData)) {
+                        // Ancien format : tableau de cours
+                        importedCourses = importedData;
+                    } else if (importedData.courses && Array.isArray(importedData.courses)) {
+                        // Nouveau format : objet avec courses
+                        importedCourses = importedData.courses;
+                    } else {
+                        throw new Error('Format de fichier invalide');
+                    }
                     
                     if (confirm(`Importer ${importedCourses.length} cours?`)) {
                         const currentCourses = getCourses();
                         const mergedCourses = [...currentCourses, ...importedCourses];
                         localStorage.setItem('courses', JSON.stringify(mergedCourses));
+                        
+                        // Mettre à jour les DEVOIRS enregistrés
+                        initializeSavedExams();
+                        
                         updateFilters();
                         generateTimetable();
                         displayAllData();
                         updateDashboard();
-                        showNotification('Données importées avec succès');
+                        showNotification('Données importées avec succès', 'save');
                     }
                 } catch (error) {
                     showNotification('Erreur lors de l\'importation: ' + error.message, 'error');
@@ -2624,6 +4628,7 @@
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             const totalHours = courses.length;
+            const savedExamsCount = savedExams.length;
             
             // Compter par type d'activité
             const activityCounts = {};
@@ -2631,99 +4636,109 @@
                 activityCounts[course.activityType] = (activityCounts[course.activityType] || 0) + 1;
             });
             
-            document.getElementById('total-teachers').textContent = teachers.length;
-            document.getElementById('total-courses').textContent = courses.length;
-            document.getElementById('total-hours').textContent = totalHours;
+            const totalTeachersElem = document.getElementById('total-teachers');
+            const totalCoursesElem = document.getElementById('total-courses');
+            const totalHoursElem = document.getElementById('total-hours');
+            const totalSavedExamsElem = document.getElementById('total-saved-exams');
+            
+            if (totalTeachersElem) totalTeachersElem.textContent = teachers.length;
+            if (totalCoursesElem) totalCoursesElem.textContent = courses.length;
+            if (totalHoursElem) totalHoursElem.textContent = totalHours;
+            if (totalSavedExamsElem) totalSavedExamsElem.textContent = savedExamsCount;
             
             // Mettre à jour les activités récentes
             const recentActivities = document.getElementById('recent-activities');
-            if (courses.length > 0) {
-                const recentCourses = courses.slice(-5).reverse();
-                recentActivities.innerHTML = recentCourses.map(course => {
-                    const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
-                    return `
-                        <div style="padding: 10px; border-bottom: 1px solid #eee;">
-                            <strong>${course.teacherName}</strong> - ${course.subject}<br>
-                            <small>${course.className} • ${course.day} ${course.timeSlot} • 
-                            <span class="badge ${activityType.badgeClass}">${course.activityType}</span></small>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                recentActivities.innerHTML = '<p><i class="fas fa-info-circle"></i> Aucune activité récente</p>';
+            if (recentActivities) {
+                if (courses.length > 0) {
+                    const recentCourses = courses.slice(-5).reverse();
+                    recentActivities.innerHTML = recentCourses.map(course => {
+                        const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                        let savedBadge = '';
+                        if (course.isSavedExam) {
+                            savedBadge = '<span class="saved-indicator" title="DEVOIR enregistré"><i class="fas fa-save"></i></span>';
+                        }
+                        return `
+                            <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                                <strong>${course.teacherName}</strong>${savedBadge} - ${course.subject}<br>
+                                <small>${course.className} • ${course.day} ${course.timeSlot} • 
+                                <span class="badge ${activityType.badgeClass}">${course.activityType}</span></small>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    recentActivities.innerHTML = '<p><i class="fas fa-info-circle"></i> Aucune activité récente</p>';
+                }
             }
         }
 
         // Gestion des formulaires
-        document.getElementById('distributionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            generateDistribution();
-        });
-
-        document.getElementById('courseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
-            
-            if (selectedDays.length === 0) {
-                showNotification('Veuillez sélectionner au moins un jour', 'error');
-                return;
-            }
-            
-            // Créer un cours pour chaque jour sélectionné
-            selectedDays.forEach(day => {
-                const course = {
-                    id: Date.now() + Math.floor(Math.random() * 1000),
-                    teacherName: document.getElementById('teacherName').value,
-                    className: document.getElementById('manualClass').value,
-                    cycle: document.getElementById('manualCycle').value,
-                    subject: document.getElementById('manualSubject').value,
-                    activityType: document.getElementById('activityType').value,
-                    day: day,
-                    timeSlot: document.getElementById('manualTimeSlot').value,
-                    timePeriod: getTimePeriod(document.getElementById('manualTimeSlot').value)
-                };
-                
-                const courses = getCourses();
-                courses.push(course);
-                localStorage.setItem('courses', JSON.stringify(courses));
-            });
-            
-            showNotification(`${selectedDays.length} cours enregistrés avec succès!`, 'success');
-            this.reset();
-            updateFilters();
-            updateDashboard();
-            filterTimeSlots(); // Réinitialiser les créneaux
-        });
-
-        // Initialisation
         document.addEventListener('DOMContentLoaded', function() {
             // Vérifier l'authentification
             checkAuthentication();
             
             // Gestion du formulaire de connexion
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
             
-            // Initialiser l'application si connecté
-            if (localStorage.getItem('isAuthenticated') === 'true') {
-                updateFilters();
-                generateTimetable();
-                displayAllData();
-                updateDashboard();
-                
-                // Ajouter un enseignant par défaut
-                addTeacher();
-                
-                // Initialiser les options de classe
-                updateClassOptions();
-                updateManualClassOptions();
-                
-                // Initialiser les créneaux horaires
-                filterTimeSlots();
+            // Gestion du formulaire de distribution
+            const distributionForm = document.getElementById('distributionForm');
+            if (distributionForm) {
+                distributionForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    generateDistribution();
+                });
+            }
+            
+            // CORRECTION : Suppression de l'écouteur d'événement problématique
+            // Le bouton "Générer la planification des DEVOIRS" a maintenant un onclick direct
+            
+            // Gestion du formulaire de cours
+            const courseForm = document.getElementById('courseForm');
+            if (courseForm) {
+                courseForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
+                    
+                    if (selectedDays.length === 0) {
+                        showNotification('Veuillez sélectionner au moins un jour', 'error');
+                        return;
+                    }
+                    
+                    // Créer un cours pour chaque jour sélectionné
+                    selectedDays.forEach(day => {
+                        const course = {
+                            id: Date.now() + Math.floor(Math.random() * 1000),
+                            teacherName: document.getElementById('teacherName').value,
+                            className: document.getElementById('manualClass').value,
+                            cycle: document.getElementById('manualCycle').value,
+                            subject: document.getElementById('manualSubject').value,
+                            activityType: document.getElementById('activityType').value,
+                            day: day,
+                            timeSlot: document.getElementById('manualTimeSlot').value,
+                            timePeriod: getTimePeriod(document.getElementById('manualTimeSlot').value)
+                        };
+                        
+                        const courses = getCourses();
+                        courses.push(course);
+                        localStorage.setItem('courses', JSON.stringify(courses));
+                    });
+                    
+                    showNotification(`${selectedDays.length} cours enregistrés avec succès!`, 'success');
+                    courseForm.reset();
+                    updateFilters();
+                    updateDashboard();
+                    filterTimeSlots(); // Réinitialiser les créneaux
+                });
             }
             
             // Initialiser les événements pour la période
-            document.getElementById('timePeriod').addEventListener('change', filterTimeSlots);
+            const timePeriodSelect = document.getElementById('timePeriod');
+            if (timePeriodSelect) {
+                timePeriodSelect.addEventListener('change', filterTimeSlots);
+            }
         });
     </script>
 </body>
