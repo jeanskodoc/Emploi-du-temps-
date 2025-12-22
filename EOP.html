@@ -6,7 +6,6 @@
     <title>Gestion Emploi du Temps - Lycée Niamtougou</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Styles CSS inchangés - Identiques à la version précédente */
         :root {
             --primary-color: #4CAF50;
             --primary-hover: #45a049;
@@ -41,9 +40,6 @@
             min-height: 100vh;
         }
 
-        /* Tous les autres styles restent identiques... */
-        /* ... [Tous les styles CSS précédents restent exactement les mêmes] ... */
-        
         .login-container {
             display: flex;
             justify-content: center;
@@ -114,7 +110,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, #2c3e50, #1a252f);
@@ -170,7 +165,6 @@
             text-align: center;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             padding: 20px;
@@ -228,7 +222,6 @@
             background: #d32f2f;
         }
 
-        /* Cards */
         .card {
             background: white;
             border-radius: var(--border-radius);
@@ -257,7 +250,6 @@
             padding: 20px;
         }
 
-        /* Forms */
         .form-group {
             margin-bottom: 20px;
         }
@@ -284,7 +276,6 @@
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
         }
 
-        /* Buttons */
         .btn {
             padding: 12px 20px;
             border: none;
@@ -335,7 +326,6 @@
             font-size: 14px;
         }
 
-        /* Teacher List */
         .teacher-list {
             margin: 15px 0;
         }
@@ -355,7 +345,6 @@
             flex: 1;
         }
 
-        /* Tables */
         .table-responsive {
             overflow-x: auto;
         }
@@ -398,7 +387,6 @@
             background-color: #f0f0f0;
         }
 
-        /* Activity Type Colors */
         .activity-exam {
             background-color: rgba(156, 39, 176, 0.1);
             border-left: 4px solid var(--exam-color);
@@ -424,7 +412,6 @@
             border-left: 4px solid var(--primary-color);
         }
 
-        /* Badges for activity types */
         .badge {
             display: inline-block;
             padding: 3px 8px;
@@ -459,7 +446,6 @@
             color: white;
         }
 
-        /* Distribution Tables */
         .distribution-table {
             width: 100%;
             border-collapse: collapse;
@@ -488,7 +474,6 @@
             font-weight: bold;
         }
 
-        /* Stats Cards */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -541,7 +526,6 @@
             font-size: 0.9rem;
         }
 
-        /* Notifications */
         .notification {
             padding: 15px 20px;
             border-radius: var(--border-radius);
@@ -570,7 +554,6 @@
             border-left: 4px solid var(--warning-color);
         }
 
-        /* Filters */
         .filters {
             display: flex;
             gap: 20px;
@@ -583,7 +566,6 @@
             flex: 1;
         }
 
-        /* Print Styles */
         @media print {
             body * {
                 visibility: hidden;
@@ -633,7 +615,6 @@
             }
         }
 
-        /* Styles pour les écrans mobiles (jusqu'à 480px) */
         @media (max-width: 480px) {
             .login-container {
                 padding: 10px;
@@ -653,7 +634,7 @@
             
             .login-form input {
                 padding: 10px 12px;
-                font-size: 16px; /* Éviter le zoom sur iOS */
+                font-size: 16px;
             }
             
             .app-container {
@@ -784,7 +765,6 @@
             }
         }
 
-        /* Styles pour les tablettes et écrans moyens (481px à 768px) */
         @media (min-width: 481px) and (max-width: 768px) {
             .app-container {
                 flex-direction: column;
@@ -855,7 +835,6 @@
             }
         }
 
-        /* Styles pour les écrans plus larges (769px à 1024px) */
         @media (min-width: 769px) and (max-width: 1024px) {
             .sidebar {
                 width: 220px;
@@ -875,7 +854,6 @@
             }
         }
 
-        /* Styles pour les grands écrans (1025px et plus) */
         @media (min-width: 1025px) {
             .app-container {
                 flex-direction: row;
@@ -919,7 +897,6 @@
             border: 0;
         }
 
-        /* Loading Animation */
         .loading {
             display: inline-block;
             width: 20px;
@@ -934,7 +911,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* View Options */
         .view-options {
             display: flex;
             gap: 10px;
@@ -964,7 +940,6 @@
             border-color: var(--primary-color);
         }
 
-        /* Series Badges */
         .series-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -979,7 +954,6 @@
         .series-a { background: #e8f5e8; color: #388e3c; }
         .series-l { background: #fff3e0; color: #f57c00; }
         
-        /* Time Period Indicators */
         .time-period-badge {
             display: inline-block;
             padding: 2px 6px;
@@ -993,14 +967,12 @@
         .afternoon { background-color: #D1ECF1; color: #0C5460; }
         .all-day { background-color: #D4EDDA; color: #155724; }
         
-        /* Multi-column form groups */
         .form-columns {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
         
-        /* Cellules réservées */
         .reserved-cell {
             background-color: #f8f9fa !important;
             color: #6c757d !important;
@@ -1013,7 +985,6 @@
             color: white !important;
         }
         
-        /* Styles pour l'onglet DEVOIR */
         .devoir-info-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -1094,7 +1065,6 @@
             font-size: 0.85rem;
         }
         
-        /* Timeline pour la programmation des devoirs */
         .devoir-timeline {
             margin: 30px 0;
             position: relative;
@@ -1142,7 +1112,6 @@
             box-shadow: var(--shadow);
         }
         
-        /* Badge pour le statut des surveillants */
         .supervisor-status {
             font-size: 0.75rem;
             padding: 2px 8px;
@@ -1165,7 +1134,6 @@
             color: #856404;
         }
         
-        /* Correctif pour l'affichage mobile */
         @media (max-width: 768px) {
             .teacher-item {
                 flex-wrap: wrap;
@@ -1183,7 +1151,6 @@
     </style>
 </head>
 <body>
-    <!-- Page de connexion -->
     <div id="login-page" class="login-container">
         <div class="login-card">
             <div class="login-logo">
@@ -1216,9 +1183,7 @@
         </div>
     </div>
 
-    <!-- Application principale (cachée par défaut) -->
     <div id="app" class="app-container">
-        <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <div class="logo">
                 <h1><i class="fas fa-graduation-cap"></i> Lycée Niamtougou</h1>
@@ -1236,7 +1201,6 @@
             </ul>
         </nav>
 
-        <!-- Main Content -->
         <main class="main-content">
             <div class="header">
                 <h1 id="page-title"><i class="fas fa-tachometer-alt"></i> Tableau de bord</h1>
@@ -1249,7 +1213,6 @@
                 </div>
             </div>
 
-            <!-- Dashboard Tab -->
             <section id="dashboard-tab" class="tab-content active">
                 <div class="stats-container">
                     <div class="stat-card">
@@ -1324,7 +1287,6 @@
                 </div>
             </section>
 
-            <!-- Configuration Tab -->
             <section id="configuration-tab" class="tab-content">
                 <div class="devoir-info-card">
                     <h3><i class="fas fa-cogs"></i> Configuration des Matières et Surveillants</h3>
@@ -1351,7 +1313,6 @@
                                     <label for="configClass"><i class="fas fa-users"></i> Classe:</label>
                                     <select id="configClass" required onchange="loadClassSubjects()">
                                         <option value="">Sélectionner une classe</option>
-                                        <!-- Les options seront mises à jour dynamiquement -->
                                     </select>
                                 </div>
                                 
@@ -1478,7 +1439,6 @@
                 </div>
             </section>
 
-            <!-- Distribution Tab -->
             <section id="distribution-tab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
@@ -1502,7 +1462,6 @@
                                 <label for="distributionClass"><i class="fas fa-users"></i> Classe:</label>
                                     <select id="distributionClass" required>
                                     <option value="">Sélectionner une classe</option>
-                                    <!-- Les options seront mises à jour dynamiquement -->
                                 </select>
                             </div>
 
@@ -1564,7 +1523,6 @@
                 </div>
             </section>
 
-            <!-- Manual Tab -->
             <section id="manual-tab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
@@ -1594,7 +1552,6 @@
                                     <label for="manualClass"><i class="fas fa-users"></i> Classe:</label>
                                     <select id="manualClass" required onchange="updateManualSubjects()">
                                         <option value="">Sélectionner une classe</option>
-                                        <!-- Les options seront mises à jour dynamiquement -->
                                     </select>
                                 </div>
                                 
@@ -1633,14 +1590,6 @@
                                     <label for="manualTimeSlot"><i class="fas fa-clock"></i> Créneau horaire:</label>
                                     <select id="manualTimeSlot" required>
                                         <option value="">Sélectionner un créneau</option>
-                                        <option value="07:00 - 07:55">07:00 - 07:55 (Matin)</option>
-                                        <option value="07:55 - 08:50">07:55 - 08:50 (Matin)</option>
-                                        <option value="08:50 - 09:45">08:50 - 09:45 (Matin)</option>
-                                        <option value="10:10 - 11:05">10:10 - 11:05 (Matin)</option>
-                                        <option value="11:05 - 12:00">11:05 - 12:00 (Matin)</option>
-                                        <option value="14:30 - 15:30">14:30 - 15:30 (Après-midi)</option>
-                                        <option value="15:30 - 16:30">15:30 - 16:30 (Après-midi)</option>
-                                        <option value="16:30 - 17:30">16:30 - 17:30 (Après-midi)</option>
                                     </select>
                                 </div>
                                 
@@ -1662,7 +1611,6 @@
                 </div>
             </section>
 
-            <!-- DEVOIR Tab -->
             <section id="devoir-tab" class="tab-content">
                 <div class="devoir-info-card">
                     <h3><i class="fas fa-calendar-check"></i> Programmation Automatique des DEVOIR Surveillés</h3>
@@ -1717,7 +1665,6 @@
                             <div class="form-group">
                                 <label for="devoirClasses"><i class="fas fa-users"></i> Classes à programmer (sélection multiple):</label>
                                 <select id="devoirClasses" multiple size="6" style="height: auto; min-height: 120px;">
-                                    <!-- Les options seront mises à jour dynamiquement -->
                                 </select>
                                 <small style="display: block; margin-top: 5px; color: #666;">
                                     <i class="fas fa-info-circle"></i> Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs classes
@@ -1800,7 +1747,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="devoirHistoryBody">
-                                    <!-- L'historique sera chargé ici -->
                                 </tbody>
                             </table>
                         </div>
@@ -1808,7 +1754,6 @@
                 </div>
             </section>
 
-            <!-- Timetable Tab -->
             <section id="timetable-tab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
@@ -1973,7 +1918,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="timetableBody">
-                                    <!-- Les créneaux horaires seront générés ici par JavaScript -->
                                 </tbody>
                             </table>
                         </div>
@@ -1981,7 +1925,6 @@
                 </div>
             </section>
 
-            <!-- All Data Tab -->
             <section id="all-data-tab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
@@ -2063,7 +2006,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="allDataBody">
-                                    <!-- Toutes les données seront affichées ici -->
                                 </tbody>
                             </table>
                         </div>
@@ -2074,13 +2016,11 @@
     </div>
 
     <script>
-        // Configuration des identifiants
         const VALID_CREDENTIALS = {
             username: 'KOLA',
             password: 'KOLA1@'
         };
 
-        // Données des classes par cycle
         const CLASSES_BY_CYCLE = {
             'Collège': [
                 '6ème', '5ème', '4ème', '3ème'
@@ -2092,7 +2032,6 @@
             ]
         };
 
-        // Matières par défaut par niveau et cycle
         const DEFAULT_MATIERES_BY_CYCLE = {
             'Collège': {
                 '6ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS'],
@@ -2113,19 +2052,16 @@
             }
         };
 
-        // Variables globales
         let currentView = 'general';
         let currentDevoirProgram = null;
         let devoirHistory = JSON.parse(localStorage.getItem('devoirHistory')) || [];
         let currentDistribution = null;
         
-        // Données de configuration
         let configuration = JSON.parse(localStorage.getItem('configuration')) || {
-            subjects: {}, // { "6ème": ["Français", "Mathématiques", ...], ... }
-            supervisors: [] // [{ name: "Nom", type: "enseignant", capacity: 3, disponibility: "full" }, ...]
+            subjects: {},
+            supervisors: []
         };
         
-        // Créneaux horaires classés par période
         const morningSlots = [
             "07:00 - 07:55",
             "07:55 - 08:50", 
@@ -2142,7 +2078,6 @@
         
         const allTimeSlots = [...morningSlots, ...afternoonSlots];
         
-        // Types d'activités avec leurs couleurs et icônes
         const ACTIVITY_TYPES = {
             'Cours': { 
                 color: 'primary', 
@@ -2183,36 +2118,33 @@
         
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
         
-        // Jours avec restrictions
         const RESTRICTED_DAYS = {
             'Mercredi': {
                 restricted: true,
-                allowedSlots: morningSlots, // Seulement le matin
-                allowedActivityTypes: ['Cours', 'TD', 'TP', 'TM'] // Pas de DEVOIR l'après-midi
+                allowedSlots: morningSlots,
+                allowedActivityTypes: ['Cours', 'TD', 'TP', 'TM']
             },
             'Mardi': {
                 restricted: false,
-                restrictedAfternoon: true, // Après-midi réservé pour DEVOIR
-                allowedAfternoonActivityTypes: ['DEVOIR'] // Seulement DEVOIR l'après-midi
+                restrictedAfternoon: true,
+                allowedAfternoonActivityTypes: ['DEVOIR']
             },
             'Vendredi': {
                 restricted: false,
-                restrictedAfternoon: true, // Après-midi réservé pour DEVOIR
-                allowedAfternoonActivityTypes: ['DEVOIR'] // Seulement DEVOIR l'après-midi
+                restrictedAfternoon: true,
+                allowedAfternoonActivityTypes: ['DEVOIR']
             }
         };
 
-        // NOUVELLE FONCTIONNALITÉ : Durée des DEVOIR selon le cycle
         function getDevoirDuration(cycle) {
             if (cycle === 'Collège') {
-                return '2h'; // Collège = 2 heures
+                return '2h';
             } else if (cycle === 'Lycée') {
-                return '3h'; // Lycée = 3 heures
+                return '3h';
             }
-            return '2h'; // Par défaut
+            return '2h';
         }
 
-        // Fonctions de gestion de la configuration
         function saveConfiguration() {
             localStorage.setItem('configuration', JSON.stringify(configuration));
         }
@@ -2278,7 +2210,6 @@
                 configuration.subjects[className] = [];
             }
             
-            // Vérifier si la matière existe déjà
             if (configuration.subjects[className].includes(subjectName)) {
                 showNotification('Cette matière existe déjà pour cette classe', 'warning');
                 return;
@@ -2399,7 +2330,6 @@
                 return;
             }
             
-            // Ajouter les enseignants comme surveillants
             const container = document.getElementById('supervisorsListContainer');
             container.innerHTML = '';
             
@@ -2429,7 +2359,6 @@
             container.innerHTML = '';
             
             if (configuration.supervisors.length === 0) {
-                // Ajouter un surveillant vide par défaut
                 addSupervisor();
                 showNotification('Aucun surveillant configuré', 'warning');
                 return;
@@ -2491,7 +2420,6 @@
                         updateConfigurationStats();
                         showNotification('Configuration importée avec succès', 'success');
                         
-                        // Recharger les matières si une classe est sélectionnée
                         const selectedClass = document.getElementById('configClass').value;
                         if (selectedClass) {
                             loadClassSubjects();
@@ -2505,7 +2433,6 @@
             reader.readAsText(file);
         }
 
-        // Fonction pour mettre à jour les matières dans le formulaire manuel
         function updateManualSubjects() {
             const className = document.getElementById('manualClass').value;
             const subjectSelect = document.getElementById('manualSubject');
@@ -2522,7 +2449,6 @@
             }
         }
 
-        // Gestion de l'authentification
         function handleLogin(event) {
             event.preventDefault();
             
@@ -2531,13 +2457,11 @@
             const errorDiv = document.getElementById('login-error');
             
             if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
-                // Connexion réussie
                 localStorage.setItem('isAuthenticated', 'true');
                 document.getElementById('login-page').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
                 showNotification('Connexion réussie!', 'success');
             } else {
-                // Échec de connexion
                 errorDiv.style.display = 'flex';
                 setTimeout(() => {
                     errorDiv.style.display = 'none';
@@ -2562,7 +2486,6 @@
             showNotification('Déconnexion réussie', 'success');
         }
 
-        // Fonctions pour mettre à jour les options de classe
         function updateClassOptions() {
             const cycle = document.getElementById('distributionCycle').value;
             const classSelect = document.getElementById('distributionClass');
@@ -2611,7 +2534,6 @@
             }
         }
 
-        // Fonctions pour l'onglet DEVOIR
         function updateDevoirClassOptions() {
             const cycle = document.getElementById('devoirCycle').value;
             const classSelect = document.getElementById('devoirClasses');
@@ -2619,13 +2541,12 @@
             classSelect.innerHTML = '';
             
             if (cycle === 'all') {
-                // Ajouter toutes les classes de Collège et Lycée
                 const allClasses = [...CLASSES_BY_CYCLE['Collège'], ...CLASSES_BY_CYCLE['Lycée']];
                 allClasses.forEach(className => {
                     const option = document.createElement('option');
                     option.value = className;
                     option.textContent = className;
-                    option.selected = true; // Sélectionner par défaut
+                    option.selected = true;
                     classSelect.appendChild(option);
                 });
             } else if (cycle && CLASSES_BY_CYCLE[cycle]) {
@@ -2633,7 +2554,7 @@
                     const option = document.createElement('option');
                     option.value = className;
                     option.textContent = className;
-                    option.selected = true; // Sélectionner par défaut
+                    option.selected = true;
                     classSelect.appendChild(option);
                 });
             }
@@ -2671,12 +2592,10 @@
             }
         }
 
-        // Fonction pour charger les données existantes
         function loadExistingData() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             
-            // Charger les enseignants existants comme surveillants
             const container = document.getElementById('supervisorsContainer');
             container.innerHTML = '';
             
@@ -2703,7 +2622,6 @@
             showNotification(`${teachers.length} enseignants chargés comme surveillants`, 'success');
         }
 
-        // Fonction pour obtenir les informations de série
         function getSeriesFromClassName(className) {
             const seriesMap = {
                 'C': { code: 'c', name: 'Scientifique', badge: '<span class="series-badge series-c">C</span>' },
@@ -2712,7 +2630,6 @@
                 'L': { code: 'l', name: 'Lettres', badge: '<span class="series-badge series-l">L</span>' }
             };
 
-            // Extraire la série du nom de classe
             if (className.includes('2nd')) {
                 if (className.includes('C')) {
                     return seriesMap['C'];
@@ -2734,22 +2651,18 @@
             return { code: '', name: '', badge: '' };
         }
 
-        // Fonctions pour changer la vue
         function changeView(viewType) {
             currentView = viewType;
             
-            // Mettre à jour les boutons de vue
             document.querySelectorAll('.view-option-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             
-            // Trouver le bouton cliqué
             const clickedButton = event.target.closest('.view-option-btn');
             if (clickedButton) {
                 clickedButton.classList.add('active');
             }
             
-            // Afficher/masquer les filtres appropriés
             document.getElementById('generalFilters').style.display = 'none';
             document.getElementById('teacherFilters').style.display = 'none';
             document.getElementById('classFilters').style.display = 'none';
@@ -2778,17 +2691,14 @@
             }
         }
 
-        // Fonction d'impression améliorée
         function printTimetable() {
             const printHeader = document.querySelector('.print-header');
             const printSubtitle = document.getElementById('printSubtitle');
             const currentDate = document.getElementById('currentDate');
             
-            // Mettre à jour les informations d'impression
             printHeader.style.display = 'block';
             currentDate.textContent = new Date().toLocaleDateString('fr-FR');
             
-            // Définir le sous-titre selon la vue
             switch(currentView) {
                 case 'general':
                     const teacher = document.getElementById('selectTeacher').value;
@@ -2823,16 +2733,13 @@
                     break;
             }
             
-            // Lancer l'impression
             window.print();
             
-            // Masquer le header après impression
             setTimeout(() => {
                 printHeader.style.display = 'none';
             }, 500);
         }
 
-        // Fonctions pour la gestion des enseignants
         function addTeacher() {
             const container = document.getElementById('teachersContainer');
             const teacherCount = container.children.length + 1;
@@ -2865,18 +2772,14 @@
             }
         }
         
-        // Fonction pour filtrer les créneaux horaires selon la période
         function filterTimeSlots() {
             const timePeriod = document.getElementById('timePeriod').value;
             const timeSlotSelect = document.getElementById('manualTimeSlot');
             
-            // Sauvegarder la valeur sélectionnée
             const selectedValue = timeSlotSelect.value;
             
-            // Vider les options
             timeSlotSelect.innerHTML = '<option value="">Sélectionner un créneau</option>';
             
-            // Ajouter les options selon la période
             let slots = allTimeSlots;
             if (timePeriod === 'morning') {
                 slots = morningSlots;
@@ -2892,13 +2795,11 @@
                 timeSlotSelect.appendChild(option);
             });
             
-            // Restaurer la valeur sélectionnée si elle existe encore
             if (selectedValue && slots.includes(selectedValue)) {
                 timeSlotSelect.value = selectedValue;
             }
         }
 
-        // Fonction pour déterminer la période d'un créneau
         function getTimePeriod(slot) {
             if (morningSlots.includes(slot)) {
                 return 'morning';
@@ -2908,7 +2809,6 @@
             return 'unknown';
         }
         
-        // Fonction pour obtenir le badge de période
         function getTimePeriodBadge(slot) {
             const period = getTimePeriod(slot);
             let badgeText, badgeClass;
@@ -2930,31 +2830,27 @@
             return `<span class="time-period-badge ${badgeClass}">${badgeText}</span>`;
         }
         
-        // Fonction pour vérifier si un créneau est réservé
         function isSlotReserved(day, slot, activityType) {
             const timePeriod = getTimePeriod(slot);
             const dayRestrictions = RESTRICTED_DAYS[day];
             
             if (!dayRestrictions) return false;
             
-            // Vérifier les restrictions pour Mercredi
             if (day === 'Mercredi' && dayRestrictions.restricted) {
                 if (timePeriod === 'afternoon') {
-                    return true; // Après-midi entièrement réservé
+                    return true;
                 }
             }
             
-            // Vérifier les restrictions pour Mardi et Vendredi après-midi
             if (dayRestrictions.restrictedAfternoon && timePeriod === 'afternoon') {
                 if (!dayRestrictions.allowedAfternoonActivityTypes.includes(activityType)) {
-                    return true; // Seuls les DEVOIR sont autorisés l'après-midi
+                    return true;
                 }
             }
             
             return false;
         }
         
-        // Fonction pour obtenir le texte de restriction
         function getRestrictionText(day, slot) {
             const timePeriod = getTimePeriod(slot);
             const dayRestrictions = RESTRICTED_DAYS[day];
@@ -2972,13 +2868,11 @@
             return '';
         }
 
-        // Fonction pour générer la programmation des DEVOIR avec les NOUVELLES FONCTIONNALITÉS
         function generateDevoirProgram() {
             const cycle = document.getElementById('devoirCycle').value;
             const period = parseInt(document.getElementById('devoirPeriod').value);
             const maxDevoirsPerDay = parseInt(document.getElementById('maxDevoirsPerDay').value);
             
-            // Récupérer les classes sélectionnées
             const classSelect = document.getElementById('devoirClasses');
             const selectedClasses = Array.from(classSelect.selectedOptions).map(opt => opt.value);
             
@@ -2987,7 +2881,6 @@
                 return;
             }
             
-            // Récupérer les surveillants
             const supervisors = [];
             const supervisorItems = document.querySelectorAll('#supervisorsContainer .teacher-item');
             
@@ -3012,25 +2905,21 @@
                 return;
             }
             
-            // Récupérer les jours sélectionnés pour les DEVOIR
             const selectedDays = Array.from(document.querySelectorAll('input[name="devoirDay"]:checked')).map(cb => cb.value);
             if (selectedDays.length === 0) {
                 showNotification('Veuillez sélectionner au moins un jour pour les DEVOIR', 'error');
                 return;
             }
             
-            // Générer la programmation AVEC LES NOUVELLES FONCTIONNALITÉS
             const program = generateDevoirProgrammationWithNewFeatures(selectedClasses, supervisors, selectedDays, period, maxDevoirsPerDay, cycle);
             currentDevoirProgram = program;
             
-            // Afficher les résultats
             displayDevoirResults(program);
             updateDevoirHistory();
             
             showNotification('Programmation des DEVOIR générée avec succès!', 'success');
         }
 
-        // NOUVELLE FONCTION : Génération de programmation avec les nouvelles fonctionnalités
         function generateDevoirProgrammationWithNewFeatures(classes, supervisors, availableDays, period, maxDevoirsPerDay, cycle) {
             const program = {
                 id: Date.now(),
@@ -3050,26 +2939,19 @@
                     byDay: {},
                     byClass: {},
                     bySubject: {},
-                    byDaySubject: {}, // NOUVEAU : Pour suivre les matières par jour
-                    byClassSubject: {} // NOUVEAU : Pour suivre les matières déjà programmées par classe
+                    byDaySubject: {},
+                    byClassSubject: {}
                 }
             };
             
-            // Créer une copie des surveillants pour la répartition
             const supervisorsToAssign = supervisors.map(s => ({ ...s }));
             
-            // Générer la liste des matières pour chaque classe depuis la configuration
             const classSubjects = {};
             classes.forEach(className => {
-                // Récupérer les matières configurées pour cette classe
                 classSubjects[className] = configuration.subjects[className] || 
                                           ['Matière Principale'];
             });
             
-            // NOUVELLE FONCTIONNALITÉ : Pour chaque jour disponible, toutes les classes composeront
-            // Mais chaque classe aura une matière différente
-            
-            // Générer les dates pour la période
             const startDate = new Date();
             const dates = [];
             for (let i = 0; i < period * 7; i++) {
@@ -3078,96 +2960,68 @@
                 dates.push(date);
             }
             
-            // Filtrer les jours disponibles pour les DEVOIR
             let devoirId = 1;
             const daysForDevoirs = dates.filter(date => {
                 const dayName = getDayName(date.getDay());
                 return availableDays.includes(dayName);
             });
             
-            // Limiter le nombre de jours si nécessaire
             const maxDays = Math.min(daysForDevoirs.length, period * availableDays.length);
             const selectedDays = daysForDevoirs.slice(0, maxDays);
             
-            // Initialiser le suivi des matières déjà utilisées par classe
             classes.forEach(className => {
                 program.summary.byClassSubject[className] = [];
             });
             
-            // CORRECTION : Pour chaque jour, TOUTES les classes composeront
-            // Mais avec des matières potentiellement différentes ET SANS RÉPÉTITION
             selectedDays.forEach((date, dayIndex) => {
                 const dayName = getDayName(date.getDay());
-                
-                // Toutes les classes composeront ce jour-là
                 const dayClasses = [...classes];
-                
-                // Pour éviter les répétitions de matières, nous allons suivre les matières déjà utilisées ce jour-là
                 const usedSubjectsToday = new Set();
                 
-                // Pour chaque classe du jour, planifier un DEVOIR
                 dayClasses.forEach(className => {
-                    // DÉTERMINER LE CYCLE DE LA CLASSE pour la durée
                     const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
-                    
-                    // Sélectionner une matière pour la classe depuis les matières configurées
                     const subjects = classSubjects[className];
+                    
                     if (subjects.length === 0) {
                         console.warn(`Aucune matière configurée pour la classe ${className}`);
                         return;
                     }
                     
-                    // CORRECTION IMPORTANTE : Filtrer les matières pour éviter les répétitions
-                    // 1. Éviter les matières déjà utilisées ce jour-là
-                    // 2. Éviter les matières déjà programmées pour cette classe dans toute la période
                     const subjectsAlreadyUsedForClass = program.summary.byClassSubject[className] || [];
-                    const availableSubjects = subjects.filter(subject => 
+                    
+                    let availableSubjects = subjects.filter(subject => 
                         !usedSubjectsToday.has(subject) && 
                         !subjectsAlreadyUsedForClass.includes(subject)
                     );
                     
-                    let selectedSubject;
-                    if (availableSubjects.length > 0) {
-                        // Choisir une matière aléatoire parmi celles non encore utilisées
-                        selectedSubject = availableSubjects[Math.floor(Math.random() * availableSubjects.length)];
-                    } else {
-                        // Si toutes les matières ont été utilisées, vérifier si on peut réutiliser une matière
-                        // uniquement si le nombre de matières disponibles est inférieur au nombre de jours
-                        const reusedSubjects = subjects.filter(subject => 
+                    if (availableSubjects.length === 0) {
+                        availableSubjects = subjects.filter(subject => 
                             !usedSubjectsToday.has(subject)
                         );
-                        
-                        if (reusedSubjects.length > 0) {
-                            // Si on peut réutiliser une matière (pas déjà utilisée aujourd'hui)
-                            selectedSubject = reusedSubjects[Math.floor(Math.random() * reusedSubjects.length)];
-                        } else {
-                            // Si vraiment aucune matière disponible, prendre une au hasard
-                            selectedSubject = subjects[Math.floor(Math.random() * subjects.length)];
-                        }
                     }
                     
-                    // Marquer cette matière comme utilisée ce jour-là
+                    if (availableSubjects.length === 0) {
+                        availableSubjects = subjects;
+                    }
+                    
+                    const selectedSubject = availableSubjects[Math.floor(Math.random() * availableSubjects.length)];
+                    
                     usedSubjectsToday.add(selectedSubject);
                     
-                    // Marquer cette matière comme utilisée pour cette classe
                     if (!program.summary.byClassSubject[className].includes(selectedSubject)) {
                         program.summary.byClassSubject[className].push(selectedSubject);
                     }
                     
-                    // Sélectionner un surveillant disponible
                     const availableSupervisors = supervisorsToAssign.filter(s => 
                         s.currentSupervisions < s.maxSupervisions && 
                         (!s.schedule[date.toDateString()] || s.schedule[date.toDateString()] < 2)
                     );
                     
                     if (availableSupervisors.length > 0) {
-                        // Choisir un surveillant au hasard
                         const randomSupervisor = availableSupervisors[Math.floor(Math.random() * availableSupervisors.length)];
                         
-                        // DÉTERMINER LA DURÉE selon le cycle
                         const duration = getDevoirDuration(classCycle);
                         
-                        // Créer le DEVOIR
                         const devoir = {
                             id: devoirId++,
                             date: date.toISOString(),
@@ -3176,22 +3030,20 @@
                             className: className,
                             subject: selectedSubject,
                             supervisor: randomSupervisor.name,
-                            timeSlot: getAfternoonSlotForDevoir(classCycle), // Créneau selon la durée
+                            timeSlot: getAfternoonSlotForDevoir(classCycle),
                             duration: duration,
                             room: getRandomRoom(className),
-                            cycle: classCycle // Ajout du cycle pour affichage
+                            cycle: classCycle
                         };
                         
                         program.devoirs.push(devoir);
                         
-                        // Mettre à jour les compteurs
                         randomSupervisor.currentSupervisions++;
                         if (!randomSupervisor.schedule[date.toDateString()]) {
                             randomSupervisor.schedule[date.toDateString()] = 0;
                         }
                         randomSupervisor.schedule[date.toDateString()]++;
                         
-                        // Mettre à jour le résumé
                         program.summary.totalDevoirs++;
                         
                         if (!program.summary.byDay[dayName]) {
@@ -3209,7 +3061,6 @@
                         }
                         program.summary.bySubject[selectedSubject]++;
                         
-                        // NOUVEAU : Suivi des matières par jour
                         if (!program.summary.byDaySubject[dayName]) {
                             program.summary.byDaySubject[dayName] = {};
                         }
@@ -3218,7 +3069,6 @@
                         }
                         program.summary.byDaySubject[dayName][selectedSubject]++;
                         
-                        // Ajouter au surveillant assigné
                         const supervisorInProgram = program.supervisors.find(s => s.name === randomSupervisor.name);
                         if (supervisorInProgram) {
                             supervisorInProgram.assignedDevoirs.push({
@@ -3235,18 +3085,15 @@
             return program;
         }
 
-        // NOUVELLE FONCTION : Obtenir le créneau horaire selon la durée du DEVOIR
         function getAfternoonSlotForDevoir(cycle) {
             if (cycle === 'Collège') {
-                // Collège : 2 heures
                 const slots = ['14:30 - 16:30', '15:00 - 17:00', '15:30 - 17:30'];
                 return slots[Math.floor(Math.random() * slots.length)];
             } else if (cycle === 'Lycée') {
-                // Lycée : 3 heures
                 const slots = ['14:30 - 17:30', '14:00 - 17:00', '15:00 - 18:00'];
                 return slots[Math.floor(Math.random() * slots.length)];
             }
-            return '14:30 - 16:30'; // Par défaut
+            return '14:30 - 16:30';
         }
 
         function getDayName(dayIndex) {
@@ -3264,7 +3111,6 @@
         }
 
         function getRandomRoom(className) {
-            // Déterminer le bâtiment selon la classe
             if (className.includes('6ème') || className.includes('5ème')) {
                 const rooms = ['Salle 101', 'Salle 102', 'Salle 103'];
                 return rooms[Math.floor(Math.random() * rooms.length)];
@@ -3480,11 +3326,9 @@
                     classDisplay = `${className} ${seriesInfo.badge}`;
                 }
                 
-                // Déterminer le cycle de la classe
                 const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
                 const duration = getDevoirDuration(classCycle);
                 
-                // Compter les matières uniques pour cette classe
                 const uniqueSubjects = [...new Set(classDevoirs.map(d => d.subject))];
                 const repetitionCount = classDevoirs.length - uniqueSubjects.length;
                 
@@ -3538,12 +3382,10 @@
                 return;
             }
             
-            // Sauvegarder chaque DEVOIR dans le localStorage
             const courses = getCourses();
             let savedCount = 0;
             
             currentDevoirProgram.devoirs.forEach(devoir => {
-                // Déterminer le cycle de la classe
                 const cycle = CLASSES_BY_CYCLE['Collège'].includes(devoir.className) ? 'Collège' : 'Lycée';
                 
                 const course = {
@@ -3570,7 +3412,6 @@
             
             localStorage.setItem('courses', JSON.stringify(courses));
             
-            // Ajouter à l'historique
             devoirHistory.unshift({
                 id: currentDevoirProgram.id,
                 date: currentDevoirProgram.date,
@@ -3580,7 +3421,6 @@
                 period: currentDevoirProgram.period
             });
             
-            // Garder seulement les 10 derniers programmes
             devoirHistory = devoirHistory.slice(0, 10);
             localStorage.setItem('devoirHistory', JSON.stringify(devoirHistory));
             
@@ -3589,7 +3429,6 @@
             updateDashboard();
             updateDevoirHistory();
             
-            // Passer à l'onglet de visualisation
             switchTab('timetable');
         }
 
@@ -3628,8 +3467,6 @@
         }
 
         function loadDevoirProgram(programId) {
-            // Cette fonction pourrait charger un programme spécifique depuis l'historique
-            // Pour l'instant, on affiche un message
             showNotification('Fonctionnalité à venir: Chargement des programmes sauvegardés', 'warning');
         }
 
@@ -3675,7 +3512,6 @@
                 return;
             }
             
-            // Créer un format CSV simple
             let csvContent = "Date,Classe,Cycle,Matière,Horaire,Salle,Surveillant,Durée\n";
             
             currentDevoirProgram.devoirs.forEach(devoir => {
@@ -3692,20 +3528,17 @@
             showNotification('Programmation exportée en CSV', 'success');
         }
 
-        // CORRECTION : Fonction pour générer la répartition aléatoire avec restrictions
         function generateDistribution() {
             const cycle = document.getElementById('distributionCycle').value;
             const className = document.getElementById('distributionClass').value;
             const totalHours = parseInt(document.getElementById('totalHours').value);
             const preferredTimePeriod = document.getElementById('preferredTimePeriod').value;
             
-            // Vérifier que tous les champs requis sont remplis
             if (!cycle || !className) {
                 showNotification('Veuillez sélectionner un cycle et une classe', 'error');
                 return;
             }
             
-            // Récupérer les données des enseignants
             const teachers = [];
             const teacherItems = document.querySelectorAll('#teachersContainer .teacher-item');
             
@@ -3721,7 +3554,7 @@
                         subject, 
                         activityType, 
                         hours,
-                        remainingHours: hours  // Ajouter le compteur d'heures restantes
+                        remainingHours: hours
                     });
                 }
             });
@@ -3731,24 +3564,20 @@
                 return;
             }
             
-            // Vérifier que le total des heures demandées ne dépasse pas les heures disponibles
             const totalRequestedHours = teachers.reduce((sum, teacher) => sum + teacher.hours, 0);
             if (totalRequestedHours > totalHours) {
                 showNotification(`Le total des heures demandées (${totalRequestedHours}) dépasse les heures disponibles (${totalHours})`, 'error');
                 return;
             }
             
-            // Générer la répartition avec restrictions
             const distribution = generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod);
             currentDistribution = distribution;
             
-            // Afficher les résultats
             displayDistributionResults(distribution);
             
             showNotification('Répartition générée avec succès!', 'success');
         }
 
-        // CORRECTION : Fonction pour générer la répartition aléatoire avec restrictions
         function generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod) {
             const distribution = {
                 cycle,
@@ -3758,13 +3587,11 @@
                 timetable: initializeTimetable()
             };
             
-            // Créer une copie des enseignants avec les heures restantes à placer
             const teachersToPlace = teachers.map(teacher => ({
                 ...teacher,
                 remainingHours: teacher.hours
             }));
             
-            // Déterminer les créneaux disponibles selon la période préférée
             let availableSlots = allTimeSlots;
             if (preferredTimePeriod === 'morning') {
                 availableSlots = morningSlots;
@@ -3772,22 +3599,19 @@
                 availableSlots = afternoonSlots;
             }
             
-            // Placer d'abord les DEVOIR sur les après-midi de Mardi et Vendredi
             const devoirTeachers = teachersToPlace.filter(t => t.activityType === 'DEVOIR');
             devoirTeachers.forEach(teacher => {
-                // Essayer de placer les DEVOIR sur Mardi et Vendredi après-midi
                 const devoirDays = ['Mardi', 'Vendredi'];
                 const afternoonSlotsForDevoir = afternoonSlots.filter(slot => 
-                    !isSlotReserved('Mercredi', slot, 'DEVOIR') // Pas le mercredi
+                    !isSlotReserved('Mercredi', slot, 'DEVOIR')
                 );
                 
                 let devoirPlaced = 0;
-                const maxDevoirs = Math.min(teacher.remainingHours, 2); // Max 2 DEVOIR par semaine
+                const maxDevoirs = Math.min(teacher.remainingHours, 2);
                 
                 for (let i = 0; i < maxDevoirs && devoirPlaced < teacher.remainingHours; i++) {
                     const day = devoirDays[i % devoirDays.length];
                     
-                    // Trouver un créneau après-midi disponible pour DEVOIR
                     for (const slot of afternoonSlotsForDevoir) {
                         if (!distribution.timetable[day][slot] && 
                             !isTeacherAlreadyScheduled(distribution.timetable, teacher.name, day, slot) &&
@@ -3815,20 +3639,16 @@
                 }
             });
             
-            // Placer les heures restantes de manière aléatoire
             while (teachersToPlace.some(teacher => teacher.remainingHours > 0)) {
-                // Choisir un enseignant au hasard qui a encore des heures à placer
                 const availableTeachers = teachersToPlace.filter(t => t.remainingHours > 0);
                 if (availableTeachers.length === 0) break;
                 
                 const randomTeacherIndex = Math.floor(Math.random() * availableTeachers.length);
                 const teacher = availableTeachers[randomTeacherIndex];
                 
-                // Trouver un créneau disponible en respectant les restrictions
                 const availableSlot = findAvailableSlotWithRestrictions(distribution.timetable, teacher.name, teacher.activityType, availableSlots);
                 
                 if (availableSlot) {
-                    // Placer le cours
                     distribution.timetable[availableSlot.day][availableSlot.timeSlot] = {
                         teacher: teacher.name,
                         subject: teacher.subject,
@@ -3845,7 +3665,6 @@
                         timePeriod: getTimePeriod(availableSlot.timeSlot)
                     });
                 } else {
-                    // Si aucun créneau disponible, élargir la recherche à tous les créneaux
                     const backupSlot = findAvailableSlotWithRestrictions(distribution.timetable, teacher.name, teacher.activityType, allTimeSlots);
                     if (backupSlot) {
                         distribution.timetable[backupSlot.day][backupSlot.timeSlot] = {
@@ -3864,7 +3683,6 @@
                             timePeriod: getTimePeriod(backupSlot.timeSlot)
                         });
                     } else {
-                        // Si vraiment aucun créneau disponible, on arrête
                         break;
                     }
                 }
@@ -3885,7 +3703,6 @@
         }
 
         function findAvailableSlotWithRestrictions(timetable, teacherName, activityType, slots) {
-            // Créer une liste de tous les créneaux possibles
             const allSlots = [];
             days.forEach(day => {
                 slots.forEach(slot => {
@@ -3893,10 +3710,8 @@
                 });
             });
             
-            // Mélanger les créneaux
             shuffleArray(allSlots);
             
-            // Trouver le premier créneau disponible qui respecte les restrictions
             for (const slot of allSlots) {
                 if (!timetable[slot.day][slot.timeSlot] && 
                     !isTeacherAlreadyScheduled(timetable, teacherName, slot.day, slot.timeSlot) &&
@@ -3909,7 +3724,6 @@
         }
 
         function isTeacherAlreadyScheduled(timetable, teacherName, day, timeSlot) {
-            // Vérifier si l'enseignant a déjà cours ce jour-là
             for (const slot of allTimeSlots) {
                 if (timetable[day][slot] && timetable[day][slot].teacher === teacherName) {
                     return true;
@@ -3925,7 +3739,6 @@
             }
         }
 
-        // CORRECTION : Fonction pour afficher les résultats de la répartition
         function displayDistributionResults(distribution) {
             const container = document.getElementById('distributionTableContainer');
             const resultsDiv = document.getElementById('distributionResults');
@@ -3998,7 +3811,6 @@
                             <tbody>
             `;
             
-            // Compter les heures par enseignant
             const teacherSummary = {};
             distribution.teachers.forEach(course => {
                 const key = `${course.teacher}-${course.subject}-${course.activityType}`;
@@ -4061,7 +3873,6 @@
                 return;
             }
             
-            // Sauvegarder chaque cours dans le localStorage
             const courses = getCourses();
             let savedCount = 0;
             
@@ -4088,13 +3899,10 @@
             updateFilters();
             updateDashboard();
             
-            // Passer à l'onglet de visualisation
             switchTab('timetable');
         }
 
-        // Fonctions utilitaires
         function showNotification(message, type = 'success') {
-            // Supprimer les notifications existantes
             document.querySelectorAll('.notification').forEach(notif => notif.remove());
             
             const notification = document.createElement('div');
@@ -4121,7 +3929,6 @@
         }
 
         function switchTab(tabName) {
-            // Mettre à jour la navigation
             document.querySelectorAll('.nav-links a').forEach(link => {
                 link.classList.remove('active');
             });
@@ -4129,7 +3936,6 @@
                 content.classList.remove('active');
             });
             
-            // Activer le nouvel onglet
             const activeNav = document.querySelector(`.nav-links a[onclick="switchTab('${tabName}')"]`);
             const activeContent = document.getElementById(`${tabName}-tab`);
             
@@ -4137,14 +3943,12 @@
                 activeNav.classList.add('active');
                 activeContent.classList.add('active');
                 
-                // Mettre à jour le titre de la page
                 const pageTitle = document.getElementById('page-title');
                 const icon = activeNav.querySelector('i').className;
                 const text = activeNav.textContent.trim();
                 pageTitle.innerHTML = `${icon} ${text}`;
             }
             
-            // Actions spécifiques à chaque onglet
             if (tabName === 'timetable') {
                 updateFilters();
                 generateTimetable();
@@ -4159,7 +3963,6 @@
             } else if (tabName === 'devoir') {
                 updateDevoirClassOptions();
                 updateDevoirHistory();
-                // Charger automatiquement les surveillants configurés
                 setTimeout(() => {
                     loadConfiguredSupervisors();
                 }, 100);
@@ -4167,23 +3970,19 @@
                 updateConfigurationStats();
                 updateConfigClassOptions();
             } else if (tabName === 'distribution') {
-                // Initialiser les options de classe pour la répartition
                 updateClassOptions();
             }
         }
 
-        // Fonctions existantes pour la gestion des cours
         function getCourses() {
             return JSON.parse(localStorage.getItem('courses')) || [];
         }
 
-        // Fonction pour mettre à jour les filtres
         function updateFilters() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             const classes = [...new Set(courses.map(c => c.className))];
             
-            // Mettre à jour tous les filtres nécessaires
             ['selectTeacher', 'filterTeacher', 'selectTeacherSpecific', 'selectTeacherAll'].forEach(id => {
                 const select = document.getElementById(id);
                 if (select) {
@@ -4191,7 +3990,6 @@
                 }
             });
             
-            // Mettre à jour les filtres de classe
             const classSelectors = ['selectClass', 'selectClassSpecific', 'filterClass'];
             classSelectors.forEach(id => {
                 const select = document.getElementById(id);
@@ -4219,7 +4017,6 @@
             updateSelectOptions(document.getElementById('selectTeacherAll'), teachers);
         }
 
-        // Fonction améliorée pour mettre à jour les options des sélecteurs
         function updateSelectOptions(selectElement, options) {
             if (!selectElement) return;
             
@@ -4239,7 +4036,6 @@
             }
         }
 
-        // Fonctions de génération des emplois du temps
         function generateTimetable() {
             const courses = getCourses();
             const selectedTeacher = document.getElementById('selectTeacher').value;
@@ -4486,13 +4282,11 @@
             reader.readAsText(file);
         }
 
-        // Mise à jour du tableau de bord
         function updateDashboard() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
             const totalHours = courses.length;
             
-            // Compter par type d'activité
             const activityCounts = {};
             courses.forEach(course => {
                 activityCounts[course.activityType] = (activityCounts[course.activityType] || 0) + 1;
@@ -4502,7 +4296,6 @@
             document.getElementById('total-courses').textContent = courses.length;
             document.getElementById('total-hours').textContent = totalHours;
             
-            // Mettre à jour les activités récentes
             const recentActivities = document.getElementById('recent-activities');
             if (courses.length > 0) {
                 const recentCourses = courses.slice(-5).reverse();
@@ -4521,7 +4314,6 @@
             }
         }
 
-        // NOUVELLE FONCTION : Gestion des cours manuels
         function saveManualCourse() {
             const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
             const timeSlot = document.getElementById('manualTimeSlot').value;
@@ -4537,7 +4329,6 @@
                 return;
             }
             
-            // Vérifier les restrictions pour chaque jour sélectionné
             const invalidDays = [];
             selectedDays.forEach(day => {
                 if (isSlotReserved(day, timeSlot, activityType)) {
@@ -4559,7 +4350,6 @@
                 return;
             }
             
-            // Créer un cours pour chaque jour sélectionné
             let createdCount = 0;
             selectedDays.forEach(day => {
                 const course = {
@@ -4582,7 +4372,6 @@
             
             showNotification(`${createdCount} cours enregistrés avec succès!`, 'success');
             
-            // Réinitialiser le formulaire
             document.getElementById('teacherName').value = '';
             document.getElementById('manualCycle').value = '';
             document.getElementById('manualClass').value = '';
@@ -4597,15 +4386,11 @@
             updateDashboard();
         }
 
-        // Gestion des événements de formulaire
         document.addEventListener('DOMContentLoaded', function() {
-            // Vérifier l'authentification
             checkAuthentication();
             
-            // Gestion du formulaire de connexion
             document.getElementById('login-form').addEventListener('submit', handleLogin);
             
-            // Initialiser l'application si connecté
             if (localStorage.getItem('isAuthenticated') === 'true') {
                 updateFilters();
                 generateTimetable();
@@ -4614,23 +4399,18 @@
                 updateDevoirHistory();
                 updateConfigurationStats();
                 
-                // Ajouter un enseignant par défaut
                 addTeacher();
                 
-                // Ajouter un surveillant par défaut dans la configuration
                 addSupervisorItem();
                 
-                // Initialiser les options de classe
                 updateClassOptions();
                 updateManualClassOptions();
                 updateDevoirClassOptions();
                 updateConfigClassOptions();
                 
-                // Initialiser les créneaux horaires
                 filterTimeSlots();
             }
             
-            // Initialiser les événements pour la période
             document.getElementById('timePeriod').addEventListener('change', filterTimeSlots);
         });
     </script>
