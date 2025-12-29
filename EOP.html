@@ -1650,7 +1650,7 @@
                                 
                                 <div class="form-group">
                                     <label for="maxDevoirsPerDay"><i class="fas fa-chart-line"></i> Maximum de devoirs par jour:</label>
-                                    <input type="number" id="maxDevoirsPerDay" value="2" min="1" max="4" required>
+                                    <input type="number" id="maxDevoirsPerDay" value="2" min="1" max="2" required>
                                 </div>
                             </div>
                             
@@ -2624,23 +2624,24 @@
 
         function getSeriesFromClassName(className) {
             const seriesMap = {
-                'C': { code: 'c', name: 'Scientifique', badge: '<span class="series-badge series-c">C</span>' },
+                'CD': { code: 'cd', name: 'Scientifique', badge: '<span class="series-badge series-cd">CD</span>' },
+                'C4': { code: 'c4', name: 'Scientifique', badge: '<span class="series-badge series-c">C4</span>' },
                 'D': { code: 'd', name: 'Sciences Économiques', badge: '<span class="series-badge series-d">D</span>' },
                 'A': { code: 'a', name: 'Littéraire', badge: '<span class="series-badge series-a">A</span>' },
                 'L': { code: 'l', name: 'Lettres', badge: '<span class="series-badge series-l">L</span>' }
             };
 
             if (className.includes('2nd')) {
-                if (className.includes('C')) {
-                    return seriesMap['C'];
+                if (className.includes('CD')) {
+                    return seriesMap['CD'];
                 } else if (className.includes('D')) {
                     return seriesMap['D'];
                 } else if (className.includes('L')) {
                     return seriesMap['L'];
                 }
             } else if (className.includes('1ère') || className.includes('Tle')) {
-                if (className.includes('C')) {
-                    return seriesMap['C'];
+                if (className.includes('C4')) {
+                    return seriesMap['C4'];
                 } else if (className.includes('D')) {
                     return seriesMap['D'];
                 } else if (className.includes('A')) {
@@ -3087,7 +3088,7 @@
 
         function getAfternoonSlotForDevoir(cycle) {
             if (cycle === 'Collège') {
-                const slots = ['14:30 - 16:30', '15:00 - 17:00', '15:30 - 17:30'];
+                const slots = ['15:00 - 16:00', '16:00 - 17:00'];
                 return slots[Math.floor(Math.random() * slots.length)];
             } else if (cycle === 'Lycée') {
                 const slots = ['14:30 - 17:30', '14:00 - 17:00', '15:00 - 18:00'];
