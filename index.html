@@ -3,47 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index - Projet Gestion Scolaire | Emplois du Temps & Commandes</title>
-    <meta name="description" content="Solution complète pour la gestion des emplois du temps scolaires et des commandes de matériel pédagogique au Togo. Application web gratuite et responsive.">
-    <meta name="keywords" content="gestion scolaire, emploi du temps, Togo, commande matériel, établissement scolaire, FCFA, collège, lycée">
-    <meta name="author" content="Projet Gestion Scolaire">
-    <meta name="robots" content="index, follow">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Projet Gestion Scolaire - Emplois du Temps & Commandes">
-    <meta property="og:description" content="Solution complète pour la gestion des emplois du temps scolaires et des commandes de matériel pédagogique au Togo.">
-    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 315'><rect width='600' height='315' fill='%234CAF50'/><rect x='20' y='20' width='560' height='275' rx='15' fill='white'/><text x='300' y='140' text-anchor='middle' font-size='40' font-family='Arial' fill='%23333'>Projet Gestion</text><text x='300' y='190' text-anchor='middle' font-size='40' font-family='Arial' fill='%23333'>Scolaire</text><text x='300' y='240' text-anchor='middle' font-size='20' font-family='Arial' fill='%234CAF50'>Emplois du Temps & Commandes</text></svg>">
-    <meta property="og:url" content="">
-    <meta property="og:site_name" content="Projet Gestion Scolaire">
-    <meta property="og:locale" content="fr_TG">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Projet Gestion Scolaire - Emplois du Temps & Commandes">
-    <meta name="twitter:description" content="Solution complète pour la gestion des emplois du temps scolaires et des commandes de matériel pédagogique au Togo.">
-
-    <!-- Favicon SVG -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect y='0' width='100' height='20' fill='%23006B3F'/><rect y='20' width='100' height='20' fill='%23FCD116'/><rect y='40' width='100' height='20' fill='%23006B3F'/><rect y='60' width='100' height='20' fill='%23FCD116'/><rect y='80' width='100' height='20' fill='%23006B3F'/><rect x='0' y='0' width='40' height='60' fill='%23CE1126'/><text x='20' y='40' text-anchor='middle' font-size='30' fill='white'>&#9733;</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect y='0' width='100' height='20' fill='%23006B3F'/><rect y='20' width='100' height='20' fill='%23FCD116'/><rect y='40' width='100' height='20' fill='%23006B3F'/><rect y='60' width='100' height='20' fill='%23FCD116'/><rect y='80' width='100' height='20' fill='%23006B3F'/><rect x='0' y='0' width='40' height='60' fill='%23CE1126'/><text x='20' y='40' text-anchor='middle' font-size='30' fill='white'>&#9733;</text></svg>">
-    <meta name="theme-color" content="#4CAF50">
-
-    <!-- Structured Data for Google -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Projet Gestion Scolaire",
-        "description": "Solution complète pour la gestion des emplois du temps scolaires et des commandes de matériel pédagogique au Togo.",
-        "inLanguage": "fr",
-        "potentialAction": {
-            "@type": "SearchAction",
-            "target": "?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-        }
-    }
-    </script>
-
+    <title>Index - Projet Gestion Scolaire</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -60,10 +20,7 @@
             --border-radius: 8px;
             --shadow: 0 4px 6px rgba(0,0,0,0.1);
             --transition: all 0.3s ease;
-            --header-h: 80px;
         }
-
-        @media (max-width: 768px) { :root { --header-h: 60px; } }
 
         * {
             box-sizing: border-box;
@@ -80,10 +37,6 @@
             padding: 20px;
         }
 
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-        }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -93,144 +46,45 @@
             overflow: hidden;
         }
 
-        /* ============================================
-           HEADER / NAVIGATION
-           ============================================ */
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: clamp(20px, 4vw, 40px) clamp(15px, 3vw, 30px);
+            padding: 40px 30px;
             text-align: center;
-            position: relative;
         }
 
-        .header-nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: clamp(10px, 2vw, 20px);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: clamp(8px, 1.5vw, 15px);
-        }
-
-        /* Logo drapeau du Togo */
-        .logo-flag {
-            width: clamp(40px, 5vw, 56px);
-            height: clamp(28px, 3.5vw, 40px);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            flex-shrink: 0;
-        }
-
-        .logo-flag .stripe {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 20%;
-        }
-
-        .logo-flag .stripe:nth-child(1) { top: 0%; background: #006B3F; }
-        .logo-flag .stripe:nth-child(2) { top: 20%; background: #FCD116; }
-        .logo-flag .stripe:nth-child(3) { top: 40%; background: #006B3F; }
-        .logo-flag .stripe:nth-child(4) { top: 60%; background: #FCD116; }
-        .logo-flag .stripe:nth-child(5) { top: 80%; background: #006B3F; }
-
-        .logo-flag .flag-canton {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 40%;
-            height: 60%;
-            background: #CE1126;
-        }
-
-        .logo-flag .flag-star {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: clamp(8px, 1.2vw, 14px);
-            line-height: 1;
-        }
-
-        .header-title {
-            font-size: clamp(1rem, 2.5vw, 2.5rem);
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .header-links {
-            display: flex;
-            gap: clamp(6px, 1vw, 12px);
-            flex-wrap: wrap;
-        }
-
-        .header-links a {
-            color: white;
-            text-decoration: none;
-            font-size: clamp(0.7rem, 1.2vw, 0.95rem);
-            padding: clamp(4px, 0.8vw, 8px) clamp(8px, 1.5vw, 16px);
-            border: 2px solid rgba(255,255,255,0.5);
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-
-        .header-links a:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: white;
-        }
-
-        .header-links a.download-link {
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.6);
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
         }
 
         .header p {
             opacity: 0.9;
-            font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+            font-size: 1.2rem;
             max-width: 800px;
             margin: 0 auto;
         }
 
-        /* ============================================
-           CONTENT
-           ============================================ */
         .content {
-            padding: clamp(20px, 4vw, 40px) clamp(15px, 3vw, 30px);
+            padding: 40px 30px;
         }
 
         .section-title {
             color: var(--primary-color);
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 10px;
-            margin-bottom: clamp(20px, 3vw, 30px);
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+            font-size: 1.8rem;
         }
 
-        /* ============================================
-           PROJECTS GRID
-           ============================================ */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-            gap: clamp(15px, 2.5vw, 30px);
-            margin-bottom: clamp(25px, 4vw, 40px);
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
         }
 
         .project-card {
@@ -250,37 +104,31 @@
         .project-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: clamp(15px, 2.5vw, 25px);
+            padding: 25px;
             text-align: center;
         }
 
         .project-header i {
-            font-size: clamp(1.8rem, 3vw, 2.5rem);
-            margin-bottom: 10px;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
         }
 
         .project-header h3 {
-            font-size: clamp(1.1rem, 2vw, 1.5rem);
-            margin-bottom: 8px;
-        }
-
-        .project-header p {
-            font-size: clamp(0.75rem, 1.2vw, 0.9rem);
-            opacity: 0.9;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
         }
 
         .project-body {
-            padding: clamp(15px, 2.5vw, 25px);
+            padding: 25px;
         }
 
         .project-description {
-            margin-bottom: clamp(12px, 2vw, 20px);
+            margin-bottom: 20px;
             color: var(--dark-gray);
-            font-size: clamp(0.85rem, 1.3vw, 1rem);
         }
 
         .project-features {
-            margin-bottom: clamp(15px, 2.5vw, 25px);
+            margin-bottom: 25px;
         }
 
         .project-features h4 {
@@ -289,7 +137,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: clamp(0.9rem, 1.4vw, 1.1rem);
         }
 
         .feature-list {
@@ -297,12 +144,11 @@
         }
 
         .feature-list li {
-            padding: clamp(5px, 0.8vw, 8px) 0;
+            padding: 8px 0;
             border-bottom: 1px solid var(--medium-gray);
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: clamp(0.8rem, 1.2vw, 0.95rem);
         }
 
         .feature-list li:last-child {
@@ -311,18 +157,14 @@
 
         .feature-list i {
             color: var(--primary-color);
-            flex-shrink: 0;
         }
 
-        /* ============================================
-           BUTTONS
-           ============================================ */
         .btn {
-            padding: clamp(10px, 1.8vw, 15px) clamp(15px, 2.5vw, 25px);
+            padding: 15px 25px;
             border: none;
             border-radius: var(--border-radius);
             cursor: pointer;
-            font-size: clamp(0.85rem, 1.3vw, 1rem);
+            font-size: 16px;
             font-weight: 500;
             transition: var(--transition);
             display: inline-flex;
@@ -355,14 +197,11 @@
             box-shadow: var(--shadow);
         }
 
-        /* ============================================
-           INFO SECTION
-           ============================================ */
         .info-section {
             background: var(--light-gray);
-            padding: clamp(20px, 3vw, 30px);
+            padding: 30px;
             border-radius: var(--border-radius);
-            margin-top: clamp(25px, 4vw, 40px);
+            margin-top: 40px;
             border: 1px solid var(--medium-gray);
         }
 
@@ -372,12 +211,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: clamp(1.1rem, 2vw, 1.4rem);
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
         }
 
@@ -388,340 +226,187 @@
         }
 
         .info-icon {
-            width: clamp(40px, 5vw, 50px);
-            height: clamp(40px, 5vw, 50px);
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: var(--primary-color);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: clamp(1rem, 1.5vw, 1.2rem);
-            flex-shrink: 0;
+            font-size: 1.2rem;
         }
 
         .info-text h4 {
             margin-bottom: 5px;
             color: var(--dark-gray);
-            font-size: clamp(0.85rem, 1.3vw, 1rem);
         }
 
         .info-text p {
             color: var(--neutral-color);
-            font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+            font-size: 0.9rem;
         }
 
-        /* ============================================
-           FOOTER
-           ============================================ */
         footer {
             text-align: center;
-            padding: clamp(15px, 2.5vw, 20px);
+            padding: 20px;
             color: var(--dark-gray);
             border-top: 1px solid var(--medium-gray);
-            margin-top: clamp(25px, 4vw, 40px);
+            margin-top: 40px;
         }
 
-        .footer-flag {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: clamp(6px, 1vw, 10px);
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+        /* Styles pour les écrans mobiles (jusqu'à 480px) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .project-header {
+                padding: 20px;
+            }
+            
+            .project-header i {
+                font-size: 2rem;
+            }
+            
+            .project-header h3 {
+                font-size: 1.3rem;
+            }
+            
+            .project-body {
+                padding: 20px;
+            }
+            
+            .feature-list li {
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+            
+            .info-section {
+                padding: 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .info-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+            
+            footer {
+                padding: 15px;
+                font-size: 0.9rem;
+            }
         }
 
-        .footer-flag .mini-flag {
-            width: clamp(28px, 3.5vw, 36px);
-            height: clamp(20px, 2.5vw, 26px);
-            border-radius: 3px;
-            overflow: hidden;
-            position: relative;
-            display: inline-block;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-            flex-shrink: 0;
+        /* Styles pour les tablettes et écrans moyens (481px à 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .header {
+                padding: 30px 25px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .content {
+                padding: 30px 25px;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .project-header {
+                padding: 22px;
+            }
+            
+            .project-body {
+                padding: 22px;
+            }
+            
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .info-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
         }
 
-        .footer-flag .mini-flag .stripe {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 20%;
+        /* Styles pour les écrans plus larges (769px à 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 95%;
+            }
+            
+            .projects-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 25px;
+            }
+            
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
-        .footer-flag .mini-flag .stripe:nth-child(1) { top: 0%; background: #006B3F; }
-        .footer-flag .mini-flag .stripe:nth-child(2) { top: 20%; background: #FCD116; }
-        .footer-flag .mini-flag .stripe:nth-child(3) { top: 40%; background: #006B3F; }
-        .footer-flag .mini-flag .stripe:nth-child(4) { top: 60%; background: #FCD116; }
-        .footer-flag .mini-flag .stripe:nth-child(5) { top: 80%; background: #006B3F; }
-
-        .footer-flag .mini-flag .cant {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 40%;
-            height: 60%;
-            background: #CE1126;
-        }
-
-        .footer-flag .mini-flag .star {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: clamp(6px, 1vw, 9px);
-            line-height: 1;
-        }
-
-        .footer-flag span {
-            font-size: clamp(0.75rem, 1.1vw, 0.85rem);
-            color: var(--neutral-color);
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: clamp(6px, 1vw, 12px);
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: clamp(0.7rem, 1.1vw, 0.85rem);
-            padding: 4px 10px;
-            border: 1px solid var(--primary-color);
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-        }
-
-        .footer-links a:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        footer p {
-            font-size: clamp(0.7rem, 1.1vw, 0.85rem);
-        }
-
-        /* ============================================
-           DARK MODE
-           ============================================ */
-        @media (prefers-color-scheme: dark) {
-            body { background: #1a1a2e; }
-            .container { background: #16213e; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-            .content { color: #e0e0e0; }
-            .project-card { background: #1a1a2e; border-color: #2a2a4a; }
-            .project-body { color: #ccc; }
-            .feature-list li { border-bottom-color: #2a2a4a; }
-            .info-section { background: #0f3460; border-color: #2a2a4a; }
-            .info-text h4, .info-text p { color: #e0e0e0; }
-            footer { color: #aaa; border-top-color: #2a2a4a; }
-        }
-
-        /* ============================================
-           LANDSCAPE MOBILE
-           ============================================ */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .header { padding: clamp(10px, 2vw, 18px) clamp(10px, 2vw, 20px); }
-            .header-title { font-size: clamp(0.9rem, 2vw, 1.4rem); }
-            .header p { font-size: clamp(0.7rem, 1.1vw, 0.85rem); margin-bottom: 0; }
-            .header-nav { margin-bottom: 5px; }
-        }
-
-        /* ============================================
-           LOADING SCREEN
-           ============================================ */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #4CAF50, #2196F3);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .loading-flag {
-            width: 80px;
-            height: 56px;
-            border-radius: 6px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            animation: pulse 1.2s ease-in-out infinite;
-        }
-
-        .loading-flag .stripe {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 20%;
-        }
-
-        .loading-flag .stripe:nth-child(1) { top: 0%; background: #006B3F; }
-        .loading-flag .stripe:nth-child(2) { top: 20%; background: #FCD116; }
-        .loading-flag .stripe:nth-child(3) { top: 40%; background: #006B3F; }
-        .loading-flag .stripe:nth-child(4) { top: 60%; background: #FCD116; }
-        .loading-flag .stripe:nth-child(5) { top: 80%; background: #006B3F; }
-
-        .loading-flag .flag-canton {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 40%;
-            height: 60%;
-            background: #CE1126;
-        }
-
-        .loading-flag .flag-star {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 18px;
-            line-height: 1;
-        }
-
-        .loading-text {
-            color: white;
-            margin-top: 20px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            letter-spacing: 1px;
-        }
-
-        .loading-dots::after {
-            content: '';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes dots {
-            0%   { content: ''; }
-            25%  { content: '.'; }
-            50%  { content: '..'; }
-            75%  { content: '...'; }
-            100% { content: ''; }
-        }
-
-        /* ============================================
-           SMOOTH SCROLL
-           ============================================ */
-        html {
-            scroll-behavior: smooth;
-        }
-
-        /* ============================================
-           BACK TO TOP
-           ============================================ */
-        .back-to-top {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            opacity: 0;
-            visibility: hidden;
-            transition: var(--transition);
-            z-index: 100;
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .back-to-top:hover {
-            background: var(--primary-hover);
-            transform: translateY(-3px);
-        }
-
-        /* ============================================
-           PRINT
-           ============================================ */
-        @media print {
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; max-width: 100%; }
-            .header { background: #4CAF50 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .project-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
-            .btn { display: none; }
-            .header-links, .footer-links { display: none; }
+        /* Styles pour les grands écrans (1025px et plus) */
+        @media (min-width: 1025px) {
+            .container {
+                max-width: 1200px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-flag">
-            <div class="stripe"></div>
-            <div class="stripe"></div>
-            <div class="stripe"></div>
-            <div class="stripe"></div>
-            <div class="stripe"></div>
-            <div class="flag-canton"></div>
-            <div class="flag-star">&#9733;</div>
-        </div>
-        <div class="loading-text">Chargement<span class="loading-dots"></span></div>
-    </div>
-
-    <!-- Back to Top -->
-    <button class="back-to-top" id="backToTop" aria-label="Retour en haut">
-        <i class="fas fa-chevron-up"></i>
-    </button>
-
     <div class="container">
         <div class="header">
-            <div class="header-nav">
-                <div class="header-brand">
-                    <div class="logo-flag" aria-label="Drapeau du Togo">
-                        <div class="stripe"></div>
-                        <div class="stripe"></div>
-                        <div class="stripe"></div>
-                        <div class="stripe"></div>
-                        <div class="stripe"></div>
-                        <div class="flag-canton"></div>
-                        <div class="flag-star">&#9733;</div>
-                    </div>
-                    <h1 class="header-title"><i class="fas fa-graduation-cap"></i> Projet Gestion Scolaire</h1>
-                </div>
-                <div class="header-links">
-                    <a href="EOP.html"><i class="fas fa-calendar-alt"></i> Emploi du temps</a>
-                    <a href="EOPF.html"><i class="fas fa-shopping-cart"></i> Commande</a>
-                    <a href="index Emplois du temps.html" download class="download-link"><i class="fas fa-download"></i> Télécharger</a>
-                </div>
-            </div>
+            <h1><i class="fas fa-graduation-cap"></i> Projet Gestion Scolaire</h1>
             <p>Une solution complète pour la gestion des emplois du temps et des commandes de matériel scolaire</p>
         </div>
 
@@ -766,7 +451,7 @@
                     <div class="project-header">
                         <i class="fas fa-shopping-cart"></i>
                         <h3>Formulaire de Commande</h3>
-                        <p>Gestion des commandes de matériel scolaire (5000 FCFA:Collège et 10.000 FCA: Complexe) par année scolaire</p>
+                        <p>Gestion des commandes de matériel scolaire (5000 FCFA:Collège et 10.000 FCA: Complexe) par année scolaire </p>
                     </div>
                     <div class="project-body">
                         <div class="project-description">
@@ -838,64 +523,8 @@
         </div>
         
         <footer>
-            <div class="footer-flag">
-                <div class="mini-flag" aria-label="Drapeau du Togo">
-                    <div class="stripe"></div>
-                    <div class="stripe"></div>
-                    <div class="stripe"></div>
-                    <div class="stripe"></div>
-                    <div class="stripe"></div>
-                    <div class="cant"></div>
-                    <div class="star">&#9733;</div>
-                </div>
-                <span>Projet Gestion Scolaire &mdash; République Togolaise</span>
-            </div>
-            <div class="footer-links">
-                <a href="EOP.html"><i class="fas fa-calendar-alt"></i> Emploi du temps</a>
-                <a href="EOPF.html"><i class="fas fa-shopping-cart"></i> Commande</a>
-                <a href="index Emplois du temps.html" download><i class="fas fa-download"></i> Télécharger</a>
-            </div>
             <p>&copy; 2024 - Projet Gestion Scolaire | Tous droits réservés</p>
         </footer>
     </div>
-
-    <script>
-        // Loading screen
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('loadingScreen').classList.add('hidden');
-            }, 800);
-        });
-
-        // Back to top button
-        var backToTop = document.getElementById('backToTop');
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 300) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
-        });
-        backToTop.addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-
-        // Intersection Observer for fade-in animations
-        var observer = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.project-card, .info-item').forEach(function(el) {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
-        });
-    </script>
 </body>
 </html>
