@@ -2,28 +2,524 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Emploi du Temps - Lycée Niamtougou</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- SEO -->
+    <title>Gestion d'emploi du temps — Lycée Niamtougou</title>
+    <meta name="description" content="Application de gestion d'emplois du temps pour le Lycée Niamtougou : configuration des matières, répartition automatique, saisie manuelle, programmation de devoirs et visualisation.">
+    <meta name="keywords" content="emploi du temps, lycée, Niamtougou, gestion scolaire, répartition, devoirs">
+    <meta name="author" content="Lycée Niamtougou">
+    <meta name="theme-color" content="#4CAF50" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1f3a1f" media="(prefers-color-scheme: dark)">
+    <link rel="canonical" href="https://example.com/EOP.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Gestion d'emploi du temps — Lycée Niamtougou">
+    <meta property="og:description" content="Application complète de gestion des emplois du temps scolaires.">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Favicon inline (SVG) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='52' font-size='52'>📅</text></svg>">
+
+    <!-- Préchargement des ressources critiques -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="all">
+
+    <!-- Données structurées JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Gestion d'emploi du temps - Lycée Niamtougou",
+        "description": "Application de gestion d'emplois du temps pour le Lycée Niamtougou.",
+        "inLanguage": "fr-FR",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any"
+    }
+
+        // ============================================
+        // MODAL DE CONFIRMATION PERSONNALISÉ
+        // ============================================
+        let confirmCallback = null;
+
+        function showConfirmModal(message, title, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const titleEl = document.querySelector('#confirmModalTitle span');
+
+            messageEl.textContent = message;
+            if (title) titleEl.textContent = title;
+            else titleEl.textContent = 'Confirmation';
+
+            confirmCallback = onConfirm;
+            modal.classList.add('active');
+
+            // Focus sur le bouton Annuler pour sécurité
+            setTimeout(() => {
+                document.getElementById('confirmModalCancel').focus();
+            }, 50);
+        }
+
+        function closeConfirmModal(confirmed) {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+            if (confirmed && typeof confirmCallback === 'function') {
+                const cb = confirmCallback;
+                confirmCallback = null;
+                cb();
+            } else {
+                confirmCallback = null;
+            }
+        }
+
+        // ============================================
+        // MODAL D'AIDE
+        // ============================================
+        function openHelpModal() {
+            const modal = document.getElementById('helpModal');
+            modal.classList.add('active');
+            setTimeout(() => {
+                const closeBtn = modal.querySelector('.modal-close');
+                if (closeBtn) closeBtn.focus();
+            }, 50);
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        // ============================================
+        // PIÈGE DE FOCUS DANS LES MODALS (accessibilité)
+        // ============================================
+        function trapFocusInModal(modal) {
+            if (!modal) return;
+            modal.addEventListener('keydown', (e) => {
+                if (e.key !== 'Tab') return;
+                const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            });
+        }
+
+        // ============================================
+        // RACCOURCIS CLAVIER
+        // ============================================
+        function handleKeyboardShortcuts(e) {
+            // Ignorer si l'utilisateur tape dans un champ
+            const target = e.target;
+            const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+
+            // Alt + 1-7 : navigation entre onglets
+            if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+                const tabMap = {
+                    '1': 'dashboard',
+                    '2': 'configuration',
+                    '3': 'distribution',
+                    '4': 'manual',
+                    '5': 'devoir',
+                    '6': 'timetable',
+                    '7': 'all-data'
+                };
+                if (tabMap[e.key] && localStorage.getItem('isAuthenticated') === 'true') {
+                    e.preventDefault();
+                    switchTab(tabMap[e.key]);
+                    return;
+                }
+            }
+
+            // Ctrl+L : déconnexion
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'l' || e.key === 'L')) {
+                if (localStorage.getItem('isAuthenticated') === 'true') {
+                    e.preventDefault();
+                    logout();
+                    return;
+                }
+            }
+
+            // Ctrl+E : export JSON
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
+                    e.preventDefault();
+                    exportData();
+                    return;
+                }
+            }
+
+            // Ctrl+Shift+E : export CSV
+            if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
+                    e.preventDefault();
+                    exportDataCSV();
+                    return;
+                }
+            }
+
+            // Ctrl+P : imprimer (si sur l'onglet visualisation)
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab && activeTab.id === 'timetable-tab') {
+                        e.preventDefault();
+                        printTimetable();
+                        return;
+                    }
+                }
+            }
+
+            // ? : aide
+            if (e.key === '?' && !isTyping && !e.ctrlKey && !e.altKey) {
+                e.preventDefault();
+                openHelpModal();
+                return;
+            }
+
+            // Échap : fermer les modals
+            if (e.key === 'Escape') {
+                if (document.getElementById('confirmModal').classList.contains('active')) {
+                    closeConfirmModal(false);
+                }
+                if (document.getElementById('helpModal').classList.contains('active')) {
+                    closeHelpModal();
+                }
+            }
+        }
+
+        // ============================================
+        // RECHERCHE RAPIDE
+        // ============================================
+        function clearQuickSearch() {
+            const searchInput = document.getElementById('quickSearch');
+            if (searchInput) {
+                searchInput.value = '';
+                document.getElementById('clearSearchBtn').classList.remove('visible');
+                displayAllData();
+                searchInput.focus();
+            }
+        }
+
+        function getQuickSearchQuery() {
+            const input = document.getElementById('quickSearch');
+            return input ? input.value.trim().toLowerCase() : '';
+        }
+
+        // ============================================
+        // EXPORT CSV
+        // ============================================
+        function exportDataCSV() {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                showNotification('Aucune donnée à exporter', 'warning');
+                return;
+            }
+
+            // En-têtes CSV
+            const headers = ['ID', 'Enseignant', 'Classe', 'Cycle', 'Matière', 'Type', 'Jour', 'Créneau', 'Période'];
+
+            // Fonction d'échappement CSV
+            function csvEscape(value) {
+                if (value === null || value === undefined) return '""';
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes(';')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return '"' + str + '"';
+            }
+
+            // Construction des lignes
+            let csvContent = headers.map(csvEscape).join(';') + '\n';
+            courses.forEach(course => {
+                const row = [
+                    course.id || '',
+                    course.teacherName || '',
+                    course.className || '',
+                    course.cycle || '',
+                    course.subject || '',
+                    course.activityType || '',
+                    course.day || '',
+                    course.timeSlot || '',
+                    course.timePeriod || ''
+                ];
+                csvContent += row.map(csvEscape).join(';') + '\n';
+            });
+
+            // BOM pour Excel (UTF-8)
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `emploi_du_temps_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotification(`${courses.length} cours exportés en CSV`);
+        }
+
+        // ============================================
+        // DÉTECTION DE CONFLITS D'ENSEIGNANTS
+        // ============================================
+        function checkTeacherConflict(teacherName, day, timeSlot, excludeId) {
+            if (!teacherName || !day || !timeSlot) return null;
+            const courses = getCourses();
+            const conflict = courses.find(c =>
+                c.teacherName &&
+                c.teacherName.toLowerCase() === teacherName.toLowerCase() &&
+                c.day === day &&
+                c.timeSlot === timeSlot &&
+                c.id !== excludeId
+            );
+            return conflict || null;
+        }
+
+        function checkManualConflicts() {
+            const teacherName = document.getElementById('teacherName').value.trim();
+            const timeSlot = document.getElementById('manualTimeSlot').value;
+            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
+            const warningDiv = document.getElementById('conflictWarning');
+            const warningText = document.getElementById('conflictWarningText');
+
+            if (!warningDiv || !warningText) return;
+
+            if (!teacherName || !timeSlot || selectedDays.length === 0) {
+                warningDiv.classList.add('hidden');
+                return;
+            }
+
+            const conflicts = [];
+            selectedDays.forEach(day => {
+                const conflict = checkTeacherConflict(teacherName, day, timeSlot);
+                if (conflict) {
+                    conflicts.push({ day, conflict });
+                }
+            });
+
+            if (conflicts.length > 0) {
+                const dayList = conflicts.map(c => c.day).join(', ');
+                warningText.textContent = `Attention : ${teacherName} a déjà un cours le ${dayList} à ${timeSlot}. Conflit possible.`;
+                warningDiv.classList.remove('hidden');
+            } else {
+                warningDiv.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // STATISTIQUES AVANCÉES DU DASHBOARD
+        // ============================================
+        function updateAdvancedStats() {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                document.getElementById('statsByCycle').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                document.getElementById('statsByActivity').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                document.getElementById('statsByDay').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                document.getElementById('statsTopTeachers').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                return;
+            }
+
+            // Couleurs pour les graphiques
+            const colors = {
+                college: '#2196F3',
+                lycee: '#FF9800',
+                Cours: '#4CAF50',
+                DEVOIR: '#9C27B0',
+                TD: '#2196F3',
+                TP: '#FF9800',
+                TM: '#795548'
+            };
+
+            // 1. Répartition par cycle
+            const cycleStats = {};
+            courses.forEach(c => {
+                const cycle = c.cycle || 'Non défini';
+                cycleStats[cycle] = (cycleStats[cycle] || 0) + 1;
+            });
+            const maxCycle = Math.max(...Object.values(cycleStats), 1);
+            let cycleHTML = '';
+            Object.entries(cycleStats).sort((a, b) => b[1] - a[1]).forEach(([cycle, count]) => {
+                const percent = Math.round((count / maxCycle) * 100);
+                const color = cycle === 'Collège' ? colors.college : (cycle === 'Lycée' ? colors.lycee : '#607d8b');
+                cycleHTML += `
+                    <div class="stat-row">
+                        <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(cycle)}</span>
+                        <span class="stat-value">${count}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('statsByCycle').innerHTML = cycleHTML;
+
+            // 2. Répartition par type d'activité
+            const activityStats = {};
+            courses.forEach(c => {
+                const activity = c.activityType || 'Autre';
+                activityStats[activity] = (activityStats[activity] || 0) + 1;
+            });
+            const maxActivity = Math.max(...Object.values(activityStats), 1);
+            let activityHTML = '';
+            Object.entries(activityStats).sort((a, b) => b[1] - a[1]).forEach(([activity, count]) => {
+                const percent = Math.round((count / maxActivity) * 100);
+                const color = colors[activity] || '#607d8b';
+                activityHTML += `
+                    <div class="stat-row">
+                        <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(activity)}</span>
+                        <span class="stat-value">${count}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('statsByActivity').innerHTML = activityHTML;
+
+            // 3. Cours par jour
+            const dayStats = {};
+            const dayOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+            dayOrder.forEach(d => dayStats[d] = 0);
+            courses.forEach(c => {
+                if (dayStats[c.day] !== undefined) dayStats[c.day]++;
+            });
+            const maxDay = Math.max(...Object.values(dayStats), 1);
+            let dayHTML = '';
+            dayOrder.forEach(day => {
+                const count = dayStats[day];
+                const percent = Math.round((count / maxDay) * 100);
+                dayHTML += `
+                    <div class="stat-row">
+                        <span class="stat-label">${escapeHtml(day)}</span>
+                        <span class="stat-value">${count}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: var(--primary-color);">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('statsByDay').innerHTML = dayHTML;
+
+            // 4. Top 5 enseignants
+            const teacherStats = {};
+            courses.forEach(c => {
+                const teacher = c.teacherName || 'Inconnu';
+                teacherStats[teacher] = (teacherStats[teacher] || 0) + 1;
+            });
+            const topTeachers = Object.entries(teacherStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            const maxTeacher = topTeachers.length > 0 ? topTeachers[0][1] : 1;
+            let teacherHTML = '';
+            if (topTeachers.length === 0) {
+                teacherHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;">Aucun enseignant</p>';
+            } else {
+                topTeachers.forEach(([teacher, count], index) => {
+                    const percent = Math.round((count / maxTeacher) * 100);
+                    const colors5 = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+                    const color = colors5[index] || '#607d8b';
+                    teacherHTML += `
+                        <div class="stat-row">
+                            <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(teacher)}</span>
+                            <span class="stat-value">${count} cours</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('statsTopTeachers').innerHTML = teacherHTML;
+        }
+
+    </script>
+
     <style>
         :root {
             --primary-color: #4CAF50;
-            --primary-hover: #45a049;
+            --primary-hover: #3d8b40;
             --secondary-color: #2196F3;
             --danger-color: #f44336;
             --warning-color: #FF9800;
             --neutral-color: #607d8b;
-            --light-gray: #f8f9fa;
+            --light-gray: #fafbfc;
             --medium-gray: #e9ecef;
-            --dark-gray: #495057;
+            --dark-gray: #343a40;
             --border-radius: 8px;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 6px 12px rgba(0,0,0,0.08);
             --transition: all 0.3s ease;
             --sidebar-width: 250px;
             --exam-color: #9C27B0;
             --td-color: #2196F3;
             --tp-color: #FF9800;
             --tm-color: #795548;
+
+            /* Couleurs de texte/fond dynamiques — mode clair éclatant */
+            --text-color: #1a1a1a;           /* Texte principal quasi-noir pour contraste maximal */
+            --text-secondary: #495057;       /* Texte secondaire (étiquettes) */
+            --text-muted: #6c757d;           /* Texte atténué (descriptions) */
+            --bg-color: #ffffff;             /* Fond des cartes/conteneurs */
+            --bg-gradient: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);  /* Fond très clair, quasi-blanc */
+            --sidebar-bg: linear-gradient(180deg, #2c3e50, #1a252f);
+            --card-bg: #ffffff;
+            --card-border: #e9ecef;
+            --table-header-bg: #f8f9fa;
+            --table-time-bg: #fcfcfd;
+            --table-row-hover: #f8f9fa;
+            --input-bg: #ffffff;
+            --input-border: #dee2e6;
+            --input-focus-ring: rgba(76, 175, 80, 0.2);
+
+            /* Espacements fluides */
+            --space-xs: clamp(0.5rem, 2vw, 0.75rem);
+            --space-sm: clamp(0.75rem, 2.5vw, 1rem);
+            --space-md: clamp(1rem, 3vw, 1.5rem);
+            --space-lg: clamp(1.5rem, 4vw, 2.5rem);
+
+            /* Safe area pour les appareils à encoche */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+        }
+
+        /* Mode sombre */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #6fcf73;
+                --primary-hover: #81c784;
+                --secondary-color: #64b5f6;
+                --danger-color: #ef5350;
+                --warning-color: #ffa726;
+                --neutral-color: #90a4ae;
+                --light-gray: #1e1e1e;
+                --medium-gray: #3a3a3a;
+                --dark-gray: #d0d0d0;
+                --text-color: #f0f0f0;           /* Texte principal clair pour contraste maximal */
+                --text-secondary: #c0c0c0;       /* Texte secondaire */
+                --text-muted: #9e9e9e;           /* Texte atténué */
+                --bg-color: #0f0f0f;             /* Fond global plus foncé que les cartes */
+                --bg-gradient: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+                --sidebar-bg: linear-gradient(180deg, #1a1a1a, #050505);
+                --card-bg: #1c1c1c;              /* Cartes plus claires que le fond pour bien se détacher */
+                --card-border: #3a3a3a;
+                --table-header-bg: #2a2a2a;
+                --table-time-bg: #1e1e1e;
+                --table-row-hover: #252525;
+                --input-bg: #1a1a1a;
+                --input-border: #3a3a3a;
+                --input-focus-ring: rgba(111, 207, 115, 0.3);
+                --shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+                --shadow-md: 0 8px 15px rgba(0, 0, 0, 0.6);
+            }
         }
 
         * {
@@ -32,12 +528,74 @@
             padding: 0;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color);
+            background: var(--bg-gradient);
             min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            padding-left: var(--safe-left);
+            padding-right: var(--safe-right);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           Accessibilité — Lien d'évitement
+           ============================================ */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 12px 20px;
+            z-index: 9999;
+            text-decoration: none;
+            border-radius: 0 0 var(--border-radius) 0;
+            transition: top 0.2s ease;
+            font-weight: 500;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Focus visible pour la navigation au clavier */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+            outline: 3px solid var(--secondary-color);
+            outline-offset: 3px;
+        }
+
+        /* ============================================
+           Mouvement réduit
+           ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
 
         .login-container {
@@ -45,14 +603,15 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            min-height: 100dvh;
+            padding: var(--space-md);
         }
 
         .login-card {
-            background: white;
+            background: var(--bg-color);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 40px;
+            padding: clamp(1.5rem, 5vw, 2.5rem);
             width: 100%;
             max-width: 400px;
             text-align: center;
@@ -108,15 +667,17 @@
         .app-container {
             display: none;
             min-height: 100vh;
+            min-height: 100dvh;
         }
 
         .sidebar {
             width: var(--sidebar-width);
-            background: linear-gradient(180deg, #2c3e50, #1a252f);
+            background: var(--sidebar-bg);
             color: white;
-            padding: 20px 0;
+            padding: var(--space-md) 0;
             box-shadow: var(--shadow);
             z-index: 100;
+            flex-shrink: 0;
         }
 
         .logo {
@@ -152,6 +713,8 @@
             text-decoration: none;
             transition: var(--transition);
             border-left: 4px solid transparent;
+            min-height: 44px; /* Cible tactile */
+            -webkit-tap-highlight-color: transparent;
         }
 
         .nav-links a:hover, .nav-links a.active {
@@ -172,18 +735,21 @@
         }
 
         .header {
-            background: white;
+            background: var(--bg-color);
             border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: clamp(0.75rem, 3vw, 1.25rem);
+            margin-bottom: var(--space-md);
             box-shadow: var(--shadow);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+            border: 1px solid var(--medium-gray);
         }
 
         .header h1 {
-            color: #2c3e50;
+            color: var(--text-color);
             font-size: 1.8rem;
         }
 
@@ -223,20 +789,23 @@
         }
 
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            margin-bottom: 20px;
+            margin-bottom: var(--space-md);
             overflow: hidden;
+            border: 1px solid var(--card-border);
         }
 
         .card-header {
-            padding: 20px;
+            padding: clamp(0.75rem, 3vw, 1.25rem);
             background: var(--primary-color);
             color: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
         }
 
         .card-header h2 {
@@ -264,16 +833,25 @@
         input, select {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid var(--medium-gray);
+            border: 1px solid var(--input-border);
             border-radius: var(--border-radius);
-            font-size: 16px;
+            font-size: 16px; /* Évite le zoom sur iOS */
+            font-family: inherit;
+            color: var(--text-color);
+            background: var(--input-bg);
             transition: var(--transition);
+            min-height: 44px; /* Cible tactile */
         }
 
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            box-shadow: 0 0 0 3px var(--input-focus-ring);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
         }
 
         .btn {
@@ -288,6 +866,10 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            min-height: 44px; /* Cible tactile */
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .btn-primary {
@@ -357,59 +939,102 @@
         }
 
         .table th, .table td {
-            border: 1px solid var(--medium-gray);
+            border: 1px solid var(--card-border);
             padding: 15px;
             text-align: center;
         }
 
         .table th {
-            background-color: #f2f2f2;
+            background-color: var(--table-header-bg);
             font-weight: bold;
             position: sticky;
             top: 0;
+            color: var(--text-color);
+        }
+
+        /* Survol des lignes pour meilleure lisibilité */
+        .table tbody tr:hover {
+            background-color: var(--table-row-hover);
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: var(--table-time-bg);
+        }
+
+        .table tbody tr:nth-child(even):hover {
+            background-color: var(--table-row-hover);
         }
 
         .time-col {
             width: 120px;
-            background-color: #f9f9f9;
+            background-color: var(--table-time-bg);
             font-weight: 600;
         }
 
         .cycle-college {
-            background-color: #e6f7ff;
+            background-color: #d1ecf9;
+            color: #0c5460;
         }
 
         .cycle-lycee {
-            background-color: #fff7e6;
+            background-color: #ffe8cc;
+            color: #8a5300;
         }
 
         .break {
-            background-color: #f0f0f0;
+            background-color: var(--table-time-bg);
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Mode sombre pour les cellules de cycle */
+        @media (prefers-color-scheme: dark) {
+            .cycle-college {
+                background-color: #1c3a5a;
+                color: #90caf9;
+            }
+            .cycle-lycee {
+                background-color: #4a2c0a;
+                color: #ffcc80;
+            }
+            .break {
+                background-color: #1a1a1a;
+                color: #9e9e9e;
+            }
         }
 
         .activity-exam {
-            background-color: rgba(156, 39, 176, 0.1);
+            background-color: rgba(156, 39, 176, 0.18);
             border-left: 4px solid var(--exam-color);
         }
 
         .activity-td {
-            background-color: rgba(33, 150, 243, 0.1);
+            background-color: rgba(33, 150, 243, 0.18);
             border-left: 4px solid var(--td-color);
         }
 
         .activity-tp {
-            background-color: rgba(255, 152, 0, 0.1);
+            background-color: rgba(255, 152, 0, 0.18);
             border-left: 4px solid var(--tp-color);
         }
 
         .activity-tm {
-            background-color: rgba(121, 85, 72, 0.1);
+            background-color: rgba(121, 85, 72, 0.18);
             border-left: 4px solid var(--tm-color);
         }
 
         .activity-cours {
-            background-color: rgba(76, 175, 80, 0.1);
+            background-color: rgba(76, 175, 80, 0.18);
             border-left: 4px solid var(--primary-color);
+        }
+
+        /* Renforcer les fonds d'activité en mode sombre */
+        @media (prefers-color-scheme: dark) {
+            .activity-exam  { background-color: rgba(186, 104, 200, 0.25); }
+            .activity-td    { background-color: rgba(100, 181, 246, 0.25); }
+            .activity-tp    { background-color: rgba(255, 167, 38, 0.25); }
+            .activity-tm    { background-color: rgba(141, 110, 99, 0.30); }
+            .activity-cours { background-color: rgba(102, 187, 106, 0.25); }
         }
 
         .badge {
@@ -482,13 +1107,14 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--border-radius);
-            padding: 25px;
+            padding: clamp(1rem, 4vw, 1.5rem);
             box-shadow: var(--shadow);
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: var(--space-md);
+            border: 1px solid var(--medium-gray);
         }
 
         .stat-icon {
@@ -552,6 +1178,32 @@
             background-color: #fff3cd;
             color: #856404;
             border-left: 4px solid var(--warning-color);
+        }
+
+        /* Ajustement des notifications en mode sombre */
+        @media (prefers-color-scheme: dark) {
+            .notification.success {
+                background-color: #14401a;
+                color: #a5d6a7;
+                border-left-color: #6fcf73;
+            }
+            .notification.error {
+                background-color: #3d1414;
+                color: #ef9a9a;
+                border-left-color: #ef5350;
+            }
+            .notification.warning {
+                background-color: #3d2e0a;
+                color: #ffcc80;
+                border-left-color: #ffa726;
+            }
+            .series-c { background: #1c3a5a; color: #90caf9; }
+            .series-d { background: #3a1c4a; color: #ce93d8; }
+            .series-a { background: #1b3a1f; color: #a5d6a7; }
+            .series-l { background: #4a2c0a; color: #ffcc80; }
+            .status-available { background-color: #14401a; color: #a5d6a7; }
+            .status-busy { background-color: #3d1414; color: #ef9a9a; }
+            .status-pending { background-color: #3d2e0a; color: #ffcc80; }
         }
 
         .filters {
@@ -1008,9 +1660,9 @@
         }
         
         .devoir-class-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--border-radius);
-            padding: 20px;
+            padding: var(--space-md);
             box-shadow: var(--shadow);
             border: 2px solid transparent;
             transition: var(--transition);
@@ -1148,67 +1800,639 @@
                 grid-template-columns: 1fr;
             }
         }
+
+
+
+        /* Indicateur visuel plus marqué pour l'onglet actif */
+        .nav-links a.active {
+            background: rgba(76, 175, 80, 0.2);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-color);
+        }
+
+        .nav-links a {
+            position: relative;
+        }
+
+        /* ============================================
+           Onglets - Masquer/afficher le contenu
+           ============================================ */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           Groupes de navigation (menu organisé)
+           ============================================ */
+        .nav-group {
+            margin-bottom: 15px;
+        }
+
+        .nav-group-title {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 25px 5px;
+            display: block;
+        }
+
+        /* ============================================
+           Menu Outils déroulant
+           ============================================ */
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            min-width: 200px;
+            background: #1a252f;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 5px 0;
+            z-index: 1000;
+        }
+
+        /* Adapter le sous-menu en mode sombre */
+        @media (prefers-color-scheme: dark) {
+            .nav-dropdown-menu {
+                background: #0a0a0a;
+                border-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu,
+        .nav-dropdown:focus-within .nav-dropdown-menu {
+            display: block;
+        }
+
+        .nav-dropdown-menu a {
+            padding: 10px 20px !important;
+            border-left: none !important;
+            min-height: 40px;
+            font-size: 0.9rem;
+        }
+
+        .nav-dropdown > a .nav-arrow {
+            margin-left: auto;
+            transition: transform 0.2s;
+        }
+
+        .nav-dropdown:hover > a .nav-arrow,
+        .nav-dropdown:focus-within > a .nav-arrow {
+            transform: rotate(90deg);
+        }
+
+        /* En mode mobile (sidebar horizontale), le menu déroulant devient vertical */
+        @media (max-width: 768px) {
+            .nav-dropdown-menu {
+                position: static;
+                box-shadow: none;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 0;
+                margin: 0;
+                padding: 0;
+            }
+
+            .nav-dropdown:hover .nav-dropdown-menu,
+            .nav-dropdown:focus-within .nav-dropdown-menu {
+                display: block;
+            }
+
+            .nav-group-title {
+                display: none;
+            }
+        }
+
+        /* ============================================
+           Modals personnalisés (confirmation + aide)
+           ============================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: var(--space-md);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn 0.2s ease;
+        }
+
+        .modal.modal-large {
+            max-width: 700px;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            padding: clamp(1rem, 3vw, 1.5rem);
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-sm);
+        }
+
+        .modal-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark-gray);
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: var(--transition);
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: var(--light-gray);
+        }
+
+        .modal-body {
+            padding: clamp(1rem, 3vw, 1.5rem);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: clamp(0.75rem, 2.5vw, 1.25rem);
+            border-top: 1px solid var(--medium-gray);
+            display: flex;
+            gap: var(--space-sm);
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .modal-footer .btn {
+            width: auto;
+            min-width: 120px;
+        }
+
+        /* ============================================
+           Recherche rapide
+           ============================================ */
+        .search-box {
+            position: relative;
+            margin-bottom: var(--space-md);
+        }
+
+        .search-box i.search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neutral-color);
+            pointer-events: none;
+        }
+
+        .search-box input {
+            padding-left: 45px;
+        }
+
+        .search-box .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--neutral-color);
+            padding: 8px;
+            border-radius: 4px;
+            display: none;
+            min-width: 36px;
+            min-height: 36px;
+        }
+
+        .search-box .clear-search.visible {
+            display: block;
+        }
+
+        .search-box .clear-search:hover {
+            background: var(--light-gray);
+            color: var(--text-color);
+        }
+
+        /* ============================================
+           Statistiques avancées
+           ============================================ */
+        .stats-advanced {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+            margin-top: var(--space-md);
+        }
+
+        @media (min-width: 768px) {
+            .stats-advanced {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-chart-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: clamp(1rem, 3vw, 1.5rem);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .stat-chart-card h3 {
+            color: var(--primary-color);
+            margin-bottom: var(--space-sm);
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .progress-bar {
+            background: var(--light-gray);
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            min-width: 30px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-row .stat-label {
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-row .stat-value {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .stat-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           Bouton d'aide flottant
+           ============================================ */
+        .help-fab {
+            position: fixed;
+            bottom: max(20px, var(--safe-bottom));
+            right: max(20px, var(--safe-right));
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .help-fab:hover,
+        .help-fab:focus-visible {
+            background: var(--secondary-hover);
+            transform: scale(1.1);
+        }
+
+        /* ============================================
+           Indicateur de conflit
+           ============================================ */
+        .conflict-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            margin-top: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .conflict-warning {
+                background: #4a3a1c;
+                border-color: #ffa000;
+                color: #ffb74d;
+            }
+        }
+
+        /* ============================================
+           Raccourcis clavier - Kbd
+           ============================================ */
+        kbd {
+            background: var(--light-gray);
+            border: 1px solid var(--medium-gray);
+            border-bottom-width: 2px;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: var(--text-color);
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .shortcut-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 0;
+        }
+
+        @media (min-width: 600px) {
+            .shortcut-list {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .shortcut-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+        }
+
+        .shortcut-list .shortcut-keys {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           Bouton d'export CSV
+           ============================================ */
+        .data-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .data-actions .btn {
+            width: auto;
+            flex: 1 1 200px;
+        }
+
     </style>
 </head>
 <body>
+    <a href="#app" class="skip-link">Aller au contenu principal</a>
+
     <div id="login-page" class="login-container">
-        <div class="login-card">
+        <div class="login-card" role="main" aria-label="Connexion">
             <div class="login-logo">
-                <i class="fas fa-graduation-cap"></i>
+                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
                 <h1>Lycée Niamtougou</h1>
                 <p>Connexion à l'espace administration</p>
             </div>
-            <form id="login-form" class="login-form">
+            <form id="login-form" class="login-form" novalidate>
                 <div class="form-group">
-                    <label for="username"><i class="fas fa-user"></i> Identifiant</label>
-                    <input type="text" id="username" placeholder="Entrez votre identifiant" required>
+                    <label for="username"><i class="fas fa-user" aria-hidden="true"></i> Identifiant</label>
+                    <input type="text" id="username" name="username" placeholder="Entrez votre identifiant" required autocomplete="username">
                 </div>
                 <div class="form-group">
-                    <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
-                    <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
+                    <label for="password"><i class="fas fa-lock" aria-hidden="true"></i> Mot de passe</label>
+                    <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" required autocomplete="current-password">
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Se connecter
                 </button>
             </form>
-            <div id="login-error" class="notification error" style="display: none; margin-top: 15px;">
-                <i class="fas fa-exclamation-circle"></i>
+            <div id="login-error" class="notification error" role="alert" aria-live="assertive" style="display: none; margin-top: 15px;">
+                <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
                 <span>Identifiant ou mot de passe incorrect</span>
-            </div>
-            <div class="login-hint" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: var(--border-radius);">
-                <h4><i class="fas fa-info-circle"></i> Informations de connexion</h4>
-                <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Identifiant:</strong> KOLA</p>
-                <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Mot de passe:</strong> KOLA1@</p>
             </div>
         </div>
     </div>
 
     <div id="app" class="app-container">
-        <nav class="sidebar">
+        <nav class="sidebar" aria-label="Navigation principale">
             <div class="logo">
-                <h1><i class="fas fa-graduation-cap"></i> Lycée Niamtougou</h1>
+                <h1><i class="fas fa-graduation-cap" aria-hidden="true"></i> Lycée Niamtougou</h1>
                 <p>Gestion d'emploi du temps</p>
             </div>
             <ul class="nav-links">
-                <li><a href="#" class="active" onclick="switchTab('dashboard')"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
-                <li><a href="#" onclick="switchTab('configuration')"><i class="fas fa-cog"></i> Configuration</a></li>
-                <li><a href="#" onclick="switchTab('distribution')"><i class="fas fa-random"></i> Répartition Auto</a></li>
-                <li><a href="#" onclick="switchTab('manual')"><i class="fas fa-edit"></i> Saisie Manuelle</a></li>
-                <li><a href="#" onclick="switchTab('devoir')"><i class="fas fa-file-alt"></i> Programmation DEVOIR</a></li>
-                <li><a href="#" onclick="switchTab('timetable')"><i class="fas fa-calendar-alt"></i> Visualisation</a></li>
-                <li><a href="#" onclick="switchTab('all-data')"><i class="fas fa-database"></i> Toutes les données</a></li>
-                <li><a href="#" onclick="exportData()"><i class="fas fa-file-export"></i> Exporter</a></li>
+                <!-- Groupe : Vue d'ensemble -->
+                <li class="nav-group">
+                    <span class="nav-group-title" aria-hidden="true">Vue d'ensemble</span>
+                </li>
+                <li>
+                    <a href="#dashboard-tab" class="active" data-tab="dashboard" onclick="switchTab('dashboard'); return false;" aria-current="page">
+                        <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                </li>
+
+                <!-- Groupe : Configuration -->
+                <li class="nav-group">
+                    <span class="nav-group-title" aria-hidden="true">Configuration</span>
+                </li>
+                <li>
+                    <a href="#configuration-tab" data-tab="configuration" onclick="switchTab('configuration'); return false;">
+                        <i class="fas fa-cog" aria-hidden="true"></i>
+                        <span>Matières &amp; Surveillants</span>
+                    </a>
+                </li>
+
+                <!-- Groupe : Planification -->
+                <li class="nav-group">
+                    <span class="nav-group-title" aria-hidden="true">Planification</span>
+                </li>
+                <li>
+                    <a href="#distribution-tab" data-tab="distribution" onclick="switchTab('distribution'); return false;">
+                        <i class="fas fa-random" aria-hidden="true"></i>
+                        <span>Répartition Auto</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#manual-tab" data-tab="manual" onclick="switchTab('manual'); return false;">
+                        <i class="fas fa-edit" aria-hidden="true"></i>
+                        <span>Saisie Manuelle</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#devoir-tab" data-tab="devoir" onclick="switchTab('devoir'); return false;">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i>
+                        <span>Programmation DEVOIR</span>
+                    </a>
+                </li>
+
+                <!-- Groupe : Visualisation -->
+                <li class="nav-group">
+                    <span class="nav-group-title" aria-hidden="true">Visualisation &amp; Données</span>
+                </li>
+                <li>
+                    <a href="#timetable-tab" data-tab="timetable" onclick="switchTab('timetable'); return false;">
+                        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                        <span>Emploi du temps</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#all-data-tab" data-tab="all-data" onclick="switchTab('all-data'); return false;">
+                        <i class="fas fa-database" aria-hidden="true"></i>
+                        <span>Toutes les données</span>
+                    </a>
+                </li>
+
+                <!-- Groupe : Outils (menu déroulant) -->
+                <li class="nav-group">
+                    <span class="nav-group-title" aria-hidden="true">Outils</span>
+                </li>
+                <li class="nav-dropdown">
+                    <a href="#" onclick="return false;" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-tools" aria-hidden="true"></i>
+                        <span>Export &amp; Impression</span>
+                        <i class="fas fa-chevron-right nav-arrow" aria-hidden="true" style="font-size: 0.7rem; margin-left: auto;"></i>
+                    </a>
+                    <ul class="nav-dropdown-menu" role="menu">
+                        <li role="none">
+                            <a href="#" onclick="exportData(); return false;" role="menuitem">
+                                <i class="fas fa-file-export" aria-hidden="true"></i>
+                                <span>Exporter (JSON)</span>
+                            </a>
+                        </li>
+                        <li role="none">
+                            <a href="#" onclick="exportDataCSV(); return false;" role="menuitem">
+                                <i class="fas fa-file-csv" aria-hidden="true"></i>
+                                <span>Exporter (CSV)</span>
+                            </a>
+                        </li>
+                        <li role="none">
+                            <a href="#" onclick="printTimetable(); return false;" role="menuitem">
+                                <i class="fas fa-print" aria-hidden="true"></i>
+                                <span>Imprimer l'EDT</span>
+                            </a>
+                        </li>
+                        <li role="none">
+                            <a href="#" onclick="document.getElementById('fileInput2').click(); return false;" role="menuitem">
+                                <i class="fas fa-file-import" aria-hidden="true"></i>
+                                <span>Importer (JSON)</span>
+                            </a>
+                        </li>
+                        <li role="none">
+                            <a href="#" onclick="openHelpModal(); return false;" role="menuitem">
+                                <i class="fas fa-question-circle" aria-hidden="true"></i>
+                                <span>Aide &amp; Raccourcis</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
 
-        <main class="main-content">
+        <main class="main-content" id="contenu-principal">
             <div class="header">
-                <h1 id="page-title"><i class="fas fa-tachometer-alt"></i> Tableau de bord</h1>
+                <h1 id="page-title"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Tableau de bord</h1>
                 <div class="user-info">
-                    <div class="user-avatar">AD</div>
+                    <div class="user-avatar" aria-hidden="true">AD</div>
                     <span>Administrateur</span>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    <button class="logout-btn" onclick="logout()" aria-label="Se déconnecter">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Déconnexion
                     </button>
                 </div>
             </div>
@@ -1282,6 +2506,33 @@
                             <button class="btn btn-neutral" onclick="switchTab('timetable')">
                                 <i class="fas fa-calendar-alt"></i> Voir l'emploi du temps
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques avancées -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-pie" aria-hidden="true"></i> Statistiques détaillées</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-advanced" id="statsAdvanced">
+                            <div class="stat-chart-card">
+                                <h3><i class="fas fa-layer-group" aria-hidden="true"></i> Répartition par cycle</h3>
+                                <div id="statsByCycle"></div>
+                            </div>
+                            <div class="stat-chart-card">
+                                <h3><i class="fas fa-tasks" aria-hidden="true"></i> Répartition par type d'activité</h3>
+                                <div id="statsByActivity"></div>
+                            </div>
+                            <div class="stat-chart-card">
+                                <h3><i class="fas fa-calendar-day" aria-hidden="true"></i> Cours par jour</h3>
+                                <div id="statsByDay"></div>
+                            </div>
+                            <div class="stat-chart-card">
+                                <h3><i class="fas fa-user-tie" aria-hidden="true"></i> Top 5 enseignants (charge)</h3>
+                                <div id="statsTopTeachers"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1603,6 +2854,11 @@
                                 </div>
                             </div>
                             
+                            <div id="conflictWarning" class="conflict-warning hidden" role="alert" aria-live="polite">
+                                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                                <span id="conflictWarningText"></span>
+                            </div>
+                            
                             <button type="button" class="btn btn-primary" onclick="saveManualCourse()">
                                 <i class="fas fa-save"></i> Enregistrer le cours
                             </button>
@@ -1763,7 +3019,10 @@
                     <div class="card-body">
                         <div class="data-actions no-print">
                             <button class="btn btn-secondary export-btn" onclick="exportData()">
-                                <i class="fas fa-file-export"></i> Exporter les données
+                                <i class="fas fa-file-export"></i> Exporter (JSON)
+                            </button>
+                            <button class="btn btn-primary" onclick="exportDataCSV()" aria-label="Exporter en CSV">
+                                <i class="fas fa-file-csv"></i> Exporter (CSV)
                             </button>
                             <button class="btn btn-warning import-btn" onclick="document.getElementById('fileInput').click()">
                                 <i class="fas fa-file-import"></i> Importer des données
@@ -1945,6 +3204,14 @@
                             </button>
                         </div>
                         
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                            <input type="search" id="quickSearch" placeholder="Recherche rapide (enseignant, classe, matière, jour...)" aria-label="Recherche rapide dans les données" autocomplete="off">
+                            <button type="button" class="clear-search" id="clearSearchBtn" onclick="clearQuickSearch()" aria-label="Effacer la recherche">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+
                         <div class="filters">
                             <div class="filter-group">
                                 <label for="filterTeacher"><i class="fas fa-user-tie"></i> Filtrer par enseignant:</label>
@@ -2017,10 +3284,38 @@
     </div>
 
     <script>
-        const VALID_CREDENTIALS = {
-            username: 'KOLA',
-            password: 'KOLA1@'
-        };
+        'use strict';
+
+        // ============================================
+        // Utilitaires de sécurité
+        // ============================================
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        // Identifiants hachés (SHA-256) — non lisibles en clair dans le code source.
+        // Permet de vérifier la connexion sans exposer les identifiants réels.
+        const CREDENTIALS_HASH = '1950258bc9a942f67c8160f345f8f09f0cba16b2db75ce2db113289aafabae01';
+
+        // Calcule un hash SHA-256 d'une chaîne (retourne une promesse hex)
+        async function sha256(text) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Vérifie les identifiants saisis contre le hash attendu
+        async function verifyCredentials(username, password) {
+            // Combinaison user|password puis hash
+            const input = `${username}|${password}`;
+            const hash = await sha256(input);
+            return hash === CREDENTIALS_HASH;
+        }
 
         const CLASSES_BY_CYCLE = {
             'Collège': [
@@ -2037,7 +3332,6 @@
             'Collège': {
                 '6ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS','ECM', 'Physique-Chimie'],
                 '5ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS','ECM', 'Physique-Chimie'],
-                '4ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS','ECM', 'Physique-Chimie'],
                 '4ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS','ECM', 'Physique-Chimie'],
                 '3ème': ['Français', 'Mathématiques', 'Histoire-Géo', 'SVT', 'Anglais', 'EPS','ECM', 'Physique-Chimie'],
             },
@@ -2149,6 +3443,7 @@
         function saveConfiguration() {
             localStorage.setItem('configuration', JSON.stringify(configuration));
         }
+            // Notifier les autres onglets de la mise à jour
 
         function updateConfigurationStats() {
             const totalSubjects = Object.values(configuration.subjects).reduce((sum, subjects) => sum + subjects.length, 0);
@@ -2162,8 +3457,11 @@
         }
 
         function loadClassSubjects() {
-            const className = document.getElementById('configClass').value;
+            const configClassEl = document.getElementById('configClass');
             const subjectsList = document.getElementById('classSubjectsList');
+            if (!configClassEl || !subjectsList) return;
+
+            const className = configClassEl.value;
             
             if (!className) {
                 subjectsList.innerHTML = '<p style="color: #666; text-align: center;"><i class="fas fa-info-circle"></i> Sélectionnez une classe pour voir ses matières</p>';
@@ -2179,11 +3477,12 @@
             
             let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px;">';
             subjects.forEach((subject, index) => {
+                const safeSubject = escapeHtml(subject);
                 html += `
                     <div style="background: white; padding: 10px 15px; border-radius: var(--border-radius); border: 1px solid var(--medium-gray); display: flex; align-items: center; gap: 10px;">
-                        <span>${subject}</span>
-                        <button class="btn btn-danger btn-sm" onclick="removeSubject('${className}', ${index})">
-                            <i class="fas fa-times"></i>
+                        <span>${safeSubject}</span>
+                        <button class="btn btn-danger btn-sm" onclick="removeSubject('${escapeHtml(className)}', ${index})" aria-label="Supprimer la matière ${safeSubject}">
+                            <i class="fas fa-times" aria-hidden="true"></i>
                         </button>
                     </div>
                 `;
@@ -2224,15 +3523,21 @@
             document.getElementById('subjectName').value = '';
             showNotification(`Matière "${subjectName}" ajoutée à la classe ${className}`, 'success');
         }
+            syncAllTabs();
 
         function removeSubject(className, index) {
-            if (confirm('Voulez-vous vraiment supprimer cette matière?')) {
-                configuration.subjects[className].splice(index, 1);
-                saveConfiguration();
-                updateConfigurationStats();
-                loadClassSubjects();
-                showNotification('Matière supprimée', 'success');
-            }
+            showConfirmModal(
+                'Voulez-vous vraiment supprimer cette matière ?',
+                'Suppression d\'une matière',
+                () => {
+                    configuration.subjects[className].splice(index, 1);
+                    saveConfiguration();
+                    updateConfigurationStats();
+                    loadClassSubjects();
+                    showNotification('Matière supprimée', 'success');
+                    syncAllTabs();
+                }
+            );
         }
 
         function loadDefaultSubjects() {
@@ -2268,9 +3573,14 @@
             loadClassSubjects();
             showNotification(`${addedCount} matières par défaut chargées pour ${className}`, 'success');
         }
+            syncAllTabs();
 
         function addSupervisorItem() {
             const container = document.getElementById('supervisorsListContainer');
+            if (!container) {
+                console.warn('Conteneur supervisorsListContainer introuvable');
+                return;
+            }
             const supervisorDiv = document.createElement('div');
             supervisorDiv.className = 'teacher-item';
             supervisorDiv.innerHTML = `
@@ -2321,6 +3631,7 @@
             updateConfigurationStats();
             showNotification(`${supervisors.length} surveillants enregistrés`, 'success');
         }
+            syncAllTabs();
 
         function loadExistingSupervisors() {
             const courses = getCourses();
@@ -2337,16 +3648,17 @@
             teachers.forEach(teacher => {
                 const supervisorDiv = document.createElement('div');
                 supervisorDiv.className = 'teacher-item';
+                const safeTeacher = escapeHtml(teacher);
                 supervisorDiv.innerHTML = `
-                    <input type="text" class="supervisor-input" value="${teacher}" required>
+                    <input type="text" class="supervisor-input" value="${safeTeacher}" required>
                     <select class="supervisor-type">
                         <option value="enseignant" selected>Enseignant</option>
                         <option value="administratif">Personnel administratif</option>
                         <option value="externe">Personnel externe</option>
                     </select>
                     <input type="number" class="supervisor-capacity" value="3" min="1" max="10" required>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisorItem(this)">
-                        <i class="fas fa-times"></i>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisorItem(this)" aria-label="Supprimer ce surveillant">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 `;
                 container.appendChild(supervisorDiv);
@@ -2357,10 +3669,26 @@
 
         function loadConfiguredSupervisors() {
             const container = document.getElementById('supervisorsContainer');
+            if (!container) {
+                console.warn('Conteneur supervisorsContainer introuvable — chargement des surveillants ignoré');
+                return;
+            }
             container.innerHTML = '';
-            
-            if (configuration.supervisors.length === 0) {
-                addSupervisor();
+
+            // Recharger la configuration depuis le localStorage au cas où elle aurait changé
+            try {
+                const storedConfig = localStorage.getItem('configuration');
+                if (storedConfig) {
+                    configuration = JSON.parse(storedConfig);
+                }
+            } catch (e) {
+                console.warn('Erreur lors du rechargement de la configuration:', e);
+            }
+
+            if (!configuration.supervisors || configuration.supervisors.length === 0) {
+                if (typeof addSupervisor === 'function') {
+                    addSupervisor();
+                }
                 showNotification('Aucun surveillant configuré', 'warning');
                 return;
             }
@@ -2368,19 +3696,23 @@
             configuration.supervisors.forEach(supervisor => {
                 const supervisorDiv = document.createElement('div');
                 supervisorDiv.className = 'teacher-item';
+                const safeName = escapeHtml(supervisor.name);
+                const safeType = escapeHtml(supervisor.type);
+                const safeDispo = escapeHtml(supervisor.disponibility);
+                const safeCap = escapeHtml(supervisor.capacity);
                 supervisorDiv.innerHTML = `
                     <select class="supervisor-name" required>
                         <option value="">Sélectionner un surveillant</option>
-                        <option value="${supervisor.name}" selected>${supervisor.name} (${supervisor.type})</option>
+                        <option value="${safeName}" selected>${safeName} (${safeType})</option>
                     </select>
                     <select class="supervisor-disponibility" required>
-                        <option value="full" ${supervisor.disponibility === 'full' ? 'selected' : ''}>Disponible à plein temps</option>
-                        <option value="partial" ${supervisor.disponibility === 'partial' ? 'selected' : ''}>Disponibilité partielle</option>
-                        <option value="limited" ${supervisor.disponibility === 'limited' ? 'selected' : ''}>Disponibilité limitée</option>
+                        <option value="full" ${safeDispo === 'full' ? 'selected' : ''}>Disponible à plein temps</option>
+                        <option value="partial" ${safeDispo === 'partial' ? 'selected' : ''}>Disponibilité partielle</option>
+                        <option value="limited" ${safeDispo === 'limited' ? 'selected' : ''}>Disponibilité limitée</option>
                     </select>
-                    <input type="number" class="supervisor-max" value="${supervisor.capacity}" min="1" max="10" required>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
-                        <i class="fas fa-times"></i>
+                    <input type="number" class="supervisor-max" value="${safeCap}" min="1" max="10" required>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)" aria-label="Supprimer ce surveillant">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 `;
                 container.appendChild(supervisorDiv);
@@ -2415,17 +3747,22 @@
                 try {
                     const importedConfig = JSON.parse(e.target.result);
                     
-                    if (confirm(`Importer la configuration? Cela écrasera la configuration actuelle.`)) {
-                        configuration = importedConfig;
-                        saveConfiguration();
-                        updateConfigurationStats();
-                        showNotification('Configuration importée avec succès', 'success');
-                        
-                        const selectedClass = document.getElementById('configClass').value;
-                        if (selectedClass) {
-                            loadClassSubjects();
+                    showConfirmModal(
+                        `Importer la configuration ? Cela écrasera la configuration actuelle.`,
+                        'Importation de configuration',
+                        () => {
+                            configuration = importedConfig;
+                            saveConfiguration();
+                            updateConfigurationStats();
+                            showNotification('Configuration importée avec succès', 'success');
+
+                            const selectedClass = document.getElementById('configClass').value;
+                            if (selectedClass) {
+                                loadClassSubjects();
+                            }
+                            syncAllTabs();
                         }
-                    }
+                    );
                 } catch (error) {
                     showNotification('Erreur lors de l\'importation: ' + error.message, 'error');
                 }
@@ -2450,23 +3787,103 @@
             }
         }
 
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('login-error');
-            
-            if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
-                localStorage.setItem('isAuthenticated', 'true');
-                document.getElementById('login-page').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-                showNotification('Connexion réussie!', 'success');
-            } else {
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+
+            // État de chargement
+            const originalBtnContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading" aria-hidden="true"></span> Vérification…';
+
+            try {
+                const isValid = await verifyCredentials(username, password);
+
+                if (isValid) {
+                    localStorage.setItem('isAuthenticated', 'true');
+                    document.getElementById('login-page').style.display = 'none';
+                    document.getElementById('app').style.display = 'flex';
+                    showNotification('Connexion réussie !', 'success');
+
+                    // Charger toutes les données après la connexion
+                    loadApplicationData();
+
+                    // Pré-remplir les formulaires dynamiques
+                    setTimeout(() => {
+                        addTeacher();
+                        addSupervisorItem();
+                        updateClassOptions();
+                        updateManualClassOptions();
+                        updateDevoirClassOptions();
+                        updateConfigClassOptions();
+                        filterTimeSlots();
+                    }, 100);
+                } else {
+                    errorDiv.style.display = 'flex';
+                    setTimeout(() => {
+                        errorDiv.style.display = 'none';
+                    }, 3000);
+                }
+            } catch (err) {
+                console.error('Erreur de connexion:', err);
                 errorDiv.style.display = 'flex';
+                errorDiv.querySelector('span').textContent = 'Erreur lors de la vérification des identifiants.';
                 setTimeout(() => {
                     errorDiv.style.display = 'none';
                 }, 3000);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+            }
+        }
+
+        // ============================================
+        // CHARGEMENT CENTALISÉ DES DONNÉES
+        // ============================================
+        function loadApplicationData() {
+            try {
+                // Recharger la configuration depuis le localStorage
+                const storedConfig = localStorage.getItem('configuration');
+                if (storedConfig) {
+                    configuration = JSON.parse(storedConfig);
+                }
+
+                // Recharger l'historique des devoirs
+                const storedHistory = localStorage.getItem('devoirHistory');
+                if (storedHistory) {
+                    devoirHistory = JSON.parse(storedHistory);
+                }
+
+                // Mettre à jour toutes les vues
+                updateFilters();
+                generateTimetable();
+                displayAllData();
+                updateDashboard();
+                updateDevoirHistory();
+                updateConfigurationStats();
+                if (typeof updateAdvancedStats === 'function') {
+                    updateAdvancedStats();
+                }
+
+                // Charger les matières si une classe était sélectionnée
+                const configClass = document.getElementById('configClass');
+                if (configClass && configClass.value) {
+                    loadClassSubjects();
+                }
+
+                // Charger les surveillants configurés pour l'onglet devoirs
+                if (typeof loadConfiguredSupervisors === 'function') {
+                    loadConfiguredSupervisors();
+                }
+
+                console.log('✓ Données chargées avec succès');
+            } catch (e) {
+                console.error('Erreur lors du chargement des données:', e);
+                showNotification('Erreur lors du chargement des données: ' + e.message, 'error');
             }
         }
 
@@ -2563,6 +3980,10 @@
 
         function addSupervisor() {
             const container = document.getElementById('supervisorsContainer');
+            if (!container) {
+                console.warn('Conteneur supervisorsContainer introuvable');
+                return;
+            }
             const supervisorDiv = document.createElement('div');
             supervisorDiv.className = 'teacher-item';
             supervisorDiv.innerHTML = `
@@ -2596,16 +4017,26 @@
         function loadExistingData() {
             const courses = getCourses();
             const teachers = [...new Set(courses.map(c => c.teacherName))];
-            
+
+            if (teachers.length === 0) {
+                showNotification('Aucun enseignant trouvé dans les données existantes', 'warning');
+                return;
+            }
+
             const container = document.getElementById('supervisorsContainer');
+            if (!container) {
+                console.error('Conteneur supervisorsContainer introuvable');
+                return;
+            }
             container.innerHTML = '';
-            
+
             teachers.forEach(teacher => {
+                const safeTeacher = escapeHtml(teacher);
                 const supervisorDiv = document.createElement('div');
                 supervisorDiv.className = 'teacher-item';
                 supervisorDiv.innerHTML = `
                     <select class="supervisor-name" required>
-                        <option value="${teacher}" selected>${teacher}</option>
+                        <option value="${safeTeacher}" selected>${safeTeacher}</option>
                     </select>
                     <select class="supervisor-disponibility" required>
                         <option value="full">Disponible à plein temps</option>
@@ -2613,13 +4044,13 @@
                         <option value="limited">Disponibilité limitée</option>
                     </select>
                     <input type="number" class="supervisor-max" value="3" min="1" max="10" required>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)">
-                        <i class="fas fa-times"></i>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSupervisor(this)" aria-label="Supprimer ce surveillant">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 `;
                 container.appendChild(supervisorDiv);
             });
-            
+
             showNotification(`${teachers.length} enseignants chargés comme surveillants`, 'success');
         }
 
@@ -2744,6 +4175,10 @@
 
         function addTeacher() {
             const container = document.getElementById('teachersContainer');
+            if (!container) {
+                console.warn('Conteneur teachersContainer introuvable');
+                return;
+            }
             const teacherCount = container.children.length + 1;
             
             const teacherDiv = document.createElement('div');
@@ -3433,6 +4868,7 @@
             
             switchTab('timetable');
         }
+            syncAllTabs();
 
         function updateDevoirHistory() {
             const historyBody = document.getElementById('devoirHistoryBody');
@@ -3500,7 +4936,84 @@
                     <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Année Scolaire 2023-2024 - Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
                     ${programContent}
-                </body>
+                
+    <!-- Modal de confirmation personnalisé -->
+    <div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle"><i class="fas fa-question-circle" aria-hidden="true"></i> <span>Confirmation</span></h3>
+                <button type="button" class="modal-close" onclick="closeConfirmModal(false)" aria-label="Fermer">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-neutral" id="confirmModalCancel" onclick="closeConfirmModal(false)">
+                    <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmModalOk" onclick="closeConfirmModal(true)">
+                    <i class="fas fa-check" aria-hidden="true"></i> Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'aide (raccourcis clavier) -->
+    <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 id="helpModalTitle"><i class="fas fa-keyboard" aria-hidden="true"></i> Aide &amp; Raccourcis clavier</h3>
+                <button type="button" class="modal-close" onclick="closeHelpModal()" aria-label="Fermer">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4 style="margin-bottom: 10px; color: var(--primary-color);"><i class="fas fa-bolt" aria-hidden="true"></i> Raccourcis de navigation</h4>
+                <ul class="shortcut-list">
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>1</kbd></span> Tableau de bord</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>2</kbd></span> Configuration</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>3</kbd></span> Répartition Auto</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>4</kbd></span> Saisie Manuelle</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>5</kbd></span> Programmation DEVOIR</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>6</kbd></span> Visualisation</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>7</kbd></span> Toutes les données</li>
+                </ul>
+
+                <h4 style="margin: 20px 0 10px; color: var(--primary-color);"><i class="fas fa-tools" aria-hidden="true"></i> Actions rapides</h4>
+                <ul class="shortcut-list">
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>E</kbd></span> Exporter (JSON)</li>
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd></span> Exporter (CSV)</li>
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>P</kbd></span> Imprimer l'emploi du temps</li>
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>L</kbd></span> Se déconnecter</li>
+                    <li><span class="shortcut-keys"><kbd>?</kbd></span> Afficher cette aide</li>
+                    <li><span class="shortcut-keys"><kbd>Échap</kbd></span> Fermer une fenêtre modale</li>
+                </ul>
+
+                <h4 style="margin: 20px 0 10px; color: var(--primary-color);"><i class="fas fa-info-circle" aria-hidden="true"></i> Conseils d'utilisation</h4>
+                <ul style="padding-left: 20px; line-height: 1.8;">
+                    <li>Configurez d'abord les <strong>matières par classe</strong> avant la répartition automatique.</li>
+                    <li>Le <strong>mercredi après-midi</strong> est réservé (aucun cours).</li>
+                    <li>Les <strong>mardi et vendredi après-midi</strong> sont réservés aux DEVOIR uniquement.</li>
+                    <li>Utilisez l'export régulier pour <strong>sauvegarder vos données</strong>.</li>
+                    <li>La détection de <strong>conflits d'enseignants</strong> est automatique lors de la saisie.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeHelpModal()">
+                    <i class="fas fa-check" aria-hidden="true"></i> J'ai compris
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton d'aide flottant -->
+    <button type="button" class="help-fab" onclick="openHelpModal()" aria-label="Afficher l'aide et les raccourcis clavier" title="Aide (?)">
+        <i class="fas fa-question" aria-hidden="true"></i>
+    </button>
+
+</body>
                 </html>
             `);
             
@@ -3902,6 +5415,7 @@
             updateDashboard();
             
             switchTab('timetable');
+            syncAllTabs();
         }
 
         function showNotification(message, type = 'success') {
@@ -3909,17 +5423,30 @@
             
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
+            notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
+            notification.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
             
             const icon = type === 'success' ? 'check-circle' : 
                          type === 'error' ? 'exclamation-circle' : 'exclamation-triangle';
             
-            notification.innerHTML = `
-                <i class="fas fa-${icon}"></i>
-                <span>${message}</span>
-                <button onclick="this.parentElement.remove()" aria-label="Fermer la notification">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
+            const iconEl = document.createElement('i');
+            iconEl.className = `fas fa-${icon}`;
+            iconEl.setAttribute('aria-hidden', 'true');
+            
+            const spanEl = document.createElement('span');
+            spanEl.textContent = message; // Échappement automatique
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.setAttribute('aria-label', 'Fermer la notification');
+            closeBtn.onclick = () => notification.remove();
+            const closeIcon = document.createElement('i');
+            closeIcon.className = 'fas fa-times';
+            closeIcon.setAttribute('aria-hidden', 'true');
+            closeBtn.appendChild(closeIcon);
+            
+            notification.appendChild(iconEl);
+            notification.appendChild(spanEl);
+            notification.appendChild(closeBtn);
             
             document.querySelector('.main-content').insertBefore(notification, document.querySelector('.main-content').firstChild);
             
@@ -3933,51 +5460,196 @@
         function switchTab(tabName) {
             document.querySelectorAll('.nav-links a').forEach(link => {
                 link.classList.remove('active');
+                link.removeAttribute('aria-current');
             });
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            
-            const activeNav = document.querySelector(`.nav-links a[onclick="switchTab('${tabName}')"]`);
+
+            // Sélecteur robuste : on cherche par data-tab au lieu du onclick exact
+            const activeNav = document.querySelector(`.nav-links a[data-tab="${tabName}"]`);
             const activeContent = document.getElementById(`${tabName}-tab`);
-            
+
             if (activeNav && activeContent) {
                 activeNav.classList.add('active');
+                activeNav.setAttribute('aria-current', 'page');
                 activeContent.classList.add('active');
-                
+
+                // Mettre à jour le titre de la page (sécurisé via textContent)
                 const pageTitle = document.getElementById('page-title');
-                const icon = activeNav.querySelector('i').className;
-                const text = activeNav.textContent.trim();
-                pageTitle.innerHTML = `${icon} ${text}`;
+                const iconEl = activeNav.querySelector('i');
+                const spanEl = activeNav.querySelector('span');
+                if (pageTitle && iconEl && spanEl) {
+                    // Cloner l'icône et ajouter le texte
+                    pageTitle.innerHTML = '';
+                    const clonedIcon = iconEl.cloneNode(true);
+                    clonedIcon.setAttribute('aria-hidden', 'true');
+                    pageTitle.appendChild(clonedIcon);
+                    pageTitle.appendChild(document.createTextNode(' ' + spanEl.textContent.trim()));
+                }
+
+                // Défiler vers le haut
+                const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
             }
             
-            if (tabName === 'timetable') {
-                updateFilters();
-                generateTimetable();
-            } else if (tabName === 'all-data') {
-                updateFilters();
-                displayAllData();
-            } else if (tabName === 'dashboard') {
-                updateDashboard();
-                updateConfigurationStats();
-            } else if (tabName === 'manual') {
-                filterTimeSlots();
-            } else if (tabName === 'devoir') {
-                updateDevoirClassOptions();
-                updateDevoirHistory();
-                setTimeout(() => {
-                    loadConfiguredSupervisors();
-                }, 100);
-            } else if (tabName === 'configuration') {
-                updateConfigurationStats();
-                updateConfigClassOptions();
-            } else if (tabName === 'distribution') {
-                updateClassOptions();
+            // Synchroniser l'onglet cible avec les données les plus récentes
+            syncTab(tabName);
+        }
+
+        // ============================================
+        // SYNCHRONISATION AUTOMATIQUE DES ONGLETS
+        // ============================================
+
+        // Synchronise un onglet spécifique avec les données actuelles
+        function syncTab(tabName) {
+            switch (tabName) {
+                case 'dashboard':
+                    updateDashboard();
+                    updateConfigurationStats();
+                    if (typeof updateAdvancedStats === 'function') updateAdvancedStats();
+                    break;
+                case 'configuration':
+                    updateConfigurationStats();
+                    updateConfigClassOptions();
+                    // Recharger les matières si une classe est sélectionnée
+                    const configClass = document.getElementById('configClass');
+                    if (configClass && configClass.value) {
+                        loadClassSubjects();
+                    }
+                    break;
+                case 'distribution':
+                    updateClassOptions();
+                    break;
+                case 'manual':
+                    updateManualClassOptions();
+                    filterTimeSlots();
+                    // Recharger les matières si une classe est sélectionnée
+                    const manualClass = document.getElementById('manualClass');
+                    if (manualClass && manualClass.value) {
+                        updateManualSubjects();
+                    }
+                    // Vérifier les conflits
+                    if (typeof checkManualConflicts === 'function') checkManualConflicts();
+                    break;
+                case 'devoir':
+                    updateDevoirClassOptions();
+                    updateDevoirHistory();
+                    setTimeout(() => {
+                        loadConfiguredSupervisors();
+                    }, 100);
+                    break;
+                case 'timetable':
+                    updateFilters();
+                    generateTimetable();
+                    break;
+                case 'all-data':
+                    updateFilters();
+                    displayAllData();
+                    break;
             }
         }
 
+        // Synchronise TOUS les onglets (appelé après chaque modification de données)
+        function syncAllTabs() {
+            // Ne synchroniser que les onglets actuellement affichables pour économiser des ressources
+            // Mais on met à jour toutes les données partagées
+            try {
+                // Mettre à jour les filtres (enseignants, classes) partout
+                updateFilters();
+
+                // Mettre à jour le dashboard (statistiques + activités récentes)
+                updateDashboard();
+                if (typeof updateAdvancedStats === 'function') updateAdvancedStats();
+                updateConfigurationStats();
+
+                // Mettre à jour l'onglet actif uniquement pour les vues coûteuses
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab) {
+                    const activeId = activeTab.id.replace('-tab', '');
+                    if (activeId === 'timetable') {
+                        generateTimetable();
+                    } else if (activeId === 'all-data') {
+                        displayAllData();
+                    } else if (activeId === 'devoir') {
+                        updateDevoirHistory();
+                    } else if (activeId === 'manual') {
+                        checkManualConflicts();
+                    }
+                }
+            } catch (e) {
+                console.warn('Erreur lors de la synchronisation:', e);
+            }
+        }
+
+        // Synchronisation multi-onglets : réagir aux changements du localStorage
+        // déclenchés par d'autres onglets de la même origine
+        window.addEventListener('storage', (e) => {
+            // Seulement si l'utilisateur est authentifié
+            if (localStorage.getItem('isAuthenticated') !== 'true') return;
+
+            // Recharger la configuration si elle a changé
+            if (e.key === 'configuration') {
+                try {
+                    configuration = e.newValue ? JSON.parse(e.newValue) : { subjects: {}, supervisors: [] };
+                } catch (err) {
+                    console.warn('Erreur de parsing de la configuration:', err);
+                }
+            }
+
+            // Recharger l'historique des devoirs si changé
+            if (e.key === 'devoirHistory') {
+                try {
+                    devoirHistory = e.newValue ? JSON.parse(e.newValue) : [];
+                } catch (err) {
+                    console.warn('Erreur de parsing de l\'historique des devoirs:', err);
+                }
+            }
+
+            // Synchroniser tous les onglets
+            syncAllTabs();
+
+            // Notification discrète
+            if (typeof showNotification === 'function') {
+                showNotification('Données mises à jour depuis un autre onglet', 'success');
+            }
+        });
+
+        // Synchronisation au retour sur l'onglet (l'utilisateur était passé à un autre onglet du navigateur)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && localStorage.getItem('isAuthenticated') === 'true') {
+                // Recharger la configuration depuis le localStorage (au cas où elle a changé)
+                try {
+                    const storedConfig = localStorage.getItem('configuration');
+                    if (storedConfig) {
+                        configuration = JSON.parse(storedConfig);
+                    }
+                    const storedHistory = localStorage.getItem('devoirHistory');
+                    if (storedHistory) {
+                        devoirHistory = JSON.parse(storedHistory);
+                    }
+                } catch (e) {
+                    console.warn('Erreur lors du rechargement des données:', e);
+                }
+
+                // Synchroniser l'onglet actif
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab) {
+                    syncTab(activeTab.id.replace('-tab', ''));
+                }
+            }
+        });
+
         function getCourses() {
-            return JSON.parse(localStorage.getItem('courses')) || [];
+            try {
+                const data = localStorage.getItem('courses');
+                if (!data) return [];
+                const parsed = JSON.parse(data);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error('Erreur lors de la lecture des cours:', e);
+                return [];
+            }
         }
 
         function updateFilters() {
@@ -4150,7 +5822,19 @@
         }
 
         function displayAllData() {
-            const courses = getCourses();
+            let courses = getCourses();
+
+            // Appliquer la recherche rapide si présente
+            const searchQuery = getQuickSearchQuery();
+            if (searchQuery) {
+                courses = courses.filter(c => {
+                    const haystack = [
+                        c.teacherName, c.className, c.cycle, c.subject,
+                        c.activityType, c.day, c.timeSlot, c.timePeriod
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    return haystack.includes(searchQuery);
+                });
+            }
             const filterTeacher = document.getElementById('filterTeacher').value;
             const filterCycle = document.getElementById('filterCycle').value;
             const filterClass = document.getElementById('filterClass').value;
@@ -4209,32 +5893,42 @@
         }
 
         function deleteCourse(id) {
-            if (confirm('Voulez-vous vraiment supprimer ce cours?')) {
-                let courses = getCourses();
-                courses = courses.filter(c => c.id !== id);
-                localStorage.setItem('courses', JSON.stringify(courses));
-                updateFilters();
-                generateTimetable();
-                displayAllData();
-                updateDashboard();
-                showNotification('Cours supprimé avec succès', 'success');
-            }
+            showConfirmModal(
+                'Voulez-vous vraiment supprimer ce cours ?',
+                'Suppression d\'un cours',
+                () => {
+                    let courses = getCourses();
+                    courses = courses.filter(c => c.id !== id);
+                    localStorage.setItem('courses', JSON.stringify(courses));
+                    updateFilters();
+                    generateTimetable();
+                    displayAllData();
+                    updateDashboard();
+                    showNotification('Cours supprimé avec succès', 'success');
+                    syncAllTabs();
+                }
+            );
         }
 
         function clearAllData() {
-            if (confirm('Voulez-vous vraiment supprimer TOUTES les données?')) {
-                localStorage.removeItem('courses');
-                localStorage.removeItem('devoirHistory');
-                localStorage.removeItem('configuration');
-                configuration = { subjects: {}, supervisors: [] };
-                updateFilters();
-                generateTimetable();
-                displayAllData();
-                updateDashboard();
-                updateDevoirHistory();
-                updateConfigurationStats();
-                showNotification('Toutes les données ont été supprimées', 'success');
-            }
+            showConfirmModal(
+                'Voulez-vous vraiment supprimer TOUTES les données ?\n\nCette action est irréversible. Pensez à exporter vos données au préalable.',
+                'Suppression de toutes les données',
+                () => {
+                    localStorage.removeItem('courses');
+                    localStorage.removeItem('devoirHistory');
+                    localStorage.removeItem('configuration');
+                    configuration = { subjects: {}, supervisors: [] };
+                    updateFilters();
+                    generateTimetable();
+                    displayAllData();
+                    updateDashboard();
+                    updateDevoirHistory();
+                    updateConfigurationStats();
+                    showNotification('Toutes les données ont été supprimées', 'success');
+                    syncAllTabs();
+                }
+            );
         }
 
         function exportData() {
@@ -4266,16 +5960,21 @@
                     const importedCourses = JSON.parse(e.target.result);
                     if (!Array.isArray(importedCourses)) throw new Error('Format de fichier invalide');
                     
-                    if (confirm(`Importer ${importedCourses.length} cours?`)) {
-                        const currentCourses = getCourses();
-                        const mergedCourses = [...currentCourses, ...importedCourses];
-                        localStorage.setItem('courses', JSON.stringify(mergedCourses));
-                        updateFilters();
-                        generateTimetable();
-                        displayAllData();
-                        updateDashboard();
-                        showNotification('Données importées avec succès');
-                    }
+                    showConfirmModal(
+                        `Importer ${importedCourses.length} cours ?\n\nLes nouveaux cours seront ajoutés aux données existantes.`,
+                        'Importation de données',
+                        () => {
+                            const currentCourses = getCourses();
+                            const mergedCourses = [...currentCourses, ...importedCourses];
+                            localStorage.setItem('courses', JSON.stringify(mergedCourses));
+                            updateFilters();
+                            generateTimetable();
+                            displayAllData();
+                            updateDashboard();
+                            showNotification('Données importées avec succès');
+                            syncAllTabs();
+                        }
+                    );
                 } catch (error) {
                     showNotification('Erreur lors de l\'importation: ' + error.message, 'error');
                 }
@@ -4286,7 +5985,7 @@
 
         function updateDashboard() {
             const courses = getCourses();
-            const teachers = [...new Set(courses.map(c => c.teacherName))];
+            const teachers = [...new Set(courses.filter(c => c && c.teacherName).map(c => c.teacherName))];
             const totalHours = courses.length;
             
             const activityCounts = {};
@@ -4303,17 +6002,26 @@
                 const recentCourses = courses.slice(-5).reverse();
                 recentActivities.innerHTML = recentCourses.map(course => {
                     const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                    const safeTeacher = escapeHtml(course.teacherName);
+                    const safeSubject = escapeHtml(course.subject);
+                    const safeClass = escapeHtml(course.className);
+                    const safeDay = escapeHtml(course.day);
+                    const safeSlot = escapeHtml(course.timeSlot);
+                    const safeActivity = escapeHtml(course.activityType);
                     return `
-                        <div style="padding: 10px; border-bottom: 1px solid #eee;">
-                            <strong>${course.teacherName}</strong> - ${course.subject}<br>
-                            <small>${course.className} • ${course.day} ${course.timeSlot} • 
-                            <span class="badge ${activityType.badgeClass}">${course.activityType}</span></small>
+                        <div style="padding: 10px; border-bottom: 1px solid var(--medium-gray);">
+                            <strong>${safeTeacher}</strong> - ${safeSubject}<br>
+                            <small>${safeClass} • ${safeDay} ${safeSlot} • 
+                            <span class="badge ${activityType.badgeClass}">${safeActivity}</span></small>
                         </div>
                     `;
                 }).join('');
             } else {
-                recentActivities.innerHTML = '<p><i class="fas fa-info-circle"></i> Aucune activité récente</p>';
+                recentActivities.innerHTML = '<p><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune activité récente</p>';
             }
+
+            // Mettre à jour les statistiques avancées
+            updateAdvancedStats();
         }
 
         function saveManualCourse() {
@@ -4386,34 +6094,68 @@
             
             updateFilters();
             updateDashboard();
+            syncAllTabs();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             checkAuthentication();
-            
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-            
+
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+
             if (localStorage.getItem('isAuthenticated') === 'true') {
-                updateFilters();
-                generateTimetable();
-                displayAllData();
-                updateDashboard();
-                updateDevoirHistory();
-                updateConfigurationStats();
-                
-                addTeacher();
-                
-                addSupervisorItem();
-                
-                updateClassOptions();
-                updateManualClassOptions();
-                updateDevoirClassOptions();
-                updateConfigClassOptions();
-                
-                filterTimeSlots();
+                // Charger toutes les données enregistrées
+                loadApplicationData();
+
+                // Pré-remplir les formulaires dynamiques
+                setTimeout(() => {
+                    addTeacher();
+                    addSupervisorItem();
+                    updateClassOptions();
+                    updateManualClassOptions();
+                    updateDevoirClassOptions();
+                    updateConfigClassOptions();
+                    filterTimeSlots();
+                }, 100);
             }
             
             document.getElementById('timePeriod').addEventListener('change', filterTimeSlots);
+
+            // Recherche rapide
+            const quickSearch = document.getElementById('quickSearch');
+            if (quickSearch) {
+                quickSearch.addEventListener('input', function() {
+                    const clearBtn = document.getElementById('clearSearchBtn');
+                    if (clearBtn) clearBtn.classList.toggle('visible', this.value.length > 0);
+                    displayAllData();
+                });
+            }
+
+            // Détection de conflits en temps réel sur la saisie manuelle
+            const manualTimeSlot = document.getElementById('manualTimeSlot');
+            if (manualTimeSlot) {
+                manualTimeSlot.addEventListener('change', checkManualConflicts);
+            }
+            document.querySelectorAll('input[name="day"]').forEach(cb => {
+                cb.addEventListener('change', checkManualConflicts);
+            });
+
+            // Raccourcis clavier globaux
+            document.addEventListener('keydown', handleKeyboardShortcuts);
+
+            // Fermer les modals avec Échap
+            document.getElementById('confirmModal').addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeConfirmModal(false);
+            });
+            document.getElementById('helpModal').addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeHelpModal();
+            });
+
+            // Gestion du focus dans les modals (accessibilité)
+            trapFocusInModal(document.getElementById('confirmModal'));
+            trapFocusInModal(document.getElementById('helpModal'));
         });
     </script>
 </body>
