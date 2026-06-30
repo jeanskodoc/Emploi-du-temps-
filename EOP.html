@@ -4350,11 +4350,27 @@
             
             const program = generateDevoirProgrammationWithNewFeatures(selectedClasses, supervisors, selectedDays, period, maxDevoirsPerDay, cycle);
             currentDevoirProgram = program;
-            
+
             displayDevoirResults(program);
             updateDevoirHistory();
-            
-            showNotification('Programmation des DEVOIR générée avec succès!', 'success');
+
+            // Afficher les avertissements de répétition s'il y en a
+            if (program.warnings && program.warnings.length > 0) {
+                const warningCount = program.warnings.filter(w => w.type === 'class-repeat' || w.type === 'day-repeat').length;
+                const noSupCount = program.warnings.filter(w => w.type === 'no-supervisor').length;
+
+                if (warningCount > 0 && noSupCount > 0) {
+                    showNotification(`Programmation générée avec ${warningCount} répétition(s) inévitable(s) et ${noSupCount} devoir(s) sans surveillant.`, 'warning');
+                } else if (warningCount > 0) {
+                    showNotification(`Programmation générée avec ${warningCount} répétition(s) inévitable(s). Voir les détails.`, 'warning');
+                } else if (noSupCount > 0) {
+                    showNotification(`Programmation générée, mais ${noSupCount} devoir(s) n'ont pas de surveillant disponible.`, 'warning');
+                } else {
+                    showNotification('Programmation des DEVOIR générée avec succès !', 'success');
+                }
+            } else {
+                showNotification('Programmation des DEVOIR générée avec succès !', 'success');
+            }
         }
 
         function generateDevoirProgrammationWithNewFeatures(classes, supervisors, availableDays, period, maxDevoirsPerDay, cycle) {
@@ -4378,17 +4394,28 @@
                     bySubject: {},
                     byDaySubject: {},
                     byClassSubject: {}
-                }
+                },
+                warnings: []  // Avertissements sur les répétitions inévitables
             };
-            
-            const supervisorsToAssign = supervisors.map(s => ({ ...s }));
-            
+
+            // Copie profonde des surveillants pour pouvoir les modifier
+            const supervisorsToAssign = supervisors.map(s => ({
+                ...s,
+                currentSupervisions: 0,
+                schedule: {}
+            }));
+
+            // Récupérer les matières configurées pour chaque classe
             const classSubjects = {};
             classes.forEach(className => {
-                classSubjects[className] = configuration.subjects[className] || 
-                                          ['Matière Principale'];
+                const subjects = configuration.subjects[className];
+                classSubjects[className] = (subjects && subjects.length > 0)
+                    ? [...subjects]
+                    : ['Matière Principale'];
+                program.summary.byClassSubject[className] = [];
             });
-            
+
+            // Générer les dates disponibles sur la période demandée
             const startDate = new Date();
             const dates = [];
             for (let i = 0; i < period * 7; i++) {
@@ -4396,69 +4423,122 @@
                 date.setDate(startDate.getDate() + i);
                 dates.push(date);
             }
-            
-            let devoirId = 1;
+
+            // Filtrer les dates qui tombent sur les jours sélectionnés
             const daysForDevoirs = dates.filter(date => {
                 const dayName = getDayName(date.getDay());
                 return availableDays.includes(dayName);
             });
-            
+
+            // Limiter le nombre de jours (évite une boucle infinie)
             const maxDays = Math.min(daysForDevoirs.length, period * availableDays.length);
             const selectedDays = daysForDevoirs.slice(0, maxDays);
-            
-            classes.forEach(className => {
-                program.summary.byClassSubject[className] = [];
-            });
-            
+
+            let devoirId = 1;
+
+            // Pour chaque jour de la période
             selectedDays.forEach((date, dayIndex) => {
                 const dayName = getDayName(date.getDay());
                 const dayClasses = [...classes];
+
+                // Suivi des matières utilisées ce jour (pour éviter qu'une même matière
+                // soit donnée à plusieurs classes le même jour)
                 const usedSubjectsToday = new Set();
-                
+                // Compteur de devoirs par classe pour ce jour (limite maxDevoirsPerDay)
+                const devoirsPerClassToday = {};
+
+                // Mélanger l'ordre des classes pour une distribution équitable
+                dayClasses.sort(() => Math.random() - 0.5);
+
                 dayClasses.forEach(className => {
+                    // Initialiser le compteur du jour pour cette classe
+                    if (!devoirsPerClassToday[className]) {
+                        devoirsPerClassToday[className] = 0;
+                    }
+
+                    // Vérifier la limite maxDevoirsPerDay
+                    if (devoirsPerClassToday[className] >= maxDevoirsPerDay) {
+                        return; // Passer à la classe suivante
+                    }
+
                     const classCycle = CLASSES_BY_CYCLE['Collège'].includes(className) ? 'Collège' : 'Lycée';
                     const subjects = classSubjects[className];
-                    
+
                     if (subjects.length === 0) {
                         console.warn(`Aucune matière configurée pour la classe ${className}`);
                         return;
                     }
-                    
+
+                    // Matières déjà utilisées pour cette classe pendant toute la période
                     const subjectsAlreadyUsedForClass = program.summary.byClassSubject[className] || [];
-                    
-                    let availableSubjects = subjects.filter(subject => 
-                        !usedSubjectsToday.has(subject) && 
+
+                    // Niveau 1 : matières non utilisées aujourd'hui ET non utilisées précédemment pour cette classe
+                    let availableSubjects = subjects.filter(subject =>
+                        !usedSubjectsToday.has(subject) &&
                         !subjectsAlreadyUsedForClass.includes(subject)
                     );
-                    
+
+                    let warningLevel = null;
+
+                    // Niveau 2 : matières non utilisées aujourd'hui seulement (répétition intra-classe autorisée)
                     if (availableSubjects.length === 0) {
-                        availableSubjects = subjects.filter(subject => 
+                        availableSubjects = subjects.filter(subject =>
                             !usedSubjectsToday.has(subject)
                         );
+                        if (availableSubjects.length > 0) {
+                            warningLevel = 'class-repeat';
+                        }
                     }
-                    
+
+                    // Niveau 3 : toutes les matières (répétition intra-jour autorisée en dernier recours)
                     if (availableSubjects.length === 0) {
-                        availableSubjects = subjects;
+                        availableSubjects = [...subjects];
+                        warningLevel = 'day-repeat';
                     }
-                    
+
+                    // Sélection aléatoire de la matière
                     const selectedSubject = availableSubjects[Math.floor(Math.random() * availableSubjects.length)];
-                    
+
+                    // Enregistrer l'avertissement si nécessaire
+                    if (warningLevel === 'class-repeat') {
+                        program.warnings.push({
+                            type: 'class-repeat',
+                            message: `La matière "${selectedSubject}" a déjà été programmée pour la classe ${className} — répétition inévitable (toutes les matières ont été utilisées).`,
+                            date: formatDate(date),
+                            className: className,
+                            subject: selectedSubject
+                        });
+                    } else if (warningLevel === 'day-repeat') {
+                        program.warnings.push({
+                            type: 'day-repeat',
+                            message: `La matière "${selectedSubject}" est répétée le ${formatDate(date)} pour plusieurs classes — toutes les matières étaient déjà utilisées aujourd'hui.`,
+                            date: formatDate(date),
+                            className: className,
+                            subject: selectedSubject
+                        });
+                    }
+
+                    // Marquer la matière comme utilisée aujourd'hui
                     usedSubjectsToday.add(selectedSubject);
-                    
+
+                    // Enregistrer la matière pour cette classe
                     if (!program.summary.byClassSubject[className].includes(selectedSubject)) {
                         program.summary.byClassSubject[className].push(selectedSubject);
                     }
-                    
-                    const availableSupervisors = supervisorsToAssign.filter(s => 
-                        s.currentSupervisions < s.maxSupervisions && 
+
+                    // Trouver un surveillant disponible
+                    const availableSupervisors = supervisorsToAssign.filter(s =>
+                        s.currentSupervisions < s.maxSupervisions &&
                         (!s.schedule[date.toDateString()] || s.schedule[date.toDateString()] < 2)
                     );
-                    
+
                     if (availableSupervisors.length > 0) {
-                        const randomSupervisor = availableSupervisors[Math.floor(Math.random() * availableSupervisors.length)];
-                        
+                        // Choisir le surveillant le moins occupé (équité)
+                        availableSupervisors.sort((a, b) => a.currentSupervisions - b.currentSupervisions);
+                        const chosenSupervisor = availableSupervisors[0];
+
                         const duration = getDevoirDuration(classCycle);
-                        
+
                         const devoir = {
                             id: devoirId++,
                             date: date.toISOString(),
@@ -4466,38 +4546,43 @@
                             formattedDate: formatDate(date),
                             className: className,
                             subject: selectedSubject,
-                            supervisor: randomSupervisor.name,
+                            supervisor: chosenSupervisor.name,
                             timeSlot: getAfternoonSlotForDevoir(classCycle),
                             duration: duration,
                             room: getRandomRoom(className),
                             cycle: classCycle
                         };
-                        
+
                         program.devoirs.push(devoir);
-                        
-                        randomSupervisor.currentSupervisions++;
-                        if (!randomSupervisor.schedule[date.toDateString()]) {
-                            randomSupervisor.schedule[date.toDateString()] = 0;
+
+                        // Mettre à jour les compteurs du surveillant
+                        chosenSupervisor.currentSupervisions++;
+                        if (!chosenSupervisor.schedule[date.toDateString()]) {
+                            chosenSupervisor.schedule[date.toDateString()] = 0;
                         }
-                        randomSupervisor.schedule[date.toDateString()]++;
-                        
+                        chosenSupervisor.schedule[date.toDateString()]++;
+
+                        // Compteur de devoirs pour cette classe aujourd'hui
+                        devoirsPerClassToday[className]++;
+
+                        // Mettre à jour les statistiques
                         program.summary.totalDevoirs++;
-                        
+
                         if (!program.summary.byDay[dayName]) {
                             program.summary.byDay[dayName] = 0;
                         }
                         program.summary.byDay[dayName]++;
-                        
+
                         if (!program.summary.byClass[className]) {
                             program.summary.byClass[className] = 0;
                         }
                         program.summary.byClass[className]++;
-                        
+
                         if (!program.summary.bySubject[selectedSubject]) {
                             program.summary.bySubject[selectedSubject] = 0;
                         }
                         program.summary.bySubject[selectedSubject]++;
-                        
+
                         if (!program.summary.byDaySubject[dayName]) {
                             program.summary.byDaySubject[dayName] = {};
                         }
@@ -4505,8 +4590,9 @@
                             program.summary.byDaySubject[dayName][selectedSubject] = 0;
                         }
                         program.summary.byDaySubject[dayName][selectedSubject]++;
-                        
-                        const supervisorInProgram = program.supervisors.find(s => s.name === randomSupervisor.name);
+
+                        // Enregistrer l'affectation dans le profil du surveillant
+                        const supervisorInProgram = program.supervisors.find(s => s.name === chosenSupervisor.name);
                         if (supervisorInProgram) {
                             supervisorInProgram.assignedDevoirs.push({
                                 date: devoir.formattedDate,
@@ -4515,10 +4601,19 @@
                                 duration: duration
                             });
                         }
+                    } else {
+                        // Aucun surveillant disponible — avertir
+                        program.warnings.push({
+                            type: 'no-supervisor',
+                            message: `Aucun surveillant disponible pour ${className} le ${formatDate(date)}.`,
+                            date: formatDate(date),
+                            className: className,
+                            subject: selectedSubject
+                        });
                     }
                 });
             });
-            
+
             return program;
         }
 
@@ -4642,10 +4737,19 @@
                                     const repetitionInfo = subjects.length === uniqueSubjects.length ? 
                                         '<span style="color: green;">✓ Aucune répétition</span>' : 
                                         `<span style="color: orange;">⚠ ${subjects.length - uniqueSubjects.length} répétition(s)</span>`;
-                                    return `<li><strong>${className}:</strong> ${subjects.length} matière(s) différentes - ${repetitionInfo}</li>`;
+                                    return `<li><strong>${className}:</strong> ${subjects.length} matière(s) différente(s) — ${repetitionInfo}</li>`;
                                 }).join('')}
                             </ul>
                         </div>
+
+                        ${(program.warnings && program.warnings.length > 0) ? `
+                        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--border-radius);">
+                            <h4 style="color: #856404; margin-bottom: 10px;"><i class="fas fa-exclamation-triangle"></i> Avertissements (${program.warnings.length})</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                                ${program.warnings.map(w => `<li style="margin-bottom: 6px;">${escapeHtml(w.message)}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
                 
