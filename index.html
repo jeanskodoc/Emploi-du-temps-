@@ -2,10 +2,46 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index - Projet Gestion Scolaire</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- SEO -->
+    <title>Projet Gestion Scolaire — Emplois du temps & Commandes de matériel</title>
+    <meta name="description" content="Solution complète de gestion scolaire : création d'emplois du temps et commandes de matériel pédagogique pour les établissements (Collège / Complexe).">
+    <meta name="keywords" content="gestion scolaire, emploi du temps, commande matériel, collège, complexe, FCFA">
+    <meta name="author" content="Projet Gestion Scolaire">
+    <meta name="theme-color" content="#4CAF50" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1f3a1f" media="(prefers-color-scheme: dark)">
+    <link rel="canonical" href="https://example.com/index.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Projet Gestion Scolaire">
+    <meta property="og:description" content="Gérez les emplois du temps et commandez du matériel scolaire en toute simplicité.">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Favicon inline (SVG) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='52' font-size='52'>🎓</text></svg>">
+
+    <!-- Préchargement des ressources critiques -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="all">
+
+    <!-- Données structurées JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Projet Gestion Scolaire",
+        "description": "Solution complète pour la gestion des emplois du temps et des commandes de matériel scolaire.",
+        "inLanguage": "fr-FR"
+    }
+    </script>
+
     <style>
+        /* ============================================
+           Variables et thème
+           ============================================ */
         :root {
             --primary-color: #4CAF50;
             --primary-hover: #45a049;
@@ -14,129 +50,273 @@
             --danger-color: #f44336;
             --warning-color: #FF9800;
             --neutral-color: #607d8b;
+
             --light-gray: #f8f9fa;
             --medium-gray: #e9ecef;
             --dark-gray: #495057;
+            --text-color: #333;
+            --bg-color: #fff;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
             --border-radius: 8px;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 15px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
+
+            --max-width: 1200px;
+            --font-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            /* Espacements fluides */
+            --space-xs: clamp(0.5rem, 2vw, 0.75rem);
+            --space-sm: clamp(0.75rem, 2.5vw, 1rem);
+            --space-md: clamp(1rem, 3vw, 1.5rem);
+            --space-lg: clamp(1.5rem, 4vw, 2.5rem);
+            --space-xl: clamp(2rem, 5vw, 3.5rem);
+
+            /* Safe area pour les appareils à encoche */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
         }
 
-        * {
+        /* Mode sombre */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #66bb6a;
+                --primary-hover: #81c784;
+                --secondary-color: #64b5f6;
+                --secondary-hover: #90caf9;
+                --neutral-color: #90a4ae;
+
+                --light-gray: #1e1e1e;
+                --medium-gray: #2c2c2c;
+                --dark-gray: #b0b0b0;
+                --text-color: #e0e0e0;
+                --bg-color: #121212;
+                --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+
+                --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 8px 15px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        /* ============================================
+           Reset et base
+           ============================================ */
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            scroll-behavior: smooth;
         }
 
+        body {
+            font-family: var(--font-base);
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            min-height: 100dvh; /* viewport dynamique pour mobile */
+            padding: var(--space-sm);
+            padding-top: max(var(--space-sm), var(--safe-top));
+            padding-bottom: max(var(--space-sm), var(--safe-bottom));
+            padding-left: max(var(--space-sm), var(--safe-left));
+            padding-right: max(var(--space-sm), var(--safe-right));
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           Accessibilité — Lien d'évitement
+           ============================================ */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 12px 20px;
+            z-index: 1000;
+            text-decoration: none;
+            border-radius: 0 0 var(--border-radius) 0;
+            transition: top 0.2s ease;
+            font-weight: 500;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Focus visible pour la navigation au clavier */
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid var(--secondary-color);
+            outline-offset: 3px;
+        }
+
+        /* ============================================
+           Conteneur principal
+           ============================================ */
         .container {
-            max-width: 1200px;
+            max-width: var(--max-width);
             margin: 0 auto;
-            background: white;
+            background: var(--bg-color);
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
         }
 
+        /* ============================================
+           En-tête — Typographie fluide
+           ============================================ */
         .header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 40px 30px;
+            color: #fff;
+            padding: var(--space-lg) var(--space-md);
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
+            font-size: clamp(1.6rem, 5vw, 2.5rem);
+            margin-bottom: clamp(0.5rem, 2vw, 1rem);
+            line-height: 1.2;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .header p {
             opacity: 0.9;
-            font-size: 1.2rem;
+            font-size: clamp(0.95rem, 2.5vw, 1.2rem);
             max-width: 800px;
             margin: 0 auto;
+            line-height: 1.5;
         }
 
+        /* ============================================
+           Contenu
+           ============================================ */
         .content {
-            padding: 40px 30px;
+            padding: var(--space-lg) var(--space-md);
         }
 
         .section-title {
             color: var(--primary-color);
             border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
-            margin-bottom: 30px;
+            padding-bottom: clamp(0.5rem, 2vw, 0.75rem);
+            margin-bottom: clamp(1rem, 4vw, 2rem);
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.8rem;
+            gap: clamp(0.5rem, 2vw, 0.75rem);
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            line-height: 1.3;
+            flex-wrap: wrap;
         }
 
+        /* ============================================
+           Grille de projets — Mobile-first
+           ============================================ */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Tablette : 1 colonne jusqu'à 600px, puis 2 colonnes */
+        @media (min-width: 600px) {
+            .projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--space-lg);
+            }
+        }
+
+        /* Très grands écrans : max 3 colonnes */
+        @media (min-width: 1400px) {
+            .projects-grid {
+                grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            }
         }
 
         .project-card {
-            background: white;
+            background: var(--bg-color);
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
             transition: var(--transition);
             border: 1px solid var(--medium-gray);
+            display: flex;
+            flex-direction: column;
         }
 
-        .project-card:hover {
+        .project-card:hover,
+        .project-card:focus-within {
             transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-md);
         }
 
         .project-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 25px;
+            color: #fff;
+            padding: var(--space-md);
             text-align: center;
         }
 
         .project-header i {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
+            font-size: clamp(2rem, 6vw, 2.5rem);
+            margin-bottom: clamp(0.5rem, 2vw, 1rem);
+            display: block;
         }
 
         .project-header h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            margin-bottom: clamp(0.4rem, 1.5vw, 0.6rem);
+            line-height: 1.3;
+        }
+
+        .project-header p {
+            font-size: clamp(0.85rem, 2.5vw, 1rem);
+            opacity: 0.95;
+            line-height: 1.4;
         }
 
         .project-body {
-            padding: 25px;
+            padding: var(--space-md);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
 
         .project-description {
-            margin-bottom: 20px;
+            margin-bottom: var(--space-md);
             color: var(--dark-gray);
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            line-height: 1.6;
         }
 
         .project-features {
-            margin-bottom: 25px;
+            margin-bottom: var(--space-md);
         }
 
         .project-features h4 {
-            margin-bottom: 10px;
+            margin-bottom: clamp(0.5rem, 2vw, 0.75rem);
             color: var(--primary-color);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+            flex-wrap: wrap;
         }
 
         .feature-list {
@@ -144,11 +324,13 @@
         }
 
         .feature-list li {
-            padding: 8px 0;
+            padding: clamp(0.4rem, 1.5vw, 0.6rem) 0;
             border-bottom: 1px solid var(--medium-gray);
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 0.625rem;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+            line-height: 1.5;
         }
 
         .feature-list li:last-child {
@@ -157,330 +339,402 @@
 
         .feature-list i {
             color: var(--primary-color);
+            flex-shrink: 0;
+            margin-top: 0.2rem;
         }
 
+        /* ============================================
+           Boutons — Cible tactile ≥ 44px
+           ============================================ */
         .btn {
-            padding: 15px 25px;
+            padding: clamp(0.75rem, 2.5vw, 1rem) clamp(1rem, 4vw, 1.5rem);
             border: none;
             border-radius: var(--border-radius);
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(0.95rem, 2vw, 1rem);
             font-weight: 500;
             transition: var(--transition);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 0.625rem;
             width: 100%;
             text-decoration: none;
+            margin-top: auto;
+            min-height: 44px; /* Cible tactile recommandée */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .btn-primary {
             background: var(--primary-color);
-            color: white;
+            color: #fff;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover,
+        .btn-primary:focus-visible {
             background: var(--primary-hover);
             transform: translateY(-2px);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-secondary {
             background: var(--secondary-color);
-            color: white;
+            color: #fff;
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover,
+        .btn-secondary:focus-visible {
             background: var(--secondary-hover);
             transform: translateY(-2px);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
         }
 
+        /* ============================================
+           Section d'information
+           ============================================ */
         .info-section {
             background: var(--light-gray);
-            padding: 30px;
+            padding: var(--space-md);
             border-radius: var(--border-radius);
-            margin-top: 40px;
+            margin-top: var(--space-lg);
             border: 1px solid var(--medium-gray);
         }
 
         .info-section h2 {
             color: var(--primary-color);
-            margin-bottom: 20px;
+            margin-bottom: clamp(1rem, 3vw, 1.5rem);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.625rem;
+            font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+            flex-wrap: wrap;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+
+        @media (min-width: 600px) {
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--space-md);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .info-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
 
         .info-item {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: var(--space-sm);
+            padding: var(--space-sm);
+            background: var(--bg-color);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .info-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
         }
 
         .info-icon {
-            width: 50px;
-            height: 50px;
+            width: clamp(40px, 10vw, 50px);
+            height: clamp(40px, 10vw, 50px);
             border-radius: 50%;
             background: var(--primary-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.2rem;
+            color: #fff;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            flex-shrink: 0;
         }
 
         .info-text h4 {
-            margin-bottom: 5px;
+            margin-bottom: 0.25rem;
             color: var(--dark-gray);
+            font-size: clamp(0.9rem, 2vw, 1rem);
         }
 
         .info-text p {
             color: var(--neutral-color);
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            line-height: 1.4;
         }
 
+        /* ============================================
+           Pied de page
+           ============================================ */
         footer {
             text-align: center;
-            padding: 20px;
+            padding: var(--space-md);
             color: var(--dark-gray);
             border-top: 1px solid var(--medium-gray);
-            margin-top: 40px;
+            margin-top: var(--space-lg);
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
         }
 
-        /* Styles pour les écrans mobiles (jusqu'à 480px) */
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
+        /* ============================================
+           Très petits écrans (≤ 360px)
+           ============================================ */
+        @media (max-width: 360px) {
+            body { padding: 0; }
+
+            .container {
+                border-radius: 0;
             }
-            
+
             .header {
-                padding: 25px 20px;
+                padding: var(--space-md) var(--space-sm);
             }
-            
-            .header h1 {
+
+            .content {
+                padding: var(--space-md) var(--space-sm);
+            }
+
+            .project-header i {
                 font-size: 1.8rem;
             }
-            
-            .header p {
-                font-size: 1rem;
-            }
-            
-            .content {
-                padding: 25px 20px;
-            }
-            
-            .section-title {
-                font-size: 1.5rem;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 5px;
-            }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .project-header {
-                padding: 20px;
-            }
-            
-            .project-header i {
-                font-size: 2rem;
-            }
-            
-            .project-header h3 {
-                font-size: 1.3rem;
-            }
-            
-            .project-body {
-                padding: 20px;
-            }
-            
+
             .feature-list li {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
-            
-            .btn {
-                padding: 12px 20px;
-                font-size: 15px;
-            }
-            
-            .info-section {
-                padding: 20px;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
+
+            /* Réduire la taille de l'icône dans la section info */
             .info-item {
                 flex-direction: column;
                 text-align: center;
-                gap: 10px;
+                gap: 0.5rem;
             }
-            
+
             .info-icon {
-                width: 45px;
-                height: 45px;
+                width: 40px;
+                height: 40px;
                 font-size: 1rem;
             }
-            
-            footer {
-                padding: 15px;
-                font-size: 0.9rem;
-            }
         }
 
-        /* Styles pour les tablettes et écrans moyens (481px à 768px) */
-        @media (min-width: 481px) and (max-width: 768px) {
+        /* ============================================
+           Orientation paysage sur mobile
+           ============================================ */
+        @media (max-width: 900px) and (orientation: landscape) {
             .header {
-                padding: 30px 25px;
+                padding: var(--space-md) var(--space-lg);
             }
-            
+
             .header h1 {
-                font-size: 2.2rem;
+                font-size: clamp(1.4rem, 4vw, 1.8rem);
+                margin-bottom: 0.5rem;
             }
-            
+
+            .header p {
+                font-size: clamp(0.9rem, 2vw, 1rem);
+            }
+
             .content {
-                padding: 30px 25px;
+                padding: var(--space-md) var(--space-lg);
             }
-            
-            .projects-grid {
-                grid-template-columns: 1fr;
-                gap: 25px;
-            }
-            
-            .project-header {
-                padding: 22px;
-            }
-            
-            .project-body {
-                padding: 22px;
-            }
-            
-            .info-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .info-item {
-                flex-direction: column;
-                text-align: center;
-                gap: 12px;
+
+            /* En paysage, afficher les cartes côte à côte si largeur suffisante */
+            @media (min-width: 640px) {
+                .projects-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: var(--space-md);
+                }
             }
         }
 
-        /* Styles pour les écrans plus larges (769px à 1024px) */
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .container {
-                max-width: 95%;
-            }
-            
-            .projects-grid {
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-                gap: 25px;
-            }
-            
-            .info-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Styles pour les grands écrans (1025px et plus) */
+        /* ============================================
+           Grands écrans (≥ 1025px)
+           ============================================ */
         @media (min-width: 1025px) {
-            .container {
-                max-width: 1200px;
+            .container { max-width: var(--max-width); }
+
+            .header {
+                padding: var(--space-xl) var(--space-lg);
+            }
+
+            .content {
+                padding: var(--space-xl) var(--space-lg);
+            }
+        }
+
+        /* ============================================
+           Ultra-larges (≥ 1920px) — Limiter la largeur
+           ============================================ */
+        @media (min-width: 1920px) {
+            :root {
+                --max-width: 1400px;
+            }
+
+            body {
+                font-size: 18px;
+            }
+
+            .header h1 {
+                font-size: 3rem;
+            }
+        }
+
+        /* ============================================
+           Accessibilité — Mouvement réduit
+           ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            .project-card:hover,
+            .project-card:focus-within,
+            .info-item:hover,
+            .btn-primary:hover,
+            .btn-secondary:hover {
+                transform: none;
+            }
+        }
+
+        /* ============================================
+           Impression
+           ============================================ */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+                color: #000;
+            }
+
+            .btn,
+            .skip-link {
+                display: none;
+            }
+
+            .project-card,
+            .info-item {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+
+            .header {
+                background: none;
+                color: #000;
+                border-bottom: 2px solid #000;
+            }
+        }
+
+        /* ============================================
+           Conteneurs de requêtes (container queries)
+           Pour les navigateurs modernes
+           ============================================ */
+        @supports (container-type: inline-size) {
+            .projects-grid {
+                container-type: inline-size;
+            }
+
+            /* Adapter les cartes à la largeur du conteneur parent */
+            @container (min-width: 800px) {
+                .project-card {
+                    border-radius: 12px;
+                }
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-graduation-cap"></i> Projet Gestion Scolaire</h1>
-            <p>Une solution complète pour la gestion des emplois du temps et des commandes de matériel scolaire</p>
-        </div>
+    <a href="#contenu" class="skip-link">Aller au contenu principal</a>
 
-        <div class="content">
-            <h2 class="section-title">
-                <i class="fas fa-rocket"></i>
-                Applications Disponibles
-            </h2>
-            
-            <div class="projects-grid">
-                <!-- Carte pour EOP - Gestion d'emploi du temps -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <i class="fas fa-calendar-alt"></i>
-                        <h3>Gestion d'Emploi du Temps</h3>
-                        <p>Application complète de gestion scolaire</p>
-                    </div>
-                    <div class="project-body">
-                        <div class="project-description">
-                            <p>Une application web complète permettant de créer, gérer et visualiser les emplois du temps pour les établissements scolaires.</p>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-graduation-cap" aria-hidden="true"></i> Projet Gestion Scolaire</h1>
+            <p>Une solution complète pour la gestion des emplois du temps et des commandes de matériel scolaire.</p>
+        </header>
+
+        <main class="content" id="contenu">
+            <section aria-labelledby="titre-applications">
+                <h2 class="section-title" id="titre-applications">
+                    <i class="fas fa-rocket" aria-hidden="true"></i>
+                    Applications disponibles
+                </h2>
+
+                <div class="projects-grid">
+                    <!-- Carte EOP — Gestion d'emploi du temps -->
+                    <article class="project-card">
+                        <div class="project-header">
+                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                            <h3>Gestion d'emploi du temps</h3>
+                            <p>Application complète de gestion scolaire</p>
                         </div>
-                        
-                        <div class="project-features">
-                            <h4><i class="fas fa-star"></i> Fonctionnalités principales</h4>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Répartition automatique des horaires</li>
-                                <li><i class="fas fa-check"></i> Saisie manuelle des cours</li>
-                                <li><i class="fas fa-check"></i> Visualisation par enseignant ou classe</li>
-                                <li><i class="fas fa-check"></i> Exportation et importation des données</li>
-                                <li><i class="fas fa-check"></i> Interface d'administration sécurisée</li>
-                            </ul>
+                        <div class="project-body">
+                            <div class="project-description">
+                                <p>Une application web complète permettant de créer, gérer et visualiser les emplois du temps pour les établissements scolaires.</p>
+                            </div>
+
+                            <div class="project-features">
+                                <h4><i class="fas fa-star" aria-hidden="true"></i> Fonctionnalités principales</h4>
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Répartition automatique des horaires</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Saisie manuelle des cours</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Visualisation par enseignant ou classe</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Exportation et importation des données</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Interface d'administration sécurisée</li>
+                                </ul>
+                            </div>
+
+                            <a href="EOP.html" class="btn btn-primary" aria-label="Visiter le projet de gestion d'emploi du temps">
+                                <i class="fas fa-external-link-alt" aria-hidden="true"></i> Visiter le projet
+                            </a>
                         </div>
-                        
-                        <a href="EOP.html" class="btn btn-primary">
-                            <i class="fas fa-external-link-alt"></i> Visiter le projet
-                        </a>
-                    </div>
+                    </article>
+
+                    <!-- Carte EOPF — Formulaire de commande -->
+                    <article class="project-card">
+                        <div class="project-header">
+                            <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                            <h3>Formulaire de commande</h3>
+                            <p>Gestion des commandes de matériel scolaire&nbsp;: 5 000 FCFA (Collège) et 10 000 FCFA (Complexe) par année scolaire.</p>
+                        </div>
+                        <div class="project-body">
+                            <div class="project-description">
+                                <p>Un formulaire intuitif permettant aux établissements scolaires de commander facilement leur matériel pédagogique.</p>
+                            </div>
+
+                            <div class="project-features">
+                                <h4><i class="fas fa-star" aria-hidden="true"></i> Fonctionnalités principales</h4>
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Sélection par cycle (Collège / Lycée)</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Calcul automatique des quantités</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Récapitulatif détaillé de commande</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Envoi direct via WhatsApp</li>
+                                    <li><i class="fas fa-check" aria-hidden="true"></i> Interface responsive et intuitive</li>
+                                </ul>
+                            </div>
+
+                            <a href="EOPF.html" class="btn btn-secondary" aria-label="Accéder au formulaire de commande">
+                                <i class="fas fa-external-link-alt" aria-hidden="true"></i> Accéder au formulaire
+                            </a>
+                        </div>
+                    </article>
                 </div>
-                
-                <!-- Carte pour EOPF - Formulaire de commande -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <i class="fas fa-shopping-cart"></i>
-                        <h3>Formulaire de Commande</h3>
-                        <p>Gestion des commandes de matériel scolaire (5000 FCFA:Collège et 10.000 FCA: Complexe) par année scolaire </p>
-                    </div>
-                    <div class="project-body">
-                        <div class="project-description">
-                            <p>Un formulaire intuitif permettant aux établissements scolaires de commander facilement leur matériel pédagogique.</p>
-                        </div>
-                        
-                        <div class="project-features">
-                            <h4><i class="fas fa-star"></i> Fonctionnalités principales</h4>
-                            <ul class="feature-list">
-                                <li><i class="fas fa-check"></i> Sélection par cycle (Collège/Lycée)</li>
-                                <li><i class="fas fa-check"></i> Calcul automatique des quantités</li>
-                                <li><i class="fas fa-check"></i> Récapitulatif détaillé de commande</li>
-                                <li><i class="fas fa-check"></i> Envoi direct via WhatsApp</li>
-                                <li><i class="fas fa-check"></i> Interface responsive et intuitive</li>
-                            </ul>
-                        </div>
-                        
-                        <a href="EOPF.html" class="btn btn-secondary">
-                            <i class="fas fa-external-link-alt"></i> Accéder au formulaire
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-section">
-                <h2><i class="fas fa-info-circle"></i> À propos de ce projet</h2>
+            </section>
+
+            <section class="info-section" aria-labelledby="titre-a-propos">
+                <h2 id="titre-a-propos"><i class="fas fa-info-circle" aria-hidden="true"></i> À propos de ce projet</h2>
                 <div class="info-grid">
                     <div class="info-item">
-                        <div class="info-icon">
+                        <div class="info-icon" aria-hidden="true">
                             <i class="fas fa-laptop-code"></i>
                         </div>
                         <div class="info-text">
@@ -488,19 +742,19 @@
                             <p>HTML5, CSS3, JavaScript, Font Awesome</p>
                         </div>
                     </div>
-                    
+
                     <div class="info-item">
-                        <div class="info-icon">
+                        <div class="info-icon" aria-hidden="true">
                             <i class="fas fa-mobile-alt"></i>
                         </div>
                         <div class="info-text">
-                            <h4>Design Responsive</h4>
+                            <h4>Design responsive</h4>
                             <p>Compatible avec tous les appareils</p>
                         </div>
                     </div>
-                    
+
                     <div class="info-item">
-                        <div class="info-icon">
+                        <div class="info-icon" aria-hidden="true">
                             <i class="fas fa-shield-alt"></i>
                         </div>
                         <div class="info-text">
@@ -508,9 +762,9 @@
                             <p>Interface d'administration protégée</p>
                         </div>
                     </div>
-                    
+
                     <div class="info-item">
-                        <div class="info-icon">
+                        <div class="info-icon" aria-hidden="true">
                             <i class="fas fa-user-friends"></i>
                         </div>
                         <div class="info-text">
@@ -519,12 +773,17 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
+            </section>
+        </main>
+
         <footer>
-            <p>&copy; 2024 - Projet Gestion Scolaire | Tous droits réservés</p>
+            <p>&copy; <span id="annee-courante">2024</span> — Projet Gestion Scolaire | Tous droits réservés</p>
         </footer>
     </div>
+
+    <script>
+        // Mise à jour automatique de l'année dans le pied de page
+        document.getElementById('annee-courante').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
