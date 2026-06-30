@@ -38,407 +38,6 @@
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "Any"
     }
-
-        // ============================================
-        // MODAL DE CONFIRMATION PERSONNALISÉ
-        // ============================================
-        let confirmCallback = null;
-
-        function showConfirmModal(message, title, onConfirm) {
-            const modal = document.getElementById('confirmModal');
-            const messageEl = document.getElementById('confirmModalMessage');
-            const titleEl = document.querySelector('#confirmModalTitle span');
-
-            messageEl.textContent = message;
-            if (title) titleEl.textContent = title;
-            else titleEl.textContent = 'Confirmation';
-
-            confirmCallback = onConfirm;
-            modal.classList.add('active');
-
-            // Focus sur le bouton Annuler pour sécurité
-            setTimeout(() => {
-                document.getElementById('confirmModalCancel').focus();
-            }, 50);
-        }
-
-        function closeConfirmModal(confirmed) {
-            const modal = document.getElementById('confirmModal');
-            modal.classList.remove('active');
-            if (confirmed && typeof confirmCallback === 'function') {
-                const cb = confirmCallback;
-                confirmCallback = null;
-                cb();
-            } else {
-                confirmCallback = null;
-            }
-        }
-
-        // ============================================
-        // MODAL D'AIDE
-        // ============================================
-        function openHelpModal() {
-            const modal = document.getElementById('helpModal');
-            modal.classList.add('active');
-            setTimeout(() => {
-                const closeBtn = modal.querySelector('.modal-close');
-                if (closeBtn) closeBtn.focus();
-            }, 50);
-        }
-
-        function closeHelpModal() {
-            document.getElementById('helpModal').classList.remove('active');
-        }
-
-        // ============================================
-        // PIÈGE DE FOCUS DANS LES MODALS (accessibilité)
-        // ============================================
-        function trapFocusInModal(modal) {
-            if (!modal) return;
-            modal.addEventListener('keydown', (e) => {
-                if (e.key !== 'Tab') return;
-                const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-                if (focusable.length === 0) return;
-                const first = focusable[0];
-                const last = focusable[focusable.length - 1];
-                if (e.shiftKey && document.activeElement === first) {
-                    e.preventDefault();
-                    last.focus();
-                } else if (!e.shiftKey && document.activeElement === last) {
-                    e.preventDefault();
-                    first.focus();
-                }
-            });
-        }
-
-        // ============================================
-        // RACCOURCIS CLAVIER
-        // ============================================
-        function handleKeyboardShortcuts(e) {
-            // Ignorer si l'utilisateur tape dans un champ
-            const target = e.target;
-            const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
-
-            // Alt + 1-7 : navigation entre onglets
-            if (e.altKey && !e.ctrlKey && !e.shiftKey) {
-                const tabMap = {
-                    '1': 'dashboard',
-                    '2': 'configuration',
-                    '3': 'distribution',
-                    '4': 'manual',
-                    '5': 'devoir',
-                    '6': 'timetable',
-                    '7': 'all-data'
-                };
-                if (tabMap[e.key] && localStorage.getItem('isAuthenticated') === 'true') {
-                    e.preventDefault();
-                    switchTab(tabMap[e.key]);
-                    return;
-                }
-            }
-
-            // Ctrl+L : déconnexion
-            if (e.ctrlKey && !e.shiftKey && (e.key === 'l' || e.key === 'L')) {
-                if (localStorage.getItem('isAuthenticated') === 'true') {
-                    e.preventDefault();
-                    logout();
-                    return;
-                }
-            }
-
-            // Ctrl+E : export JSON
-            if (e.ctrlKey && !e.shiftKey && (e.key === 'e' || e.key === 'E')) {
-                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
-                    e.preventDefault();
-                    exportData();
-                    return;
-                }
-            }
-
-            // Ctrl+Shift+E : export CSV
-            if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
-                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
-                    e.preventDefault();
-                    exportDataCSV();
-                    return;
-                }
-            }
-
-            // Ctrl+P : imprimer (si sur l'onglet visualisation)
-            if (e.ctrlKey && !e.shiftKey && (e.key === 'p' || e.key === 'P')) {
-                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
-                    const activeTab = document.querySelector('.tab-content.active');
-                    if (activeTab && activeTab.id === 'timetable-tab') {
-                        e.preventDefault();
-                        printTimetable();
-                        return;
-                    }
-                }
-            }
-
-            // ? : aide
-            if (e.key === '?' && !isTyping && !e.ctrlKey && !e.altKey) {
-                e.preventDefault();
-                openHelpModal();
-                return;
-            }
-
-            // Échap : fermer les modals
-            if (e.key === 'Escape') {
-                if (document.getElementById('confirmModal').classList.contains('active')) {
-                    closeConfirmModal(false);
-                }
-                if (document.getElementById('helpModal').classList.contains('active')) {
-                    closeHelpModal();
-                }
-            }
-        }
-
-        // ============================================
-        // RECHERCHE RAPIDE
-        // ============================================
-        function clearQuickSearch() {
-            const searchInput = document.getElementById('quickSearch');
-            if (searchInput) {
-                searchInput.value = '';
-                document.getElementById('clearSearchBtn').classList.remove('visible');
-                displayAllData();
-                searchInput.focus();
-            }
-        }
-
-        function getQuickSearchQuery() {
-            const input = document.getElementById('quickSearch');
-            return input ? input.value.trim().toLowerCase() : '';
-        }
-
-        // ============================================
-        // EXPORT CSV
-        // ============================================
-        function exportDataCSV() {
-            const courses = getCourses();
-            if (courses.length === 0) {
-                showNotification('Aucune donnée à exporter', 'warning');
-                return;
-            }
-
-            // En-têtes CSV
-            const headers = ['ID', 'Enseignant', 'Classe', 'Cycle', 'Matière', 'Type', 'Jour', 'Créneau', 'Période'];
-
-            // Fonction d'échappement CSV
-            function csvEscape(value) {
-                if (value === null || value === undefined) return '""';
-                const str = String(value);
-                if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes(';')) {
-                    return '"' + str.replace(/"/g, '""') + '"';
-                }
-                return '"' + str + '"';
-            }
-
-            // Construction des lignes
-            let csvContent = headers.map(csvEscape).join(';') + '\n';
-            courses.forEach(course => {
-                const row = [
-                    course.id || '',
-                    course.teacherName || '',
-                    course.className || '',
-                    course.cycle || '',
-                    course.subject || '',
-                    course.activityType || '',
-                    course.day || '',
-                    course.timeSlot || '',
-                    course.timePeriod || ''
-                ];
-                csvContent += row.map(csvEscape).join(';') + '\n';
-            });
-
-            // BOM pour Excel (UTF-8)
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `emploi_du_temps_${new Date().toISOString().slice(0,10)}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            showNotification(`${courses.length} cours exportés en CSV`);
-        }
-
-        // ============================================
-        // DÉTECTION DE CONFLITS D'ENSEIGNANTS
-        // ============================================
-        function checkTeacherConflict(teacherName, day, timeSlot, excludeId) {
-            if (!teacherName || !day || !timeSlot) return null;
-            const courses = getCourses();
-            const conflict = courses.find(c =>
-                c.teacherName &&
-                c.teacherName.toLowerCase() === teacherName.toLowerCase() &&
-                c.day === day &&
-                c.timeSlot === timeSlot &&
-                c.id !== excludeId
-            );
-            return conflict || null;
-        }
-
-        function checkManualConflicts() {
-            const teacherName = document.getElementById('teacherName').value.trim();
-            const timeSlot = document.getElementById('manualTimeSlot').value;
-            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
-            const warningDiv = document.getElementById('conflictWarning');
-            const warningText = document.getElementById('conflictWarningText');
-
-            if (!warningDiv || !warningText) return;
-
-            if (!teacherName || !timeSlot || selectedDays.length === 0) {
-                warningDiv.classList.add('hidden');
-                return;
-            }
-
-            const conflicts = [];
-            selectedDays.forEach(day => {
-                const conflict = checkTeacherConflict(teacherName, day, timeSlot);
-                if (conflict) {
-                    conflicts.push({ day, conflict });
-                }
-            });
-
-            if (conflicts.length > 0) {
-                const dayList = conflicts.map(c => c.day).join(', ');
-                warningText.textContent = `Attention : ${teacherName} a déjà un cours le ${dayList} à ${timeSlot}. Conflit possible.`;
-                warningDiv.classList.remove('hidden');
-            } else {
-                warningDiv.classList.add('hidden');
-            }
-        }
-
-        // ============================================
-        // STATISTIQUES AVANCÉES DU DASHBOARD
-        // ============================================
-        function updateAdvancedStats() {
-            const courses = getCourses();
-            if (courses.length === 0) {
-                document.getElementById('statsByCycle').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
-                document.getElementById('statsByActivity').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
-                document.getElementById('statsByDay').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
-                document.getElementById('statsTopTeachers').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
-                return;
-            }
-
-            // Couleurs pour les graphiques
-            const colors = {
-                college: '#2196F3',
-                lycee: '#FF9800',
-                Cours: '#4CAF50',
-                DEVOIR: '#9C27B0',
-                TD: '#2196F3',
-                TP: '#FF9800',
-                TM: '#795548'
-            };
-
-            // 1. Répartition par cycle
-            const cycleStats = {};
-            courses.forEach(c => {
-                const cycle = c.cycle || 'Non défini';
-                cycleStats[cycle] = (cycleStats[cycle] || 0) + 1;
-            });
-            const maxCycle = Math.max(...Object.values(cycleStats), 1);
-            let cycleHTML = '';
-            Object.entries(cycleStats).sort((a, b) => b[1] - a[1]).forEach(([cycle, count]) => {
-                const percent = Math.round((count / maxCycle) * 100);
-                const color = cycle === 'Collège' ? colors.college : (cycle === 'Lycée' ? colors.lycee : '#607d8b');
-                cycleHTML += `
-                    <div class="stat-row">
-                        <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(cycle)}</span>
-                        <span class="stat-value">${count}</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('statsByCycle').innerHTML = cycleHTML;
-
-            // 2. Répartition par type d'activité
-            const activityStats = {};
-            courses.forEach(c => {
-                const activity = c.activityType || 'Autre';
-                activityStats[activity] = (activityStats[activity] || 0) + 1;
-            });
-            const maxActivity = Math.max(...Object.values(activityStats), 1);
-            let activityHTML = '';
-            Object.entries(activityStats).sort((a, b) => b[1] - a[1]).forEach(([activity, count]) => {
-                const percent = Math.round((count / maxActivity) * 100);
-                const color = colors[activity] || '#607d8b';
-                activityHTML += `
-                    <div class="stat-row">
-                        <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(activity)}</span>
-                        <span class="stat-value">${count}</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('statsByActivity').innerHTML = activityHTML;
-
-            // 3. Cours par jour
-            const dayStats = {};
-            const dayOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-            dayOrder.forEach(d => dayStats[d] = 0);
-            courses.forEach(c => {
-                if (dayStats[c.day] !== undefined) dayStats[c.day]++;
-            });
-            const maxDay = Math.max(...Object.values(dayStats), 1);
-            let dayHTML = '';
-            dayOrder.forEach(day => {
-                const count = dayStats[day];
-                const percent = Math.round((count / maxDay) * 100);
-                dayHTML += `
-                    <div class="stat-row">
-                        <span class="stat-label">${escapeHtml(day)}</span>
-                        <span class="stat-value">${count}</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill" style="width: ${percent}%; background: var(--primary-color);">${count}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('statsByDay').innerHTML = dayHTML;
-
-            // 4. Top 5 enseignants
-            const teacherStats = {};
-            courses.forEach(c => {
-                const teacher = c.teacherName || 'Inconnu';
-                teacherStats[teacher] = (teacherStats[teacher] || 0) + 1;
-            });
-            const topTeachers = Object.entries(teacherStats)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
-            const maxTeacher = topTeachers.length > 0 ? topTeachers[0][1] : 1;
-            let teacherHTML = '';
-            if (topTeachers.length === 0) {
-                teacherHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;">Aucun enseignant</p>';
-            } else {
-                topTeachers.forEach(([teacher, count], index) => {
-                    const percent = Math.round((count / maxTeacher) * 100);
-                    const colors5 = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
-                    const color = colors5[index] || '#607d8b';
-                    teacherHTML += `
-                        <div class="stat-row">
-                            <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(teacher)}</span>
-                            <span class="stat-value">${count} cours</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
-                        </div>
-                    `;
-                });
-            }
-            document.getElementById('statsTopTeachers').innerHTML = teacherHTML;
-        }
-
     </script>
 
     <style>
@@ -2754,9 +2353,16 @@
                                 </select>
                             </div>
 
-                            <button type="button" class="btn btn-primary" onclick="generateDistribution()">
-                                <i class="fas fa-cogs"></i> Générer la répartition
-                            </button>
+                            <div class="form-group">
+                                <div class="data-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-primary" onclick="generateDistribution()">
+                                        <i class="fas fa-cogs"></i> Générer la répartition
+                                    </button>
+                                    <button type="button" class="btn btn-warning" onclick="resetDistributionForm()" aria-label="Réinitialiser le formulaire">
+                                        <i class="fas fa-undo"></i> Réinitialiser le formulaire
+                                    </button>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -2767,9 +2373,17 @@
                     </div>
                     <div class="card-body">
                         <div id="distributionTableContainer"></div>
-                        <button class="btn btn-secondary" onclick="saveDistribution()">
-                            <i class="fas fa-save"></i> Enregistrer dans l'emploi du temps
-                        </button>
+                        <div class="data-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                            <button class="btn btn-secondary" onclick="saveDistribution()">
+                                <i class="fas fa-save"></i> Enregistrer dans l'emploi du temps
+                            </button>
+                            <button class="btn btn-neutral" onclick="resetDistributionResults()" aria-label="Effacer les résultats">
+                                <i class="fas fa-eraser"></i> Effacer les résultats
+                            </button>
+                            <button class="btn btn-danger" onclick="removeClassCourses()" aria-label="Supprimer les cours de cette classe">
+                                <i class="fas fa-trash"></i> Supprimer les cours existants de cette classe
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -2871,10 +2485,10 @@
                 <div class="devoir-info-card">
                     <h3><i class="fas fa-calendar-check"></i> Programmation Automatique des DEVOIR Surveillés</h3>
                     <p>Générez automatiquement la programmation des devoirs pour les classes avec répartition des surveillants.</p>
-                    <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront dans une matière le même jour, mais pas nécessairement la même matière pour chaque classe.</p>
+                    <p><strong>Principe :</strong> Toutes les classes composent chacune une matière le même jour, même si ce n'est pas la même matière dans toutes les classes.</p>
                     <p><strong>Durée des DEVOIR :</strong> Collège = 2h, Lycée = 3h</p>
-                    <p><strong>Éviter les répétitions :</strong> Une même matière ne sera pas répétée le même jour pour différentes classes.</p>
-                    <p><strong>Éviter les répétitions dans la même classe :</strong> Une même matière ne sera pas répétée dans la même classe pendant toute la période de programmation.</p>
+                    <p><strong>Pas de répétition intra-classe :</strong> Une même matière ne sera pas répétée dans la même classe pendant toute la période de programmation (sauf si toutes les matières ont déjà été utilisées).</p>
+                    <p><strong>Matières différentes possibles :</strong> Deux classes différentes peuvent composer la même matière le même jour.</p>
                 </div>
 
                 <div class="card">
@@ -3029,11 +2643,41 @@
                             </button>
                             <input type="file" id="fileInput" accept=".json" onchange="importData(this)" class="sr-only">
                             <button class="btn btn-danger delete-btn" onclick="clearAllData()">
-                                <i class="fas fa-trash"></i> Supprimer toutes les données
+                                <i class="fas fa-trash"></i> Tout supprimer
                             </button>
                             <button class="btn btn-neutral" onclick="printTimetable()">
                                 <i class="fas fa-print"></i> Imprimer l'emploi du temps
                             </button>
+                        </div>
+
+                        <!-- Zone de réinitialisation ciblée -->
+                        <div class="card" style="margin-top: 20px; background: var(--light-gray); border: 1px dashed var(--medium-gray);">
+                            <div class="card-body" style="padding: 15px;">
+                                <h4 style="margin-bottom: 10px; color: var(--danger-color); display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-eraser" aria-hidden="true"></i> Réinitialisation ciblée
+                                </h4>
+                                <p style="margin-bottom: 12px; font-size: 0.9rem; color: var(--text-muted);">Supprimez une partie spécifique de l'emploi du temps sans tout effacer.</p>
+                                <div class="data-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-danger btn-sm" onclick="resetTimetableByClass()" aria-label="Réinitialiser par classe">
+                                        <i class="fas fa-users" aria-hidden="true"></i> Par classe
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="resetTimetableByCycle()" aria-label="Réinitialiser par cycle">
+                                        <i class="fas fa-layer-group" aria-hidden="true"></i> Par cycle
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="resetTimetableByTeacher()" aria-label="Réinitialiser par enseignant">
+                                        <i class="fas fa-user-tie" aria-hidden="true"></i> Par enseignant
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="resetTimetableByDay()" aria-label="Réinitialiser par jour">
+                                        <i class="fas fa-calendar-day" aria-hidden="true"></i> Par jour
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="resetTimetableByActivityType()" aria-label="Réinitialiser par type d'activité">
+                                        <i class="fas fa-tasks" aria-hidden="true"></i> Par type d'activité
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="resetTimetableByPeriod()" aria-label="Réinitialiser par période">
+                                        <i class="fas fa-sun" aria-hidden="true"></i> Par période (matin/après-midi)
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="view-options no-print">
@@ -3283,8 +2927,751 @@
         </main>
     </div>
 
+
+    <!-- Modal de confirmation personnalisé -->
+    <div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle"><i class="fas fa-question-circle" aria-hidden="true"></i> <span>Confirmation</span></h3>
+                <button type="button" class="modal-close" onclick="closeConfirmModal(false)" aria-label="Fermer">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-neutral" id="confirmModalCancel" onclick="closeConfirmModal(false)">
+                    <i class="fas fa-times" aria-hidden="true"></i> Annuler
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmModalOk" onclick="closeConfirmModal(true)">
+                    <i class="fas fa-check" aria-hidden="true"></i> Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'aide (raccourcis clavier) -->
+    <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 id="helpModalTitle"><i class="fas fa-keyboard" aria-hidden="true"></i> Aide &amp; Raccourcis clavier</h3>
+                <button type="button" class="modal-close" onclick="closeHelpModal()" aria-label="Fermer">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h4 style="margin-bottom: 10px; color: var(--primary-color);"><i class="fas fa-bolt" aria-hidden="true"></i> Raccourcis de navigation</h4>
+                <ul class="shortcut-list">
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>1</kbd></span> Tableau de bord</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>2</kbd></span> Configuration</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>3</kbd></span> Répartition Auto</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>4</kbd></span> Saisie Manuelle</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>5</kbd></span> Programmation DEVOIR</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>6</kbd></span> Visualisation</li>
+                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>7</kbd></span> Toutes les données</li>
+                </ul>
+
+                <h4 style="margin: 20px 0 10px; color: var(--primary-color);"><i class="fas fa-tools" aria-hidden="true"></i> Actions rapides</h4>
+                <ul class="shortcut-list">
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>E</kbd></span> Exporter (JSON)</li>
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd></span> Exporter (CSV)</li>
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>P</kbd></span> Imprimer l'emploi du temps</li>
+                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>L</kbd></span> Se déconnecter</li>
+                    <li><span class="shortcut-keys"><kbd>?</kbd></span> Afficher cette aide</li>
+                    <li><span class="shortcut-keys"><kbd>Échap</kbd></span> Fermer une fenêtre modale</li>
+                </ul>
+
+                <h4 style="margin: 20px 0 10px; color: var(--primary-color);"><i class="fas fa-info-circle" aria-hidden="true"></i> Conseils d'utilisation</h4>
+                <ul style="padding-left: 20px; line-height: 1.8;">
+                    <li>Configurez d'abord les <strong>matières par classe</strong> avant la répartition automatique.</li>
+                    <li>Le <strong>mercredi après-midi</strong> est réservé (aucun cours).</li>
+                    <li>Les <strong>mardi et vendredi après-midi</strong> sont réservés aux DEVOIR uniquement.</li>
+                    <li>Utilisez l'export régulier pour <strong>sauvegarder vos données</strong>.</li>
+                    <li>La détection de <strong>conflits d'enseignants</strong> est automatique lors de la saisie.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeHelpModal()">
+                    <i class="fas fa-check" aria-hidden="true"></i> J'ai compris
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton d'aide flottant -->
+    <button type="button" class="help-fab" onclick="openHelpModal()" aria-label="Afficher l'aide et les raccourcis clavier" title="Aide (?)">
+        <i class="fas fa-question" aria-hidden="true"></i>
+    </button>
+
     <script>
         'use strict';
+
+        // ============================================
+        // MODAL DE CONFIRMATION PERSONNALISÉ
+        // ============================================
+        let confirmCallback = null;
+        let selectionCallback = null;
+
+        function showConfirmModal(message, title, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const titleEl = document.querySelector('#confirmModalTitle span');
+            const okBtn = document.getElementById('confirmModalOk');
+
+            messageEl.textContent = message;
+            if (title) titleEl.textContent = title;
+            else titleEl.textContent = 'Confirmation';
+
+            // Réafficher le bouton OK (au cas où il aurait été masqué)
+            if (okBtn) okBtn.style.display = '';
+
+            // Effacer l'éventuel selectionCallback précédent
+            selectionCallback = null;
+            confirmCallback = onConfirm;
+
+            modal.classList.add('active');
+
+            // Focus sur le bouton Annuler pour sécurité
+            setTimeout(() => {
+                const cancelBtn = document.getElementById('confirmModalCancel');
+                if (cancelBtn) cancelBtn.focus();
+            }, 50);
+        }
+
+        function closeConfirmModal(confirmed) {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+
+            // Mode sélection (showSelectionModal)
+            if (confirmed && typeof selectionCallback === 'function') {
+                const cb = selectionCallback;
+                // Si le callback retourne false, on garde le modal ouvert (validation échouée)
+                const result = cb();
+                if (result === false) {
+                    modal.classList.add('active');
+                    return;
+                }
+                selectionCallback = null;
+                return;
+            }
+
+            // Mode confirmation classique (showConfirmModal)
+            if (confirmed && typeof confirmCallback === 'function') {
+                const cb = confirmCallback;
+                confirmCallback = null;
+                cb();
+            } else {
+                confirmCallback = null;
+            }
+        }
+
+        // ============================================
+        // MODAL D'AIDE
+        // ============================================
+        function openHelpModal() {
+            const modal = document.getElementById('helpModal');
+            modal.classList.add('active');
+            setTimeout(() => {
+                const closeBtn = modal.querySelector('.modal-close');
+                if (closeBtn) closeBtn.focus();
+            }, 50);
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        // ============================================
+        // PIÈGE DE FOCUS DANS LES MODALS (accessibilité)
+        // ============================================
+        function trapFocusInModal(modal) {
+            if (!modal) return;
+            modal.addEventListener('keydown', (e) => {
+                if (e.key !== 'Tab') return;
+                const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            });
+        }
+
+        // ============================================
+        // RACCOURCIS CLAVIER
+        // ============================================
+        function handleKeyboardShortcuts(e) {
+            // Ignorer si l'utilisateur tape dans un champ
+            const target = e.target;
+            const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT';
+
+            // Alt + 1-7 : navigation entre onglets
+            if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+                const tabMap = {
+                    '1': 'dashboard',
+                    '2': 'configuration',
+                    '3': 'distribution',
+                    '4': 'manual',
+                    '5': 'devoir',
+                    '6': 'timetable',
+                    '7': 'all-data'
+                };
+                if (tabMap[e.key] && localStorage.getItem('isAuthenticated') === 'true') {
+                    e.preventDefault();
+                    switchTab(tabMap[e.key]);
+                    return;
+                }
+            }
+
+            // Ctrl+L : déconnexion
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'l' || e.key === 'L')) {
+                if (localStorage.getItem('isAuthenticated') === 'true') {
+                    e.preventDefault();
+                    logout();
+                    return;
+                }
+            }
+
+            // Ctrl+E : export JSON
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
+                    e.preventDefault();
+                    exportData();
+                    return;
+                }
+            }
+
+            // Ctrl+Shift+E : export CSV
+            if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
+                    e.preventDefault();
+                    exportDataCSV();
+                    return;
+                }
+            }
+
+            // Ctrl+P : imprimer (si sur l'onglet visualisation)
+            if (e.ctrlKey && !e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+                if (localStorage.getItem('isAuthenticated') === 'true' && !isTyping) {
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab && activeTab.id === 'timetable-tab') {
+                        e.preventDefault();
+                        printTimetable();
+                        return;
+                    }
+                }
+            }
+
+            // ? : aide
+            if (e.key === '?' && !isTyping && !e.ctrlKey && !e.altKey) {
+                e.preventDefault();
+                openHelpModal();
+                return;
+            }
+
+            // Échap : fermer les modals
+            if (e.key === 'Escape') {
+                if (document.getElementById('confirmModal').classList.contains('active')) {
+                    closeConfirmModal(false);
+                }
+                if (document.getElementById('helpModal').classList.contains('active')) {
+                    closeHelpModal();
+                }
+            }
+        }
+
+        // ============================================
+        // RECHERCHE RAPIDE
+        // ============================================
+        function clearQuickSearch() {
+            const searchInput = document.getElementById('quickSearch');
+            if (searchInput) {
+                searchInput.value = '';
+                document.getElementById('clearSearchBtn').classList.remove('visible');
+                displayAllData();
+                searchInput.focus();
+            }
+        }
+
+        function getQuickSearchQuery() {
+            const input = document.getElementById('quickSearch');
+            return input ? input.value.trim().toLowerCase() : '';
+        }
+
+        // ============================================
+        // EXPORT CSV
+        // ============================================
+        function exportDataCSV() {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                showNotification('Aucune donnée à exporter', 'warning');
+                return;
+            }
+
+            // En-têtes CSV
+            const headers = ['ID', 'Enseignant', 'Classe', 'Cycle', 'Matière', 'Type', 'Jour', 'Créneau', 'Période'];
+
+            // Fonction d'échappement CSV
+            function csvEscape(value) {
+                if (value === null || value === undefined) return '""';
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes(';')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return '"' + str + '"';
+            }
+
+            // Construction des lignes
+            let csvContent = headers.map(csvEscape).join(';') + '\n';
+            courses.forEach(course => {
+                const row = [
+                    course.id || '',
+                    course.teacherName || '',
+                    course.className || '',
+                    course.cycle || '',
+                    course.subject || '',
+                    course.activityType || '',
+                    course.day || '',
+                    course.timeSlot || '',
+                    course.timePeriod || ''
+                ];
+                csvContent += row.map(csvEscape).join(';') + '\n';
+            });
+
+            // BOM pour Excel (UTF-8)
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `emploi_du_temps_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotification(`${courses.length} cours exportés en CSV`);
+        }
+
+        // ============================================
+        // DÉTECTION DE CONFLITS D'ENSEIGNANTS
+        // ============================================
+        function checkTeacherConflict(teacherName, day, timeSlot, excludeId) {
+            if (!teacherName || !day || !timeSlot) return null;
+            const courses = getCourses();
+            const conflict = courses.find(c =>
+                c.teacherName &&
+                c.teacherName.toLowerCase() === teacherName.toLowerCase() &&
+                c.day === day &&
+                c.timeSlot === timeSlot &&
+                c.id !== excludeId
+            );
+            return conflict || null;
+        }
+
+        // ============================================
+        // SYSTÈME CENTRALISÉ DE VÉRIFICATION DES CONFLITS
+        // ============================================
+
+        /**
+         * Vérifie tous les types de conflits pour un cours donné.
+         * @param {Object} courseData - { teacherName, className, day, timeSlot, excludeId? }
+         * @returns {Object} { hasConflict: boolean, conflicts: [{ type, message, existingCourse }] }
+         */
+        function checkAllConflicts(courseData) {
+            const result = { hasConflict: false, conflicts: [] };
+            if (!courseData || !courseData.day || !courseData.timeSlot) {
+                return result;
+            }
+
+            const courses = getCourses();
+            const excludeId = courseData.excludeId;
+            const teacher = (courseData.teacherName || '').toLowerCase().trim();
+            const className = courseData.className;
+            const day = courseData.day;
+            const timeSlot = courseData.timeSlot;
+
+            courses.forEach(existing => {
+                if (!existing || existing.id === excludeId) return;
+                if (existing.day !== day || existing.timeSlot !== timeSlot) return;
+
+                // Conflit d'enseignant (même enseignant, même créneau, peu importe la classe)
+                if (teacher && existing.teacherName &&
+                    existing.teacherName.toLowerCase().trim() === teacher) {
+                    result.hasConflict = true;
+                    result.conflicts.push({
+                        type: 'teacher',
+                        message: `L'enseignant "${existing.teacherName}" a déjà un cours en ${existing.className} le ${day} à ${timeSlot}.`,
+                        existingCourse: existing
+                    });
+                }
+
+                // Conflit de classe (même classe, même créneau → impossible d'avoir 2 cours en parallèle)
+                if (className && existing.className === className) {
+                    result.hasConflict = true;
+                    result.conflicts.push({
+                        type: 'class',
+                        message: `La classe "${className}" a déjà un cours (${existing.subject} avec ${existing.teacherName}) le ${day} à ${timeSlot}.`,
+                        existingCourse: existing
+                    });
+                }
+            });
+
+            return result;
+        }
+
+        /**
+         * Vérifie les conflits pour une liste de cours (ex : répartition automatique).
+         * @param {Array} newCourses - Liste des cours à vérifier
+         * @returns {Object} { hasConflict: boolean, conflicts: [{ newCourse, existingCourse, message }] }
+         */
+        function checkBatchConflicts(newCourses) {
+            const result = { hasConflict: false, conflicts: [] };
+            if (!Array.isArray(newCourses) || newCourses.length === 0) {
+                return result;
+            }
+
+            // Vérifier les conflits avec les cours déjà enregistrés
+            newCourses.forEach(newCourse => {
+                const check = checkAllConflicts(newCourse);
+                if (check.hasConflict) {
+                    check.conflicts.forEach(c => {
+                        result.conflicts.push({
+                            newCourse: newCourse,
+                            existingCourse: c.existingCourse,
+                            type: c.type,
+                            message: c.message
+                        });
+                    });
+                }
+            });
+
+            // Vérifier aussi les conflits internes à la nouvelle liste
+            // (deux nouveaux cours qui se chevauchent)
+            for (let i = 0; i < newCourses.length; i++) {
+                for (let j = i + 1; j < newCourses.length; j++) {
+                    const a = newCourses[i];
+                    const b = newCourses[j];
+                    if (!a || !b || a.day !== b.day || a.timeSlot !== b.timeSlot) continue;
+
+                    const teacherA = (a.teacherName || '').toLowerCase().trim();
+                    const teacherB = (b.teacherName || '').toLowerCase().trim();
+
+                    // Même enseignant
+                    if (teacherA && teacherA === teacherB) {
+                        result.hasConflict = true;
+                        result.conflicts.push({
+                            newCourse: a,
+                            existingCourse: b,
+                            type: 'teacher-internal',
+                            message: `Conflit interne : l'enseignant "${a.teacherName}" est programmé deux fois le ${a.day} à ${a.timeSlot} (${a.className} et ${b.className}).`
+                        });
+                    }
+
+                    // Même classe
+                    if (a.className && a.className === b.className) {
+                        result.hasConflict = true;
+                        result.conflicts.push({
+                            newCourse: a,
+                            existingCourse: b,
+                            type: 'class-internal',
+                            message: `Conflit interne : la classe "${a.className}" a deux cours le ${a.day} à ${a.timeSlot} (${a.subject} et ${b.subject}).`
+                        });
+                    }
+                }
+            }
+
+            result.hasConflict = result.conflicts.length > 0;
+            return result;
+        }
+
+        /**
+         * Cherche un créneau alternatif disponible pour un cours en conflit.
+         * @param {Object} courseData - { teacherName, className, day, timeSlot, activityType }
+         * @param {Array} slotsToTry - Liste des créneaux à essayer (ex : allTimeSlots)
+         * @param {Array} daysToTry - Liste des jours à essayer (ex : days)
+         * @returns {Object|null} { day, timeSlot } ou null si rien trouvé
+         */
+        function findAlternativeSlot(courseData, slotsToTry, daysToTry) {
+            const slots = slotsToTry || allTimeSlots;
+            const daysList = daysToTry || days;
+
+            for (const day of daysList) {
+                for (const timeSlot of slots) {
+                    if (day === courseData.day && timeSlot === courseData.timeSlot) continue;
+
+                    // Vérifier qu'il n'y a pas de conflit
+                    const check = checkAllConflicts({
+                        teacherName: courseData.teacherName,
+                        className: courseData.className,
+                        day: day,
+                        timeSlot: timeSlot
+                    });
+
+                    // Vérifier aussi les restrictions
+                    const reserved = isSlotReserved(day, timeSlot, courseData.activityType || 'Cours');
+
+                    if (!check.hasConflict && !reserved) {
+                        return { day, timeSlot };
+                    }
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Affiche les conflits dans une modale dédiée.
+         * @param {Array} conflicts - Liste des conflits (issus de checkBatchConflicts)
+         */
+        function showConflictsReport(conflicts) {
+            if (!conflicts || conflicts.length === 0) return;
+
+            // Limiter à 20 conflits pour ne pas surcharger l'affichage
+            const displayed = conflicts.slice(0, 20);
+            const remaining = conflicts.length - displayed.length;
+
+            // Construire le HTML des conflits
+            const conflictsHTML = displayed.map((c, index) => {
+                const safeMessage = escapeHtml(c.message);
+                const newCourse = c.newCourse || {};
+                const existing = c.existingCourse || {};
+
+                let details = '';
+                if (newCourse.teacherName) {
+                    details += `<div style="margin-top: 6px; font-size: 0.85rem;">`;
+                    details += `<strong>Nouveau cours :</strong> ${escapeHtml(newCourse.teacherName || '')} — ${escapeHtml(newCourse.subject || '')} — ${escapeHtml(newCourse.className || '')} — ${escapeHtml(newCourse.day || '')} ${escapeHtml(newCourse.timeSlot || '')}`;
+                    if (existing.teacherName) {
+                        details += `<br><strong>Cours existant :</strong> ${escapeHtml(existing.teacherName || '')} — ${escapeHtml(existing.subject || '')} — ${escapeHtml(existing.className || '')} — ${escapeHtml(existing.day || '')} ${escapeHtml(existing.timeSlot || '')}`;
+                    }
+                    details += `</div>`;
+                }
+
+                return `<li style="padding: 10px; background: var(--light-gray); border-radius: 6px; margin-bottom: 8px; border-left: 4px solid var(--danger-color);">
+                    <strong>Conflit ${index + 1} :</strong> ${safeMessage}
+                    ${details}
+                </li>`;
+            }).join('');
+
+            // Injecter dans le modal de confirmation (réutilisation)
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const titleEl = document.querySelector('#confirmModalTitle span');
+            const okBtn = document.getElementById('confirmModalOk');
+
+            if (!modal || !messageEl || !titleEl || !okBtn) {
+                // Fallback : alerte simple
+                showNotification(`${conflicts.length} conflit(s) détecté(s). Voir la console pour les détails.`, 'error');
+                console.warn('Conflits détectés :', conflicts);
+                return;
+            }
+
+            titleEl.textContent = 'Rapport de conflits';
+            messageEl.innerHTML = `
+                <div style="text-align: left;">
+                    <p style="margin-bottom: 10px;"><strong>${conflicts.length} conflit(s) détecté(s) :</strong></p>
+                    <ul style="list-style: none; padding: 0; margin: 0; max-height: 50vh; overflow-y: auto;">
+                        ${conflictsHTML}
+                    </ul>
+                    ${remaining > 0 ? `<p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);">… et ${remaining} autre(s) conflit(s) non affiché(s).</p>` : ''}
+                    <p style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 6px; color: #856404; font-size: 0.85rem;">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        <strong>Que faire ?</strong> Modifiez les saisies pour éviter les chevauchements, ou supprimez les cours existants en conflit depuis l'onglet "Toutes les données".
+                    </p>
+                </div>
+            `;
+
+            // Masquer le bouton OK (pas d'action à confirmer)
+            okBtn.style.display = 'none';
+            confirmCallback = () => {}; // No-op
+
+            modal.classList.add('active');
+            setTimeout(() => {
+                document.getElementById('confirmModalCancel').focus();
+            }, 50);
+
+            // Restaurer l'affichage du bouton OK à la fermeture
+            const restoreBtn = () => {
+                okBtn.style.display = '';
+                document.getElementById('confirmModalCancel').removeEventListener('click', restoreBtn);
+            };
+            document.getElementById('confirmModalCancel').addEventListener('click', restoreBtn);
+        }
+
+        function checkManualConflicts() {
+            const teacherNameEl = document.getElementById('teacherName');
+            const timeSlotEl = document.getElementById('manualTimeSlot');
+            const warningDiv = document.getElementById('conflictWarning');
+            const warningText = document.getElementById('conflictWarningText');
+
+            if (!warningDiv || !warningText) return;
+
+            const teacherName = teacherNameEl ? teacherNameEl.value.trim() : '';
+            const timeSlot = timeSlotEl ? timeSlotEl.value : '';
+            const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
+
+            // Récupérer aussi la classe sélectionnée
+            const classEl = document.getElementById('manualClass');
+            const className = classEl ? classEl.value : '';
+
+            if (!timeSlot || selectedDays.length === 0) {
+                warningDiv.classList.add('hidden');
+                return;
+            }
+
+            const allConflicts = [];
+            selectedDays.forEach(day => {
+                const check = checkAllConflicts({
+                    teacherName: teacherName,
+                    className: className,
+                    day: day,
+                    timeSlot: timeSlot
+                });
+                if (check.hasConflict) {
+                    check.conflicts.forEach(c => {
+                        allConflicts.push(`${day} : ${c.message}`);
+                    });
+                }
+            });
+
+            if (allConflicts.length > 0) {
+                warningText.innerHTML = allConflicts.map(c => escapeHtml(c)).join('<br>');
+                warningDiv.classList.remove('hidden');
+            } else {
+                warningDiv.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // STATISTIQUES AVANCÉES DU DASHBOARD
+        // ============================================
+        function updateAdvancedStats() {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                document.getElementById('statsByCycle').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                document.getElementById('statsByActivity').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                document.getElementById('statsByDay').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                document.getElementById('statsTopTeachers').innerHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;"><i class="fas fa-info-circle" aria-hidden="true"></i> Aucune donnée disponible</p>';
+                return;
+            }
+
+            // Couleurs pour les graphiques
+            const colors = {
+                college: '#2196F3',
+                lycee: '#FF9800',
+                Cours: '#4CAF50',
+                DEVOIR: '#9C27B0',
+                TD: '#2196F3',
+                TP: '#FF9800',
+                TM: '#795548'
+            };
+
+            // 1. Répartition par cycle
+            const cycleStats = {};
+            courses.forEach(c => {
+                const cycle = c.cycle || 'Non défini';
+                cycleStats[cycle] = (cycleStats[cycle] || 0) + 1;
+            });
+            const maxCycle = Math.max(...Object.values(cycleStats), 1);
+            let cycleHTML = '';
+            Object.entries(cycleStats).sort((a, b) => b[1] - a[1]).forEach(([cycle, count]) => {
+                const percent = Math.round((count / maxCycle) * 100);
+                const color = cycle === 'Collège' ? colors.college : (cycle === 'Lycée' ? colors.lycee : '#607d8b');
+                cycleHTML += `
+                    <div class="stat-row">
+                        <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(cycle)}</span>
+                        <span class="stat-value">${count}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('statsByCycle').innerHTML = cycleHTML;
+
+            // 2. Répartition par type d'activité
+            const activityStats = {};
+            courses.forEach(c => {
+                const activity = c.activityType || 'Autre';
+                activityStats[activity] = (activityStats[activity] || 0) + 1;
+            });
+            const maxActivity = Math.max(...Object.values(activityStats), 1);
+            let activityHTML = '';
+            Object.entries(activityStats).sort((a, b) => b[1] - a[1]).forEach(([activity, count]) => {
+                const percent = Math.round((count / maxActivity) * 100);
+                const color = colors[activity] || '#607d8b';
+                activityHTML += `
+                    <div class="stat-row">
+                        <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(activity)}</span>
+                        <span class="stat-value">${count}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('statsByActivity').innerHTML = activityHTML;
+
+            // 3. Cours par jour
+            const dayStats = {};
+            const dayOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+            dayOrder.forEach(d => dayStats[d] = 0);
+            courses.forEach(c => {
+                if (dayStats[c.day] !== undefined) dayStats[c.day]++;
+            });
+            const maxDay = Math.max(...Object.values(dayStats), 1);
+            let dayHTML = '';
+            dayOrder.forEach(day => {
+                const count = dayStats[day];
+                const percent = Math.round((count / maxDay) * 100);
+                dayHTML += `
+                    <div class="stat-row">
+                        <span class="stat-label">${escapeHtml(day)}</span>
+                        <span class="stat-value">${count}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: var(--primary-color);">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('statsByDay').innerHTML = dayHTML;
+
+            // 4. Top 5 enseignants
+            const teacherStats = {};
+            courses.forEach(c => {
+                const teacher = c.teacherName || 'Inconnu';
+                teacherStats[teacher] = (teacherStats[teacher] || 0) + 1;
+            });
+            const topTeachers = Object.entries(teacherStats)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            const maxTeacher = topTeachers.length > 0 ? topTeachers[0][1] : 1;
+            let teacherHTML = '';
+            if (topTeachers.length === 0) {
+                teacherHTML = '<p style="color: var(--neutral-color); text-align: center; padding: 20px;">Aucun enseignant</p>';
+            } else {
+                topTeachers.forEach(([teacher, count], index) => {
+                    const percent = Math.round((count / maxTeacher) * 100);
+                    const colors5 = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+                    const color = colors5[index] || '#607d8b';
+                    teacherHTML += `
+                        <div class="stat-row">
+                            <span class="stat-label"><span class="stat-color-dot" style="background: ${color}"></span> ${escapeHtml(teacher)}</span>
+                            <span class="stat-value">${count} cours</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: ${percent}%; background: ${color};">${count}</div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('statsTopTeachers').innerHTML = teacherHTML;
+        }
+
 
         // ============================================
         // Utilitaires de sécurité
@@ -3522,19 +3909,38 @@
             
             document.getElementById('subjectName').value = '';
             showNotification(`Matière "${subjectName}" ajoutée à la classe ${className}`, 'success');
-        }
             syncAllTabs();
+        }
 
         function removeSubject(className, index) {
+            // Guards de validation
+            if (!className || index === undefined || index === null) {
+                showNotification('Erreur : paramètres invalides pour la suppression.', 'error');
+                return;
+            }
+
+            if (!configuration || !configuration.subjects || !configuration.subjects[className]) {
+                showNotification('Erreur : cette classe n\'a pas de matières configurées.', 'error');
+                return;
+            }
+
+            const subjects = configuration.subjects[className];
+            if (index < 0 || index >= subjects.length) {
+                showNotification('Erreur : index de matière invalide.', 'error');
+                return;
+            }
+
+            const subjectName = subjects[index];
+
             showConfirmModal(
-                'Voulez-vous vraiment supprimer cette matière ?',
+                `Voulez-vous vraiment supprimer la matière "${subjectName}" de la classe ${className} ?`,
                 'Suppression d\'une matière',
                 () => {
                     configuration.subjects[className].splice(index, 1);
                     saveConfiguration();
                     updateConfigurationStats();
                     loadClassSubjects();
-                    showNotification('Matière supprimée', 'success');
+                    showNotification(`Matière "${subjectName}" supprimée de la classe ${className}.`, 'success');
                     syncAllTabs();
                 }
             );
@@ -3600,10 +4006,37 @@
         }
 
         function removeSupervisorItem(button) {
-            const container = document.getElementById('supervisorsListContainer');
-            if (container.children.length > 1) {
-                button.parentElement.remove();
+            // Guard : vérifier que le bouton est valide
+            if (!button) {
+                console.warn('Bouton invalide pour removeSupervisorItem');
+                return;
             }
+
+            const container = document.getElementById('supervisorsListContainer');
+            if (!container) {
+                console.warn('Conteneur supervisorsListContainer introuvable');
+                return;
+            }
+
+            // Guard : vérifier qu'il reste au moins un surveillant
+            if (container.children.length <= 1) {
+                showNotification('Vous devez conserver au moins un surveillant.', 'warning');
+                return;
+            }
+
+            // Guard : vérifier que le parent existe
+            const parent = button.parentElement;
+            if (!parent) {
+                console.warn('Parent du bouton introuvable');
+                return;
+            }
+
+            // Suppression avec animation
+            parent.style.opacity = '0';
+            parent.style.transition = 'opacity 0.2s';
+            setTimeout(() => {
+                parent.remove();
+            }, 200);
         }
 
         function saveSupervisors() {
@@ -3772,8 +4205,11 @@
         }
 
         function updateManualSubjects() {
-            const className = document.getElementById('manualClass').value;
+            const classEl = document.getElementById('manualClass');
             const subjectSelect = document.getElementById('manualSubject');
+            if (!classEl || !subjectSelect) return;
+
+            const className = classEl.value;
             
             subjectSelect.innerHTML = '<option value="">Sélectionner une matière</option>';
             
@@ -3905,11 +4341,13 @@
         }
 
         function updateClassOptions() {
-            const cycle = document.getElementById('distributionCycle').value;
+            const cycleEl = document.getElementById('distributionCycle');
             const classSelect = document.getElementById('distributionClass');
-            
+            if (!cycleEl || !classSelect) return;
+
+            const cycle = cycleEl.value;
             classSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
-            
+
             if (cycle && CLASSES_BY_CYCLE[cycle]) {
                 CLASSES_BY_CYCLE[cycle].forEach(className => {
                     const option = document.createElement('option');
@@ -3921,11 +4359,13 @@
         }
 
         function updateManualClassOptions() {
-            const cycle = document.getElementById('manualCycle').value;
+            const cycleEl = document.getElementById('manualCycle');
             const classSelect = document.getElementById('manualClass');
-            
+            if (!cycleEl || !classSelect) return;
+
+            const cycle = cycleEl.value;
             classSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
-            
+
             if (cycle && CLASSES_BY_CYCLE[cycle]) {
                 CLASSES_BY_CYCLE[cycle].forEach(className => {
                     const option = document.createElement('option');
@@ -3937,11 +4377,13 @@
         }
 
         function updateConfigClassOptions() {
-            const cycle = document.getElementById('configCycle').value;
+            const cycleEl = document.getElementById('configCycle');
             const classSelect = document.getElementById('configClass');
-            
+            if (!cycleEl || !classSelect) return;
+
+            const cycle = cycleEl.value;
             classSelect.innerHTML = '<option value="">Sélectionner une classe</option>';
-            
+
             if (cycle && CLASSES_BY_CYCLE[cycle]) {
                 CLASSES_BY_CYCLE[cycle].forEach(className => {
                     const option = document.createElement('option');
@@ -3953,11 +4395,13 @@
         }
 
         function updateDevoirClassOptions() {
-            const cycle = document.getElementById('devoirCycle').value;
+            const cycleEl = document.getElementById('devoirCycle');
             const classSelect = document.getElementById('devoirClasses');
-            
+            if (!cycleEl || !classSelect) return;
+
+            const cycle = cycleEl.value;
             classSelect.innerHTML = '';
-            
+
             if (cycle === 'all') {
                 const allClasses = [...CLASSES_BY_CYCLE['Collège'], ...CLASSES_BY_CYCLE['Lycée']];
                 allClasses.forEach(className => {
@@ -3986,12 +4430,16 @@
             }
             const supervisorDiv = document.createElement('div');
             supervisorDiv.className = 'teacher-item';
+            // Échapper les noms et types de surveillants
+            const supervisorOptions = (configuration.supervisors || []).map(s => {
+                const safeName = escapeHtml(s.name);
+                const safeType = escapeHtml(s.type);
+                return `<option value="${safeName}">${safeName} (${safeType})</option>`;
+            }).join('');
             supervisorDiv.innerHTML = `
                 <select class="supervisor-name" required>
                     <option value="">Sélectionner un surveillant</option>
-                    ${configuration.supervisors.map(s => 
-                        `<option value="${s.name}">${s.name} (${s.type})</option>`
-                    ).join('')}
+                    ${supervisorOptions}
                 </select>
                 <select class="supervisor-disponibility" required>
                     <option value="full">Disponible à plein temps</option>
@@ -4008,10 +4456,37 @@
         }
 
         function removeSupervisor(button) {
-            const container = document.getElementById('supervisorsContainer');
-            if (container.children.length > 1) {
-                button.parentElement.remove();
+            // Guard : vérifier que le bouton est valide
+            if (!button) {
+                console.warn('Bouton invalide pour removeSupervisor');
+                return;
             }
+
+            const container = document.getElementById('supervisorsContainer');
+            if (!container) {
+                console.warn('Conteneur supervisorsContainer introuvable');
+                return;
+            }
+
+            // Guard : vérifier qu'il reste au moins un surveillant
+            if (container.children.length <= 1) {
+                showNotification('Vous devez conserver au moins un surveillant.', 'warning');
+                return;
+            }
+
+            // Guard : vérifier que le parent existe
+            const parent = button.parentElement;
+            if (!parent) {
+                console.warn('Parent du bouton introuvable');
+                return;
+            }
+
+            // Suppression avec animation
+            parent.style.opacity = '0';
+            parent.style.transition = 'opacity 0.2s';
+            setTimeout(() => {
+                parent.remove();
+            }, 200);
         }
 
         function loadExistingData() {
@@ -4203,10 +4678,122 @@
         }
 
         function removeTeacher(button) {
-            const container = document.getElementById('teachersContainer');
-            if (container.children.length > 1) {
-                button.parentElement.remove();
+            // Guard : vérifier que le bouton est valide
+            if (!button) {
+                console.warn('Bouton invalide pour removeTeacher');
+                return;
             }
+
+            const container = document.getElementById('teachersContainer');
+            if (!container) {
+                console.warn('Conteneur teachersContainer introuvable');
+                return;
+            }
+
+            // Guard : vérifier qu'il reste au moins un enseignant
+            if (container.children.length <= 1) {
+                showNotification('Vous devez conserver au moins un enseignant.', 'warning');
+                return;
+            }
+
+            // Guard : vérifier que le parent existe
+            const parent = button.parentElement;
+            if (!parent) {
+                console.warn('Parent du bouton introuvable');
+                return;
+            }
+
+            // Suppression avec animation
+            parent.style.opacity = '0';
+            parent.style.transition = 'opacity 0.2s';
+            setTimeout(() => {
+                parent.remove();
+            }, 200);
+        }
+
+        // ============================================
+        // RÉINITIALISATION DE LA RÉPARTITION
+        // ============================================
+
+        // Réinitialise le formulaire de répartition (cycle, classe, enseignants, heures, période)
+        function resetDistributionForm() {
+            showConfirmModal(
+                'Voulez-vous vraiment réinitialiser le formulaire de répartition ?\n\nToutes les saisies (cycle, classe, enseignants, heures) seront effacées.',
+                'Réinitialisation du formulaire',
+                () => {
+                    // Réinitialiser les champs
+                    const cycleEl = document.getElementById('distributionCycle');
+                    const classEl = document.getElementById('distributionClass');
+                    const totalHoursEl = document.getElementById('totalHours');
+                    const periodEl = document.getElementById('preferredTimePeriod');
+
+                    if (cycleEl) cycleEl.value = '';
+                    if (classEl) {
+                        classEl.innerHTML = '<option value="">Sélectionner une classe</option>';
+                    }
+                    if (totalHoursEl) totalHoursEl.value = '30';
+                    if (periodEl) periodEl.value = 'all';
+
+                    // Réinitialiser le conteneur d'enseignants (garder un seul vide)
+                    const container = document.getElementById('teachersContainer');
+                    if (container) {
+                        container.innerHTML = '';
+                        addTeacher(); // Ajoute un enseignant vide
+                    }
+
+                    // Effacer aussi les résultats
+                    resetDistributionResults(true);
+
+                    // Réinitialiser la variable globale
+                    currentDistribution = null;
+
+                    showNotification('Formulaire réinitialisé avec succès.', 'success');
+                }
+            );
+        }
+
+        // Efface les résultats de la répartition
+        function resetDistributionResults(silent) {
+            const resultsDiv = document.getElementById('distributionResults');
+            const container = document.getElementById('distributionTableContainer');
+
+            if (resultsDiv) resultsDiv.style.display = 'none';
+            if (container) container.innerHTML = '';
+
+            // Optionnel : effacer aussi currentDistribution
+            if (!silent) {
+                currentDistribution = null;
+                showNotification('Résultats effacés.', 'success');
+            }
+        }
+
+        // Supprime tous les cours existants d'une classe spécifique
+        function removeClassCourses() {
+            const classEl = document.getElementById('distributionClass');
+            const cycleEl = document.getElementById('distributionCycle');
+            if (!classEl || !classEl.value) {
+                showNotification('Veuillez sélectionner une classe dans le formulaire ci-dessus.', 'warning');
+                return;
+            }
+
+            const className = classEl.value;
+            const cycle = cycleEl ? cycleEl.value : '';
+
+            showConfirmModal(
+                `Voulez-vous vraiment supprimer TOUS les cours existants de la classe "${className}" ?\n\nCette action est irréversible.`,
+                'Suppression des cours de la classe',
+                () => {
+                    let courses = getCourses();
+                    const initialCount = courses.length;
+                    courses = courses.filter(c => c.className !== className);
+                    const removedCount = initialCount - courses.length;
+
+                    localStorage.setItem('courses', JSON.stringify(courses));
+
+                    showNotification(`${removedCount} cours supprimé(s) pour la classe ${className}.`, 'success');
+                    syncAllTabs();
+                }
+            );
         }
         
         function filterTimeSlots() {
@@ -4356,20 +4943,23 @@
 
             // Afficher les avertissements de répétition s'il y en a
             if (program.warnings && program.warnings.length > 0) {
-                const warningCount = program.warnings.filter(w => w.type === 'class-repeat' || w.type === 'day-repeat').length;
+                const repeatCount = program.warnings.filter(w => w.type === 'class-repeat').length;
                 const noSupCount = program.warnings.filter(w => w.type === 'no-supervisor').length;
+                const equityCount = program.warnings.filter(w => w.type === 'equity').length;
 
-                if (warningCount > 0 && noSupCount > 0) {
-                    showNotification(`Programmation générée avec ${warningCount} répétition(s) inévitable(s) et ${noSupCount} devoir(s) sans surveillant.`, 'warning');
-                } else if (warningCount > 0) {
-                    showNotification(`Programmation générée avec ${warningCount} répétition(s) inévitable(s). Voir les détails.`, 'warning');
+                if (repeatCount > 0 && noSupCount > 0) {
+                    showNotification(`Programmation générée avec ${repeatCount} répétition(s) inévitable(s) et ${noSupCount} devoir(s) sans surveillant.`, 'warning');
+                } else if (repeatCount > 0) {
+                    showNotification(`Programmation générée avec ${repeatCount} répétition(s) inévitable(s). Toutes les classes ont composé.`, 'warning');
                 } else if (noSupCount > 0) {
                     showNotification(`Programmation générée, mais ${noSupCount} devoir(s) n'ont pas de surveillant disponible.`, 'warning');
+                } else if (equityCount > 0) {
+                    showNotification(`Programmation générée avec une distribution inégale. Voir les détails.`, 'warning');
                 } else {
                     showNotification('Programmation des DEVOIR générée avec succès !', 'success');
                 }
             } else {
-                showNotification('Programmation des DEVOIR générée avec succès !', 'success');
+                showNotification('Programmation des DEVOIR générée avec succès ! Toutes les classes ont composé, aucune répétition.', 'success');
             }
         }
 
@@ -4415,6 +5005,27 @@
                 program.summary.byClassSubject[className] = [];
             });
 
+            // ============================================
+            // PRÉPARATION : files de matières par classe
+            // On crée une file (queue) mélangée pour chaque classe.
+            // Chaque classe va consommer ses matières dans l'ordre,
+            // sans jamais répéter une matière tant que toutes n'ont pas été utilisées.
+            // ============================================
+            const subjectQueues = {};
+            classes.forEach(className => {
+                const shuffled = [...classSubjects[className]];
+                // Mélange de Fisher-Yates pour équité
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                subjectQueues[className] = shuffled;
+            });
+
+            // Compteur du nombre de devoirs par classe (pour équilibrer)
+            const devoirsCountByClass = {};
+            classes.forEach(c => { devoirsCountByClass[c] = 0; });
+
             // Générer les dates disponibles sur la période demandée
             const startDate = new Date();
             const dates = [];
@@ -4437,18 +5048,20 @@
             let devoirId = 1;
 
             // Pour chaque jour de la période
-            selectedDays.forEach((date, dayIndex) => {
+            selectedDays.forEach((date) => {
                 const dayName = getDayName(date.getDay());
-                const dayClasses = [...classes];
 
-                // Suivi des matières utilisées ce jour (pour éviter qu'une même matière
-                // soit donnée à plusieurs classes le même jour)
-                const usedSubjectsToday = new Set();
                 // Compteur de devoirs par classe pour ce jour (limite maxDevoirsPerDay)
                 const devoirsPerClassToday = {};
 
-                // Mélanger l'ordre des classes pour une distribution équitable
-                dayClasses.sort(() => Math.random() - 0.5);
+                // Trier les classes par nombre de devoirs déjà reçus (croissant)
+                // → les classes les moins servies sont traitées en premier (équité)
+                const dayClasses = [...classes].sort((a, b) =>
+                    devoirsCountByClass[a] - devoirsCountByClass[b]
+                );
+
+                // IMPORTANT : toutes les classes doivent composer un devoir chaque jour sélectionné.
+                // On ne saute JAMAIS une classe (sauf si maxDevoirsPerDay est atteint).
 
                 dayClasses.forEach(className => {
                     // Initialiser le compteur du jour pour cette classe
@@ -4472,59 +5085,48 @@
                     // Matières déjà utilisées pour cette classe pendant toute la période
                     const subjectsAlreadyUsedForClass = program.summary.byClassSubject[className] || [];
 
-                    // Niveau 1 : matières non utilisées aujourd'hui ET non utilisées précédemment pour cette classe
+                    // Niveau 1 : matières non utilisées précédemment pour cette classe
+                    // (pas de répétition intra-classe)
                     let availableSubjects = subjects.filter(subject =>
-                        !usedSubjectsToday.has(subject) &&
                         !subjectsAlreadyUsedForClass.includes(subject)
                     );
 
                     let warningLevel = null;
 
-                    // Niveau 2 : matières non utilisées aujourd'hui seulement (répétition intra-classe autorisée)
+                    // Niveau 2 (fallback) : si toutes les matières ont déjà été utilisées
+                    // pour cette classe, on autorise la répétition MAIS avec avertissement.
+                    // On choisit en priorité la matière la moins utilisée par cette classe
+                    // pour minimiser les répétitions.
                     if (availableSubjects.length === 0) {
-                        availableSubjects = subjects.filter(subject =>
-                            !usedSubjectsToday.has(subject)
+                        // Compter les occurrences de chaque matière pour cette classe
+                        const subjectCounts = {};
+                        subjectsAlreadyUsedForClass.forEach(s => {
+                            subjectCounts[s] = (subjectCounts[s] || 0) + 1;
+                        });
+                        // Trier les matières par nombre d'occurrences (croissant)
+                        // → on reprend la matière la moins utilisée
+                        availableSubjects = [...subjects].sort((a, b) =>
+                            (subjectCounts[a] || 0) - (subjectCounts[b] || 0)
                         );
-                        if (availableSubjects.length > 0) {
-                            warningLevel = 'class-repeat';
-                        }
+                        warningLevel = 'class-repeat';
                     }
 
-                    // Niveau 3 : toutes les matières (répétition intra-jour autorisée en dernier recours)
-                    if (availableSubjects.length === 0) {
-                        availableSubjects = [...subjects];
-                        warningLevel = 'day-repeat';
-                    }
-
-                    // Sélection aléatoire de la matière
+                    // Sélection aléatoire de la matière parmi les disponibles
                     const selectedSubject = availableSubjects[Math.floor(Math.random() * availableSubjects.length)];
 
-                    // Enregistrer l'avertissement si nécessaire
+                    // Enregistrer l'avertissement si répétition inévitable
                     if (warningLevel === 'class-repeat') {
                         program.warnings.push({
                             type: 'class-repeat',
-                            message: `La matière "${selectedSubject}" a déjà été programmée pour la classe ${className} — répétition inévitable (toutes les matières ont été utilisées).`,
-                            date: formatDate(date),
-                            className: className,
-                            subject: selectedSubject
-                        });
-                    } else if (warningLevel === 'day-repeat') {
-                        program.warnings.push({
-                            type: 'day-repeat',
-                            message: `La matière "${selectedSubject}" est répétée le ${formatDate(date)} pour plusieurs classes — toutes les matières étaient déjà utilisées aujourd'hui.`,
+                            message: `La classe ${className} a déjà eu un devoir dans toutes ses matières (${subjects.length} matière(s)). La matière "${selectedSubject}" est reprogrammée le ${formatDate(date)} (répétition inévitable).`,
                             date: formatDate(date),
                             className: className,
                             subject: selectedSubject
                         });
                     }
-
-                    // Marquer la matière comme utilisée aujourd'hui
-                    usedSubjectsToday.add(selectedSubject);
 
                     // Enregistrer la matière pour cette classe
-                    if (!program.summary.byClassSubject[className].includes(selectedSubject)) {
-                        program.summary.byClassSubject[className].push(selectedSubject);
-                    }
+                    program.summary.byClassSubject[className].push(selectedSubject);
 
                     // Trouver un surveillant disponible
                     const availableSupervisors = supervisorsToAssign.filter(s =>
@@ -4562,7 +5164,9 @@
                         }
                         chosenSupervisor.schedule[date.toDateString()]++;
 
-                        // Compteur de devoirs pour cette classe aujourd'hui
+                        // Compteur de devoirs pour cette classe (équité globale)
+                        devoirsCountByClass[className]++;
+                        // Compteur du jour
                         devoirsPerClassToday[className]++;
 
                         // Mettre à jour les statistiques
@@ -4613,6 +5217,20 @@
                     }
                 });
             });
+
+            // Vérifier l'équité de la distribution
+            const counts = Object.values(devoirsCountByClass);
+            const minCount = Math.min(...counts);
+            const maxCount = Math.max(...counts);
+            if (maxCount - minCount > 1) {
+                program.warnings.push({
+                    type: 'equity',
+                    message: `Distribution inégale : les classes ont entre ${minCount} et ${maxCount} devoirs. Écart de ${maxCount - minCount}.`,
+                    date: null,
+                    className: null,
+                    subject: null
+                });
+            }
 
             return program;
         }
@@ -4665,9 +5283,8 @@
             let html = `
                 <div class="devoir-info-card" style="margin-bottom: 20px;">
                     <h3><i class="fas fa-calendar-check"></i> Programme de DEVOIR - ${program.cycle}</h3>
-                    <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront le même jour, mais pas nécessairement dans la même matière.</p>
-                    <p><strong>Éviter les répétitions :</strong> Une même matière ne sera pas répétée le même jour pour différentes classes.</p>
-                    <p><strong>Éviter les répétitions dans la même classe :</strong> Une même matière ne sera pas répétée dans la même classe pendant toute la période.</p>
+                    <p><strong>Principe :</strong> Toutes les classes composent chacune une matière le même jour, même si ce n'est pas la même matière dans toutes les classes.</p>
+                    <p><strong>Pas de répétition intra-classe :</strong> Une même matière n'est pas répétée dans la même classe pendant toute la période.</p>
                     <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Période de ${program.period} semaine(s) - Généré le ${new Date(program.date).toLocaleDateString('fr-FR')}</p>
                 </div>
@@ -4969,10 +5586,10 @@
             updateFilters();
             updateDashboard();
             updateDevoirHistory();
-            
+
             switchTab('timetable');
-        }
             syncAllTabs();
+        }
 
         function updateDevoirHistory() {
             const historyBody = document.getElementById('devoirHistoryBody');
@@ -5034,90 +5651,12 @@
                 </head>
                 <body>
                     <h1>PROGRAMMATION DES DEVOIR - LYCÉE NIAMTOUGOU</h1>
-                    <p><strong>Nouvelle fonctionnalité :</strong> Toutes les classes composeront le même jour, mais pas nécessairement dans la même matière.</p>
-                    <p><strong>Éviter les répétitions :</strong> Une même matière ne sera pas répétée le même jour pour différentes classes.</p>
-                    <p><strong>Éviter les répétitions dans la même classe :</strong> Une même matière ne sera pas répétée dans la même classe pendant toute la période.</p>
+                    <p><strong>Principe :</strong> Toutes les classes composent chacune une matière le même jour, même si ce n'est pas la même matière dans toutes les classes.</p>
+                    <p><strong>Pas de répétition intra-classe :</strong> Une même matière n'est pas répétée dans la même classe pendant toute la période.</p>
                     <p><strong>Durée :</strong> Collège = 2h, Lycée = 3h</p>
                     <p>Année Scolaire 2023-2024 - Généré le: ${new Date().toLocaleDateString('fr-FR')}</p>
                     ${programContent}
-                
-    <!-- Modal de confirmation personnalisé -->
-    <div id="confirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="confirmModalTitle"><i class="fas fa-question-circle" aria-hidden="true"></i> <span>Confirmation</span></h3>
-                <button type="button" class="modal-close" onclick="closeConfirmModal(false)" aria-label="Fermer">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmModalMessage"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-neutral" id="confirmModalCancel" onclick="closeConfirmModal(false)">
-                    <i class="fas fa-times" aria-hidden="true"></i> Annuler
-                </button>
-                <button type="button" class="btn btn-danger" id="confirmModalOk" onclick="closeConfirmModal(true)">
-                    <i class="fas fa-check" aria-hidden="true"></i> Confirmer
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal d'aide (raccourcis clavier) -->
-    <div id="helpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
-        <div class="modal modal-large">
-            <div class="modal-header">
-                <h3 id="helpModalTitle"><i class="fas fa-keyboard" aria-hidden="true"></i> Aide &amp; Raccourcis clavier</h3>
-                <button type="button" class="modal-close" onclick="closeHelpModal()" aria-label="Fermer">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <h4 style="margin-bottom: 10px; color: var(--primary-color);"><i class="fas fa-bolt" aria-hidden="true"></i> Raccourcis de navigation</h4>
-                <ul class="shortcut-list">
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>1</kbd></span> Tableau de bord</li>
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>2</kbd></span> Configuration</li>
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>3</kbd></span> Répartition Auto</li>
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>4</kbd></span> Saisie Manuelle</li>
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>5</kbd></span> Programmation DEVOIR</li>
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>6</kbd></span> Visualisation</li>
-                    <li><span class="shortcut-keys"><kbd>Alt</kbd><kbd>7</kbd></span> Toutes les données</li>
-                </ul>
-
-                <h4 style="margin: 20px 0 10px; color: var(--primary-color);"><i class="fas fa-tools" aria-hidden="true"></i> Actions rapides</h4>
-                <ul class="shortcut-list">
-                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>E</kbd></span> Exporter (JSON)</li>
-                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>E</kbd></span> Exporter (CSV)</li>
-                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>P</kbd></span> Imprimer l'emploi du temps</li>
-                    <li><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>L</kbd></span> Se déconnecter</li>
-                    <li><span class="shortcut-keys"><kbd>?</kbd></span> Afficher cette aide</li>
-                    <li><span class="shortcut-keys"><kbd>Échap</kbd></span> Fermer une fenêtre modale</li>
-                </ul>
-
-                <h4 style="margin: 20px 0 10px; color: var(--primary-color);"><i class="fas fa-info-circle" aria-hidden="true"></i> Conseils d'utilisation</h4>
-                <ul style="padding-left: 20px; line-height: 1.8;">
-                    <li>Configurez d'abord les <strong>matières par classe</strong> avant la répartition automatique.</li>
-                    <li>Le <strong>mercredi après-midi</strong> est réservé (aucun cours).</li>
-                    <li>Les <strong>mardi et vendredi après-midi</strong> sont réservés aux DEVOIR uniquement.</li>
-                    <li>Utilisez l'export régulier pour <strong>sauvegarder vos données</strong>.</li>
-                    <li>La détection de <strong>conflits d'enseignants</strong> est automatique lors de la saisie.</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="closeHelpModal()">
-                    <i class="fas fa-check" aria-hidden="true"></i> J'ai compris
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bouton d'aide flottant -->
-    <button type="button" class="help-fab" onclick="openHelpModal()" aria-label="Afficher l'aide et les raccourcis clavier" title="Aide (?)">
-        <i class="fas fa-question" aria-hidden="true"></i>
-    </button>
-
-</body>
+                </body>
                 </html>
             `);
             
@@ -5148,53 +5687,92 @@
         }
 
         function generateDistribution() {
-            const cycle = document.getElementById('distributionCycle').value;
-            const className = document.getElementById('distributionClass').value;
-            const totalHours = parseInt(document.getElementById('totalHours').value);
-            const preferredTimePeriod = document.getElementById('preferredTimePeriod').value;
-            
+            const cycleEl = document.getElementById('distributionCycle');
+            const classEl = document.getElementById('distributionClass');
+            const totalHoursEl = document.getElementById('totalHours');
+            const preferredTimePeriodEl = document.getElementById('preferredTimePeriod');
+
+            if (!cycleEl || !classEl || !totalHoursEl || !preferredTimePeriodEl) {
+                showNotification('Erreur : éléments du formulaire introuvables', 'error');
+                return;
+            }
+
+            const cycle = cycleEl.value;
+            const className = classEl.value;
+            const totalHours = parseInt(totalHoursEl.value, 10);
+            const preferredTimePeriod = preferredTimePeriodEl.value;
+
             if (!cycle || !className) {
                 showNotification('Veuillez sélectionner un cycle et une classe', 'error');
                 return;
             }
-            
+
+            if (!totalHours || isNaN(totalHours) || totalHours <= 0) {
+                showNotification('Veuillez saisir un nombre d\'heures valide', 'error');
+                return;
+            }
+
             const teachers = [];
             const teacherItems = document.querySelectorAll('#teachersContainer .teacher-item');
-            
+            const seenEntries = new Set(); // Pour détecter les doublons
+
             teacherItems.forEach(item => {
-                const name = item.querySelector('.teacher-name').value;
-                const subject = item.querySelector('.teacher-subject').value;
-                const activityType = item.querySelector('.teacher-activity-type').value;
-                const hours = parseInt(item.querySelector('.teacher-hours').value);
-                
-                if (name && subject && hours && !isNaN(hours)) {
-                    teachers.push({ 
-                        name, 
-                        subject, 
-                        activityType, 
+                const nameInput = item.querySelector('.teacher-name');
+                const subjectInput = item.querySelector('.teacher-subject');
+                const activityInput = item.querySelector('.teacher-activity-type');
+                const hoursInput = item.querySelector('.teacher-hours');
+
+                if (!nameInput || !subjectInput || !activityInput || !hoursInput) return;
+
+                const name = nameInput.value.trim();
+                const subject = subjectInput.value.trim();
+                const activityType = activityInput.value;
+                const hours = parseInt(hoursInput.value, 10);
+
+                if (!name || !subject) return;
+
+                // Clé unique pour détecter les doublons (enseignant + matière + type)
+                const entryKey = `${name}|${subject}|${activityType}`;
+                if (seenEntries.has(entryKey)) {
+                    showNotification(`Doublon détecté : ${name} - ${subject} (${activityType}). Entrée ignorée.`, 'warning');
+                    return;
+                }
+                seenEntries.add(entryKey);
+
+                if (hours && !isNaN(hours) && hours > 0) {
+                    teachers.push({
+                        name,
+                        subject,
+                        activityType,
                         hours,
                         remainingHours: hours
                     });
                 }
             });
-            
+
             if (teachers.length === 0) {
                 showNotification('Veuillez ajouter au moins un enseignant avec des heures valides', 'error');
                 return;
             }
-            
+
             const totalRequestedHours = teachers.reduce((sum, teacher) => sum + teacher.hours, 0);
             if (totalRequestedHours > totalHours) {
                 showNotification(`Le total des heures demandées (${totalRequestedHours}) dépasse les heures disponibles (${totalHours})`, 'error');
                 return;
             }
-            
+
             const distribution = generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod);
             currentDistribution = distribution;
-            
+
             displayDistributionResults(distribution);
-            
-            showNotification('Répartition générée avec succès!', 'success');
+
+            // Avertir si certains cours n'ont pas pu être placés
+            const unplacedHours = teachers.reduce((sum, t) => sum + t.remainingHours, 0);
+            if (unplacedHours > 0) {
+                showNotification(`Répartition générée, mais ${unplacedHours} heure(s) n'ont pas pu être placées (conflits ou créneaux insuffisants).`, 'warning');
+            } else {
+                showNotification('Répartition générée avec succès !', 'success');
+            }
         }
 
         function generateRandomDistributionWithRestrictions(teachers, totalHours, cycle, className, preferredTimePeriod) {
@@ -5203,45 +5781,51 @@
                 className,
                 totalHours,
                 teachers: [],
-                timetable: initializeTimetable()
+                timetable: initializeTimetable(),
+                warnings: []
             };
-            
+
             const teachersToPlace = teachers.map(teacher => ({
                 ...teacher,
                 remainingHours: teacher.hours
             }));
-            
+
             let availableSlots = allTimeSlots;
             if (preferredTimePeriod === 'morning') {
                 availableSlots = morningSlots;
             } else if (preferredTimePeriod === 'afternoon') {
                 availableSlots = afternoonSlots;
             }
-            
+
+            // ============================================
+            // Étape 1 : placement des DEVOIR (mardi et vendredi après-midi)
+            // ============================================
             const devoirTeachers = teachersToPlace.filter(t => t.activityType === 'DEVOIR');
             devoirTeachers.forEach(teacher => {
                 const devoirDays = ['Mardi', 'Vendredi'];
-                const afternoonSlotsForDevoir = afternoonSlots.filter(slot => 
-                    !isSlotReserved('Mercredi', slot, 'DEVOIR')
+                // CORRECTION : filtrer selon le jour réel, pas Mercredi
+                const afternoonSlotsForDevoir = afternoonSlots.filter(slot =>
+                    !isSlotReserved('Mardi', slot, 'DEVOIR') && !isSlotReserved('Vendredi', slot, 'DEVOIR')
                 );
-                
+
                 let devoirPlaced = 0;
                 const maxDevoirs = Math.min(teacher.remainingHours, 2);
-                
+
                 for (let i = 0; i < maxDevoirs && devoirPlaced < teacher.remainingHours; i++) {
                     const day = devoirDays[i % devoirDays.length];
-                    
+
                     for (const slot of afternoonSlotsForDevoir) {
-                        if (!distribution.timetable[day][slot] && 
+                        if (!distribution.timetable[day][slot] &&
                             !isTeacherAlreadyScheduled(distribution.timetable, teacher.name, day, slot) &&
+                            !isSubjectAlreadyScheduledThatDay(distribution.timetable, teacher.subject, day) &&
                             !isSlotReserved(day, slot, teacher.activityType)) {
-                            
+
                             distribution.timetable[day][slot] = {
                                 teacher: teacher.name,
                                 subject: teacher.subject,
                                 activityType: teacher.activityType
                             };
-                            
+
                             teacher.remainingHours--;
                             distribution.teachers.push({
                                 teacher: teacher.name,
@@ -5257,23 +5841,37 @@
                     }
                 }
             });
-            
-            while (teachersToPlace.some(teacher => teacher.remainingHours > 0)) {
-                const availableTeachers = teachersToPlace.filter(t => t.remainingHours > 0);
+
+            // ============================================
+            // Étape 2 : placement des autres cours (Cours, TD, TP, TM)
+            // ============================================
+            // Trier par heures décroissantes (place d'abord les enseignants les plus chargés)
+            const otherTeachers = teachersToPlace
+                .filter(t => t.activityType !== 'DEVOIR')
+                .sort((a, b) => b.remainingHours - a.remainingHours);
+
+            let maxIterations = totalHours * 20; // Sécurité anti-boucle infinie
+            while (otherTeachers.some(teacher => teacher.remainingHours > 0) && maxIterations > 0) {
+                maxIterations--;
+
+                const availableTeachers = otherTeachers.filter(t => t.remainingHours > 0);
                 if (availableTeachers.length === 0) break;
-                
-                const randomTeacherIndex = Math.floor(Math.random() * availableTeachers.length);
-                const teacher = availableTeachers[randomTeacherIndex];
-                
-                const availableSlot = findAvailableSlotWithRestrictions(distribution.timetable, teacher.name, teacher.activityType, availableSlots);
-                
+
+                // Choisir l'enseignant avec le plus d'heures restantes (priorité)
+                availableTeachers.sort((a, b) => b.remainingHours - a.remainingHours);
+                const teacher = availableTeachers[0];
+
+                const availableSlot = findAvailableSlotWithRestrictions(
+                    distribution.timetable, teacher.name, teacher.subject, teacher.activityType, availableSlots
+                );
+
                 if (availableSlot) {
                     distribution.timetable[availableSlot.day][availableSlot.timeSlot] = {
                         teacher: teacher.name,
                         subject: teacher.subject,
                         activityType: teacher.activityType
                     };
-                    
+
                     teacher.remainingHours--;
                     distribution.teachers.push({
                         teacher: teacher.name,
@@ -5284,14 +5882,17 @@
                         timePeriod: getTimePeriod(availableSlot.timeSlot)
                     });
                 } else {
-                    const backupSlot = findAvailableSlotWithRestrictions(distribution.timetable, teacher.name, teacher.activityType, allTimeSlots);
+                    // Slot de backup : utiliser tous les créneaux (matin + après-midi)
+                    const backupSlot = findAvailableSlotWithRestrictions(
+                        distribution.timetable, teacher.name, teacher.subject, teacher.activityType, allTimeSlots
+                    );
                     if (backupSlot) {
                         distribution.timetable[backupSlot.day][backupSlot.timeSlot] = {
                             teacher: teacher.name,
                             subject: teacher.subject,
                             activityType: teacher.activityType
                         };
-                        
+
                         teacher.remainingHours--;
                         distribution.teachers.push({
                             teacher: teacher.name,
@@ -5302,11 +5903,18 @@
                             timePeriod: getTimePeriod(backupSlot.timeSlot)
                         });
                     } else {
-                        break;
+                        // Impossible de placer cet enseignant — enregistrer l'avertissement et passer
+                        distribution.warnings.push({
+                            teacher: teacher.name,
+                            subject: teacher.subject,
+                            unplacedHours: teacher.remainingHours,
+                            message: `Impossible de placer ${teacher.remainingHours} heure(s) pour ${teacher.name} (${teacher.subject}).`
+                        });
+                        teacher.remainingHours = 0; // Forcer la sortie pour cet enseignant
                     }
                 }
             }
-            
+
             return distribution;
         }
 
@@ -5321,34 +5929,53 @@
             return timetable;
         }
 
-        function findAvailableSlotWithRestrictions(timetable, teacherName, activityType, slots) {
-            const allSlots = [];
-            days.forEach(day => {
-                slots.forEach(slot => {
-                    allSlots.push({ day, timeSlot: slot });
-                });
-            });
-            
-            shuffleArray(allSlots);
-            
-            for (const slot of allSlots) {
-                if (!timetable[slot.day][slot.timeSlot] && 
-                    !isTeacherAlreadyScheduled(timetable, teacherName, slot.day, slot.timeSlot) &&
-                    !isSlotReserved(slot.day, slot.timeSlot, activityType)) {
-                    return slot;
+        // Vérifie si la matière est déjà programmée ce jour-là (pour éviter la répétition)
+        function isSubjectAlreadyScheduledThatDay(timetable, subject, day) {
+            if (!timetable[day] || !subject) return false;
+            for (const slot of allTimeSlots) {
+                if (timetable[day][slot] && timetable[day][slot].subject === subject) {
+                    return true;
                 }
             }
-            
-            return null;
+            return false;
         }
 
+        // Vérifie si l'enseignant est déjà programmé ce jour-là (limite à 1 cours/jour/enseignant)
         function isTeacherAlreadyScheduled(timetable, teacherName, day, timeSlot) {
+            if (!timetable[day] || !teacherName) return false;
             for (const slot of allTimeSlots) {
                 if (timetable[day][slot] && timetable[day][slot].teacher === teacherName) {
                     return true;
                 }
             }
             return false;
+        }
+
+        function findAvailableSlotWithRestrictions(timetable, teacherName, subject, activityType, slots) {
+            const allSlots = [];
+            days.forEach(day => {
+                slots.forEach(slot => {
+                    allSlots.push({ day, timeSlot: slot });
+                });
+            });
+
+            shuffleArray(allSlots);
+
+            for (const slot of allSlots) {
+                // Conditions pour qu'un créneau soit disponible :
+                // 1. Le créneau est vide (pas de cours déjà placé)
+                // 2. L'enseignant n'a pas déjà un cours ce jour-là
+                // 3. La matière n'est pas déjà programmée ce jour-là (évite la répétition)
+                // 4. Le créneau n'est pas réservé (restrictions)
+                if (!timetable[slot.day][slot.timeSlot] &&
+                    !isTeacherAlreadyScheduled(timetable, teacherName, slot.day, slot.timeSlot) &&
+                    !isSubjectAlreadyScheduledThatDay(timetable, subject, slot.day) &&
+                    !isSlotReserved(slot.day, slot.timeSlot, activityType)) {
+                    return slot;
+                }
+            }
+
+            return null;
         }
 
         function shuffleArray(array) {
@@ -5361,7 +5988,15 @@
         function displayDistributionResults(distribution) {
             const container = document.getElementById('distributionTableContainer');
             const resultsDiv = document.getElementById('distributionResults');
-            
+            if (!container || !resultsDiv) {
+                console.warn('Conteneur de résultats de répartition introuvable');
+                return;
+            }
+            if (!distribution || !distribution.timetable) {
+                showNotification('Erreur : données de répartition invalides.', 'error');
+                return;
+            }
+
             const seriesInfo = getSeriesFromClassName(distribution.className);
             let classTitle = distribution.className;
             if (seriesInfo.name) {
@@ -5392,15 +6027,18 @@
                     
                     if (course) {
                         const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
+                        const safeTeacher = escapeHtml(course.teacher);
+                        const safeSubject = escapeHtml(course.subject);
+                        const safeActivity = escapeHtml(course.activityType);
                         html += `<div class="activity-${activityType.color.toLowerCase()}">
-                            <strong>${course.teacher}</strong><br>
-                            <small><i class="fas fa-book"></i> ${course.subject}</small><br>
-                            <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
+                            <strong>${safeTeacher}</strong><br>
+                            <small><i class="fas fa-book" aria-hidden="true"></i> ${safeSubject}</small><br>
+                            <span class="badge ${activityType.badgeClass}">${safeActivity}</span>
                         </div>`;
                     } else if (restrictionText) {
                         html += `<div class="reserved-cell" style="padding: 8px; text-align: center;">
-                            <i class="fas fa-ban" style="color: #6c757d;"></i><br>
-                            <small>${restrictionText}</small>
+                            <i class="fas fa-ban" style="color: #6c757d;" aria-hidden="true"></i><br>
+                            <small>${escapeHtml(restrictionText)}</small>
                         </div>`;
                     } else {
                         html += '<i class="fas fa-times" style="color: #ccc;"></i>';
@@ -5453,15 +6091,18 @@
             
             Object.values(teacherSummary).forEach(summary => {
                 const activityType = ACTIVITY_TYPES[summary.activityType] || ACTIVITY_TYPES['Cours'];
+                const safeTeacher = escapeHtml(summary.teacher);
+                const safeSubject = escapeHtml(summary.subject);
+                const safeActivity = escapeHtml(summary.activityType);
                 html += `
                     <tr>
-                        <td>${summary.teacher}</td>
-                        <td>${summary.subject}</td>
-                        <td><span class="badge ${activityType.badgeClass}">${summary.activityType}</span></td>
+                        <td>${safeTeacher}</td>
+                        <td>${safeSubject}</td>
+                        <td><span class="badge ${activityType.badgeClass}">${safeActivity}</span></td>
                         <td>${summary.hours}</td>
                         <td>
-                            <small>Matin: ${summary.morningHours}h</small><br>
-                            <small>Après-midi: ${summary.afternoonHours}h</small>
+                            <small>Matin : ${summary.morningHours}h</small><br>
+                            <small>Après-midi : ${summary.afternoonHours}h</small>
                         </td>
                     </tr>
                 `;
@@ -5472,12 +6113,23 @@
                         </table>
                     </div>
                 </div>
+                ${(distribution.warnings && distribution.warnings.length > 0) ? `
+                <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: var(--border-radius);">
+                    <h5 style="color: #856404; margin-bottom: 10px;"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Avertissements (${distribution.warnings.length})</h5>
+                    <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                        ${distribution.warnings.map(w => `<li style="margin-bottom: 6px;">${escapeHtml(w.message)}</li>`).join('')}
+                    </ul>
+                    <p style="margin-top: 10px; font-size: 0.85rem; color: #856404;"><em>Astuce : pour éviter les conflits, ajoutez plus de matières, réduisez les heures demandées, ou augmentez les heures disponibles.</em></p>
+                </div>
+                ` : ''}
                 <div class="restrictions-info" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: var(--border-radius);">
-                    <h5><i class="fas fa-exclamation-triangle"></i> Informations sur les restrictions:</h5>
+                    <h5><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Informations sur les restrictions :</h5>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li><strong>Mercredi après-midi:</strong> Entièrement réservé (pas de cours)</li>
-                        <li><strong>Mardi après-midi:</strong> Réservé uniquement pour les DEVOIR surveillés</li>
-                        <li><strong>Vendredi après-midi:</strong> Réservé uniquement pour les DEVOIR surveillés</li>
+                        <li><strong>Mercredi après-midi :</strong> Entièrement réservé (pas de cours)</li>
+                        <li><strong>Mardi après-midi :</strong> Réservé uniquement pour les DEVOIR surveillés</li>
+                        <li><strong>Vendredi après-midi :</strong> Réservé uniquement pour les DEVOIR surveillés</li>
+                        <li><strong>Pas de répétition :</strong> Une matière n'est pas répétée le même jour dans la même classe</li>
+                        <li><strong>Un cours par enseignant par jour :</strong> Un enseignant ne donne qu'un cours par jour dans la même classe</li>
                     </ul>
                 </div>
             `;
@@ -5487,37 +6139,156 @@
         }
 
         function saveDistribution() {
-            if (!currentDistribution) {
-                showNotification('Aucune répartition à enregistrer', 'error');
+            if (!currentDistribution || !currentDistribution.teachers || currentDistribution.teachers.length === 0) {
+                showNotification('Aucune répartition à enregistrer. Générez d\'abord une répartition.', 'error');
                 return;
             }
-            
-            const courses = getCourses();
+
+            const className = currentDistribution.className;
+            const cycle = currentDistribution.cycle;
+
+            // ============================================
+            // ÉTAPE 1 : Vérifier les conflits avec les cours déjà enregistrés
+            // (uniquement pour les AUTRES classes, car pour cette classe
+            //  on va remplacer ou demander confirmation)
+            // ============================================
+            const newCourses = currentDistribution.teachers
+                .filter(cd => cd && cd.teacher && cd.day && cd.timeSlot)
+                .map(cd => ({
+                    teacherName: cd.teacher,
+                    className: className,
+                    cycle: cycle,
+                    subject: cd.subject || '',
+                    activityType: cd.activityType || 'Cours',
+                    day: cd.day,
+                    timeSlot: cd.timeSlot,
+                    timePeriod: cd.timePeriod || getTimePeriod(cd.timeSlot)
+                }));
+
+            if (newCourses.length === 0) {
+                showNotification('Aucun cours valide à enregistrer.', 'error');
+                return;
+            }
+
+            // Vérifier les conflits internes (deux cours de la répartition qui se chevauchent)
+            const internalConflicts = checkBatchConflicts(newCourses);
+            // Filtrer pour ne garder que les conflits internes (pas ceux avec les cours existants,
+            // car on va demander le remplacement)
+            const onlyInternal = {
+                hasConflict: false,
+                conflicts: internalConflicts.conflicts.filter(c =>
+                    c.type === 'teacher-internal' || c.type === 'class-internal'
+                )
+            };
+            onlyInternal.hasConflict = onlyInternal.conflicts.length > 0;
+
+            if (onlyInternal.hasConflict) {
+                showConfirmModal(
+                    `${onlyInternal.conflicts.length} conflit(s) interne(s) détecté(s) dans la répartition :\n\n` +
+                    onlyInternal.conflicts.slice(0, 5).map(c => c.message).join('\n') +
+                    `\n\nVoulez-vous voir le rapport détaillé ?`,
+                    'Conflits internes détectés',
+                    () => showConflictsReport(onlyInternal.conflicts)
+                );
+                return;
+            }
+
+            // Vérifier les conflits avec les cours existants des AUTRES classes
+            const existingCourses = getCourses();
+            const otherClassesCourses = existingCourses.filter(c => c.className !== className);
+            const externalConflicts = [];
+
+            newCourses.forEach(newCourse => {
+                const tempCourses = [...otherClassesCourses];
+                const check = checkAllConflicts({
+                    teacherName: newCourse.teacherName,
+                    className: newCourse.className,
+                    day: newCourse.day,
+                    timeSlot: newCourse.timeSlot
+                });
+                if (check.hasConflict) {
+                    check.conflicts.forEach(c => {
+                        externalConflicts.push({
+                            newCourse: newCourse,
+                            existingCourse: c.existingCourse,
+                            type: c.type,
+                            message: c.message
+                        });
+                    });
+                }
+            });
+
+            if (externalConflicts.length > 0) {
+                // Il y a des conflits avec des cours d'autres classes
+                showConfirmModal(
+                    `${externalConflicts.length} conflit(s) détecté(s) avec des cours existants d'autres classes :\n\n` +
+                    externalConflicts.slice(0, 5).map(c => c.message).join('\n') +
+                    (externalConflicts.length > 5 ? `\n... et ${externalConflicts.length - 5} autre(s).` : '') +
+                    `\n\nVoulez-vous voir le rapport détaillé ?`,
+                    'Conflits avec cours existants',
+                    () => showConflictsReport(externalConflicts)
+                );
+                return;
+            }
+
+            // ============================================
+            // ÉTAPE 2 : Aucun conflit externe → procéder à l'enregistrement
+            // ============================================
+            const existingForClass = existingCourses.filter(c => c.className === className);
+
+            if (existingForClass.length > 0) {
+                // Demander confirmation pour remplacer
+                showConfirmModal(
+                    `La classe "${className}" a déjà ${existingForClass.length} cours enregistrés.\n\nVoulez-vous les remplacer par la nouvelle répartition ?\n\n• "Confirmer" : supprime les anciens cours et enregistre la nouvelle répartition\n• "Annuler" : annule l'opération`,
+                    'Remplacement des cours existants',
+                    () => {
+                        // Remplacer : supprimer les anciens cours de cette classe
+                        const filteredCourses = existingCourses.filter(c => c.className !== className);
+                        const savedCount = saveDistributionToCourses(filteredCourses);
+                        showNotification(`${existingForClass.length} ancien(s) cours supprimé(s), ${savedCount} nouveau(x) cours enregistré(s).`, 'success');
+                        afterSaveDistribution();
+                    }
+                );
+            } else {
+                // Aucun cours existant pour cette classe → enregistrer directement
+                const savedCount = saveDistributionToCourses(existingCourses);
+                showNotification(`${savedCount} cours enregistrés avec succès !`, 'success');
+                afterSaveDistribution();
+            }
+        }
+
+        // Helper : ajoute les cours de currentDistribution à la liste fournie et sauvegarde
+        function saveDistributionToCourses(existingCourses) {
+            const courses = [...existingCourses];
             let savedCount = 0;
-            
+
             currentDistribution.teachers.forEach(courseData => {
+                if (!courseData || !courseData.teacher || !courseData.day || !courseData.timeSlot) return;
+
                 const course = {
-                    id: Date.now() + Math.floor(Math.random() * 1000),
+                    id: Date.now() + Math.floor(Math.random() * 1000000) + savedCount,
                     teacherName: courseData.teacher,
                     className: currentDistribution.className,
                     cycle: currentDistribution.cycle,
-                    subject: courseData.subject,
-                    activityType: courseData.activityType,
+                    subject: courseData.subject || '',
+                    activityType: courseData.activityType || 'Cours',
                     day: courseData.day,
                     timeSlot: courseData.timeSlot,
-                    timePeriod: courseData.timePeriod
+                    timePeriod: courseData.timePeriod || getTimePeriod(courseData.timeSlot)
                 };
-                
+
                 courses.push(course);
                 savedCount++;
             });
-            
+
             localStorage.setItem('courses', JSON.stringify(courses));
-            
-            showNotification(`${savedCount} cours enregistrés avec succès!`, 'success');
+            return savedCount;
+        }
+
+        // Helper : actions post-enregistrement
+        function afterSaveDistribution() {
             updateFilters();
             updateDashboard();
-            
             switchTab('timetable');
             syncAllTabs();
         }
@@ -5758,16 +6529,18 @@
 
         function updateFilters() {
             const courses = getCourses();
-            const teachers = [...new Set(courses.map(c => c.teacherName))];
-            const classes = [...new Set(courses.map(c => c.className))];
-            
+            // Filtrer les cours valides avant d'extraire les enseignants/classes
+            const validCourses = courses.filter(c => c && c.teacherName && c.className);
+            const teachers = [...new Set(validCourses.map(c => c.teacherName))].filter(Boolean).sort();
+            const classes = [...new Set(validCourses.map(c => c.className))].filter(Boolean).sort();
+
             ['selectTeacher', 'filterTeacher', 'selectTeacherSpecific', 'selectTeacherAll'].forEach(id => {
                 const select = document.getElementById(id);
                 if (select) {
                     updateSelectOptions(select, teachers);
                 }
             });
-            
+
             const classSelectors = ['selectClass', 'selectClassSpecific', 'filterClass'];
             classSelectors.forEach(id => {
                 const select = document.getElementById(id);
@@ -5778,21 +6551,24 @@
         }
 
         function updateTeacherFilters() {
-            const courses = getCourses();
-            const teachers = [...new Set(courses.map(c => c.teacherName))];
-            updateSelectOptions(document.getElementById('selectTeacherSpecific'), teachers);
+            const courses = getCourses().filter(c => c && c.teacherName);
+            const teachers = [...new Set(courses.map(c => c.teacherName))].filter(Boolean).sort();
+            const select = document.getElementById('selectTeacherSpecific');
+            if (select) updateSelectOptions(select, teachers);
         }
 
         function updateClassFilters() {
-            const courses = getCourses();
-            const classes = [...new Set(courses.map(c => c.className))];
-            updateSelectOptions(document.getElementById('selectClassSpecific'), classes);
+            const courses = getCourses().filter(c => c && c.className);
+            const classes = [...new Set(courses.map(c => c.className))].filter(Boolean).sort();
+            const select = document.getElementById('selectClassSpecific');
+            if (select) updateSelectOptions(select, classes);
         }
 
         function updateTeacherAllFilters() {
-            const courses = getCourses();
-            const teachers = [...new Set(courses.map(c => c.teacherName))];
-            updateSelectOptions(document.getElementById('selectTeacherAll'), teachers);
+            const courses = getCourses().filter(c => c && c.teacherName);
+            const teachers = [...new Set(courses.map(c => c.teacherName))].filter(Boolean).sort();
+            const select = document.getElementById('selectTeacherAll');
+            if (select) updateSelectOptions(select, teachers);
         }
 
         function updateSelectOptions(selectElement, options) {
@@ -5815,79 +6591,103 @@
         }
 
         function generateTimetable() {
-            const courses = getCourses();
-            const selectedTeacher = document.getElementById('selectTeacher').value;
-            const selectedCycle = document.getElementById('selectCycle').value;
-            const selectedClass = document.getElementById('selectClass').value;
-            const selectedActivityType = document.getElementById('selectActivityType').value;
-            const selectedTimePeriod = document.getElementById('selectTimePeriod').value;
-            
             const timetableBody = document.getElementById('timetableBody');
-            timetableBody.innerHTML = '';
-            
+            if (!timetableBody) return;
+
+            const courses = getCourses().filter(c => c && c.teacherName && c.className && c.day && c.timeSlot);
+
+            // Récupérer les valeurs des filtres avec guards
+            const teacherEl = document.getElementById('selectTeacher');
+            const cycleEl = document.getElementById('selectCycle');
+            const classEl = document.getElementById('selectClass');
+            const activityEl = document.getElementById('selectActivityType');
+            const periodEl = document.getElementById('selectTimePeriod');
+
+            const selectedTeacher = teacherEl ? teacherEl.value : '';
+            const selectedCycle = cycleEl ? cycleEl.value : '';
+            const selectedClass = classEl ? classEl.value : '';
+            const selectedActivityType = activityEl ? activityEl.value : '';
+            const selectedTimePeriod = periodEl ? periodEl.value : '';
+
             let filteredCourses = courses;
             if (selectedTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === selectedTeacher);
             if (selectedCycle) filteredCourses = filteredCourses.filter(c => c.cycle === selectedCycle);
             if (selectedClass) filteredCourses = filteredCourses.filter(c => c.className === selectedClass);
             if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
-            if (selectedTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === selectedTimePeriod);
-            
+            // Ignorer la valeur 'all' qui signifie "toutes les périodes"
+            if (selectedTimePeriod && selectedTimePeriod !== 'all') {
+                filteredCourses = filteredCourses.filter(c => c.timePeriod === selectedTimePeriod);
+            }
+
             generateTimetableHTML(filteredCourses);
         }
 
         function generateTeacherTimetable() {
-            const teacher = document.getElementById('selectTeacherSpecific').value;
+            const teacherEl = document.getElementById('selectTeacherSpecific');
+            if (!teacherEl) return;
+            const teacher = teacherEl.value;
             if (!teacher) return;
-            
-            const selectedActivityType = document.getElementById('selectTeacherActivityType').value;
-            
-            const courses = getCourses();
+
+            const activityEl = document.getElementById('selectTeacherActivityType');
+            const selectedActivityType = activityEl ? activityEl.value : '';
+
+            const courses = getCourses().filter(c => c && c.teacherName);
             let filteredCourses = courses.filter(c => c.teacherName === teacher);
             if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
-            
+
             generateTimetableHTML(filteredCourses);
         }
 
         function generateClassTimetable() {
-            const classe = document.getElementById('selectClassSpecific').value;
+            const classEl = document.getElementById('selectClassSpecific');
+            if (!classEl) return;
+            const classe = classEl.value;
             if (!classe) return;
-            
-            const selectedActivityType = document.getElementById('selectClassActivityType').value;
-            
-            const courses = getCourses();
+
+            const activityEl = document.getElementById('selectClassActivityType');
+            const selectedActivityType = activityEl ? activityEl.value : '';
+
+            const courses = getCourses().filter(c => c && c.className);
             let filteredCourses = courses.filter(c => c.className === classe);
             if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
-            
+
             generateTimetableHTML(filteredCourses);
         }
 
         function generateTeacherAllClassesTimetable() {
-            const teacher = document.getElementById('selectTeacherAll').value;
+            const teacherEl = document.getElementById('selectTeacherAll');
+            if (!teacherEl) return;
+            const teacher = teacherEl.value;
             if (!teacher) return;
-            
-            const selectedActivityType = document.getElementById('selectTeacherAllActivityType').value;
-            
-            const courses = getCourses();
+
+            const activityEl = document.getElementById('selectTeacherAllActivityType');
+            const selectedActivityType = activityEl ? activityEl.value : '';
+
+            const courses = getCourses().filter(c => c && c.teacherName);
             let filteredCourses = courses.filter(c => c.teacherName === teacher);
             if (selectedActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === selectedActivityType);
-            
+
             generateTimetableHTML(filteredCourses);
         }
 
         function generateTimetableHTML(courses) {
             const timetableBody = document.getElementById('timetableBody');
+            if (!timetableBody) return;
             timetableBody.innerHTML = '';
-            
+
+            // Validation : s'assurer que courses est un tableau
+            const safeCourses = Array.isArray(courses) ? courses : [];
+
             allTimeSlots.forEach(slot => {
                 const periodBadge = getTimePeriodBadge(slot);
                 const row = document.createElement('tr');
-                row.innerHTML = `<td class="time-col">${slot} ${periodBadge}</td>`;
-                
+                row.innerHTML = `<td class="time-col">${escapeHtml(slot)} ${periodBadge}</td>`;
+
                 days.forEach(day => {
                     const cell = document.createElement('td');
-                    const dayCourses = courses.filter(c => c.day === day && c.timeSlot === slot);
+                    const dayCourses = safeCourses.filter(c => c.day === day && c.timeSlot === slot);
                     const restrictionText = getRestrictionText(day, slot);
-                    
+
                     if (dayCourses.length > 0) {
                         let content = '';
                         dayCourses.forEach(course => {
@@ -5895,38 +6695,43 @@
                             const seriesInfo = getSeriesFromClassName(course.className);
                             const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
                             const activityClass = `activity-${activityType.color.toLowerCase()}`;
-                            let classDisplay = course.className;
-                            if (seriesInfo.badge) {
-                                classDisplay = `${course.className} ${seriesInfo.badge}`;
-                            }
-                            
+
+                            // Échapper toutes les valeurs utilisateur
+                            const safeClassName = escapeHtml(course.className);
+                            const safeSubject = escapeHtml(course.subject);
+                            const safeTeacher = escapeHtml(course.teacherName);
+                            const safeActivity = escapeHtml(course.activityType);
+
                             content += `<div class="${cycleClass} ${activityClass}">
-                                <strong>${course.className}</strong><br>
-                                <small><i class="fas fa-book"></i> ${course.subject}</small><br>
-                                <small><i class="fas fa-user-tie"></i> ${course.teacherName}</small><br>
-                                <span class="badge ${activityType.badgeClass}">${course.activityType}</span>
+                                <strong>${safeClassName}</strong><br>
+                                <small><i class="fas fa-book" aria-hidden="true"></i> ${safeSubject}</small><br>
+                                <small><i class="fas fa-user-tie" aria-hidden="true"></i> ${safeTeacher}</small><br>
+                                <span class="badge ${activityType.badgeClass}">${safeActivity}</span>
                             </div>`;
                         });
                         cell.innerHTML = content;
                     } else if (restrictionText) {
                         cell.innerHTML = `<div class="reserved-cell" style="padding: 15px; text-align: center;">
-                            <i class="fas fa-ban" style="font-size: 1.2rem; color: #6c757d; margin-bottom: 5px;"></i><br>
-                            <small style="font-style: italic; color: #6c757d;">${restrictionText}</small>
+                            <i class="fas fa-ban" style="font-size: 1.2rem; color: #6c757d; margin-bottom: 5px;" aria-hidden="true"></i><br>
+                            <small style="font-style: italic; color: #6c757d;">${escapeHtml(restrictionText)}</small>
                         </div>`;
                         cell.className = 'reserved-cell';
                     } else {
-                        cell.innerHTML = '<i class="fas fa-times" style="color: #ccc;"></i>';
+                        cell.innerHTML = '<i class="fas fa-times" style="color: #ccc;" aria-hidden="true"></i>';
                     }
-                    
+
                     row.appendChild(cell);
                 });
-                
+
                 timetableBody.appendChild(row);
             });
         }
 
         function displayAllData() {
-            let courses = getCourses();
+            const allDataBody = document.getElementById('allDataBody');
+            if (!allDataBody) return;
+
+            let courses = getCourses().filter(c => c && c.teacherName && c.className);
 
             // Appliquer la recherche rapide si présente
             const searchQuery = getQuickSearchQuery();
@@ -5939,21 +6744,31 @@
                     return haystack.includes(searchQuery);
                 });
             }
-            const filterTeacher = document.getElementById('filterTeacher').value;
-            const filterCycle = document.getElementById('filterCycle').value;
-            const filterClass = document.getElementById('filterClass').value;
-            const filterActivityType = document.getElementById('filterActivityType').value;
-            const filterTimePeriod = document.getElementById('filterTimePeriod').value;
-            
-            const allDataBody = document.getElementById('allDataBody');
+
+            // Récupérer les filtres avec guards
+            const filterTeacherEl = document.getElementById('filterTeacher');
+            const filterCycleEl = document.getElementById('filterCycle');
+            const filterClassEl = document.getElementById('filterClass');
+            const filterActivityTypeEl = document.getElementById('filterActivityType');
+            const filterTimePeriodEl = document.getElementById('filterTimePeriod');
+
+            const filterTeacher = filterTeacherEl ? filterTeacherEl.value : '';
+            const filterCycle = filterCycleEl ? filterCycleEl.value : '';
+            const filterClass = filterClassEl ? filterClassEl.value : '';
+            const filterActivityType = filterActivityTypeEl ? filterActivityTypeEl.value : '';
+            const filterTimePeriod = filterTimePeriodEl ? filterTimePeriodEl.value : '';
+
             allDataBody.innerHTML = '';
-            
+
             let filteredCourses = courses;
             if (filterTeacher) filteredCourses = filteredCourses.filter(c => c.teacherName === filterTeacher);
             if (filterCycle) filteredCourses = filteredCourses.filter(c => c.cycle === filterCycle);
             if (filterClass) filteredCourses = filteredCourses.filter(c => c.className === filterClass);
             if (filterActivityType) filteredCourses = filteredCourses.filter(c => c.activityType === filterActivityType);
-            if (filterTimePeriod) filteredCourses = filteredCourses.filter(c => c.timePeriod === filterTimePeriod);
+            // Ignorer la valeur 'all' qui signifie "toutes les périodes"
+            if (filterTimePeriod && filterTimePeriod !== 'all') {
+                filteredCourses = filteredCourses.filter(c => c.timePeriod === filterTimePeriod);
+            }
             
             if (filteredCourses.length === 0) {
                 allDataBody.innerHTML = `
@@ -5971,24 +6786,34 @@
                 const row = document.createElement('tr');
                 const cycleClass = course.cycle === 'Collège' ? 'cycle-college' : 'cycle-lycee';
                 const activityType = ACTIVITY_TYPES[course.activityType] || ACTIVITY_TYPES['Cours'];
-                const timePeriodBadge = course.timePeriod === 'morning' ? 
-                    '<span class="badge badge-exam">Matin</span>' : 
+                const timePeriodBadge = course.timePeriod === 'morning' ?
+                    '<span class="badge badge-exam">Matin</span>' :
                     '<span class="badge badge-tp">Après-midi</span>';
-                
+
+                // Échapper toutes les valeurs utilisateur
+                const safeTeacher = escapeHtml(course.teacherName);
+                const safeClass = escapeHtml(course.className);
+                const safeCycle = escapeHtml(course.cycle);
+                const safeSubject = escapeHtml(course.subject);
+                const safeActivity = escapeHtml(course.activityType);
+                const safeDay = escapeHtml(course.day);
+                const safeSlot = escapeHtml(course.timeSlot);
+                const safeId = parseInt(course.id, 10) || 0;
+
                 row.className = cycleClass;
-                
+
                 row.innerHTML = `
-                    <td><i class="fas fa-user-tie"></i> ${course.teacherName}</td>
-                    <td><i class="fas fa-users"></i> ${course.className}</td>
-                    <td><i class="fas fa-layer-group"></i> ${course.cycle}</td>
-                    <td><i class="fas fa-book"></i> ${course.subject}</td>
-                    <td><span class="badge ${activityType.badgeClass}">${course.activityType}</span></td>
-                    <td><i class="fas fa-calendar-day"></i> ${course.day}</td>
-                    <td><i class="fas fa-clock"></i> ${course.timeSlot}</td>
+                    <td><i class="fas fa-user-tie" aria-hidden="true"></i> ${safeTeacher}</td>
+                    <td><i class="fas fa-users" aria-hidden="true"></i> ${safeClass}</td>
+                    <td><i class="fas fa-layer-group" aria-hidden="true"></i> ${safeCycle}</td>
+                    <td><i class="fas fa-book" aria-hidden="true"></i> ${safeSubject}</td>
+                    <td><span class="badge ${activityType.badgeClass}">${safeActivity}</span></td>
+                    <td><i class="fas fa-calendar-day" aria-hidden="true"></i> ${safeDay}</td>
+                    <td><i class="fas fa-clock" aria-hidden="true"></i> ${safeSlot}</td>
                     <td>${timePeriodBadge}</td>
                     <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCourse(${course.id})">
-                            <i class="fas fa-trash"></i> Supprimer
+                        <button class="btn btn-danger btn-sm" onclick="deleteCourse(${safeId})" aria-label="Supprimer ce cours">
+                            <i class="fas fa-trash" aria-hidden="true"></i> Supprimer
                         </button>
                     </td>
                 `;
@@ -5997,18 +6822,54 @@
         }
 
         function deleteCourse(id) {
+            // Guard : valider l'ID
+            if (id === undefined || id === null) {
+                showNotification('Erreur : identifiant de cours invalide.', 'error');
+                return;
+            }
+
+            // Convertir en nombre pour la comparaison
+            const courseId = parseInt(id, 10);
+            if (isNaN(courseId)) {
+                showNotification('Erreur : identifiant de cours non numérique.', 'error');
+                return;
+            }
+
+            // Vérifier que le cours existe avant de demander confirmation
+            const courses = getCourses();
+            const courseToDelete = courses.find(c => parseInt(c.id, 10) === courseId);
+
+            if (!courseToDelete) {
+                showNotification('Erreur : ce cours n\'existe plus (peut-être a-t-il déjà été supprimé).', 'warning');
+                // Rafraîchir l'affichage au cas où la liste serait désynchronisée
+                displayAllData();
+                generateTimetable();
+                return;
+            }
+
+            // Construire un résumé du cours pour la confirmation
+            const courseSummary = `${courseToDelete.subject || 'Matière'} - ${courseToDelete.className || 'Classe'} - ${courseToDelete.day || ''} ${courseToDelete.timeSlot || ''}`;
+
             showConfirmModal(
-                'Voulez-vous vraiment supprimer ce cours ?',
+                `Voulez-vous vraiment supprimer ce cours ?\n\n${courseSummary}`,
                 'Suppression d\'un cours',
                 () => {
-                    let courses = getCourses();
-                    courses = courses.filter(c => c.id !== id);
-                    localStorage.setItem('courses', JSON.stringify(courses));
+                    let allCourses = getCourses();
+                    const initialCount = allCourses.length;
+                    allCourses = allCourses.filter(c => parseInt(c.id, 10) !== courseId);
+                    const removedCount = initialCount - allCourses.length;
+
+                    if (removedCount === 0) {
+                        showNotification('Aucun cours supprimé (introuvable).', 'warning');
+                        return;
+                    }
+
+                    localStorage.setItem('courses', JSON.stringify(allCourses));
                     updateFilters();
                     generateTimetable();
                     displayAllData();
                     updateDashboard();
-                    showNotification('Cours supprimé avec succès', 'success');
+                    showNotification(`Cours supprimé avec succès (${courseSummary}).`, 'success');
                     syncAllTabs();
                 }
             );
@@ -6033,6 +6894,310 @@
                     syncAllTabs();
                 }
             );
+        }
+
+        // ============================================
+        // RÉINITIALISATION CIBLÉE DE L'EMPLOI DU TEMPS
+        // ============================================
+
+        // Helper : applique un filtre et supprime les cours correspondants
+        function deleteCoursesByFilter(filterFn, confirmationMessage, title) {
+            const courses = getCourses();
+            if (courses.length === 0) {
+                showNotification('Aucun cours à supprimer.', 'warning');
+                return;
+            }
+
+            const coursesToDelete = courses.filter(filterFn);
+            if (coursesToDelete.length === 0) {
+                showNotification('Aucun cours ne correspond aux critères de suppression.', 'warning');
+                return;
+            }
+
+            showConfirmModal(
+                confirmationMessage + `\n\n${coursesToDelete.length} cours(s) seront supprimé(s).`,
+                title,
+                () => {
+                    const remainingCourses = courses.filter(c => !filterFn(c));
+                    localStorage.setItem('courses', JSON.stringify(remainingCourses));
+                    updateFilters();
+                    generateTimetable();
+                    displayAllData();
+                    updateDashboard();
+                    showNotification(`${coursesToDelete.length} cours supprimé(s) avec succès.`, 'success');
+                    syncAllTabs();
+                }
+            );
+        }
+
+        // Réinitialiser par classe
+        function resetTimetableByClass() {
+            const courses = getCourses();
+            const classes = [...new Set(courses.filter(c => c.className).map(c => c.className))].sort();
+
+            if (classes.length === 0) {
+                showNotification('Aucune classe trouvée dans les cours enregistrés.', 'warning');
+                return;
+            }
+
+            // Construire les options
+            const optionsHTML = classes.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+            showSelectionModal(
+                'Sélectionnez la classe à réinitialiser',
+                'Réinitialisation par classe',
+                `<select id="selectModalField" style="width: 100%; padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                    <option value="">-- Sélectionner --</option>
+                    ${optionsHTML}
+                </select>`,
+                () => {
+                    const select = document.getElementById('selectModalField');
+                    if (!select || !select.value) {
+                        showNotification('Veuillez sélectionner une classe.', 'warning');
+                        return false;
+                    }
+                    const className = select.value;
+                    deleteCoursesByFilter(
+                        c => c.className === className,
+                        `Voulez-vous vraiment supprimer TOUS les cours de la classe "${className}" ?`,
+                        `Suppression des cours de ${className}`
+                    );
+                    return true;
+                }
+            );
+        }
+
+        // Réinitialiser par cycle
+        function resetTimetableByCycle() {
+            const courses = getCourses();
+            const cycles = [...new Set(courses.filter(c => c.cycle).map(c => c.cycle))].sort();
+
+            if (cycles.length === 0) {
+                showNotification('Aucun cycle trouvé dans les cours enregistrés.', 'warning');
+                return;
+            }
+
+            const optionsHTML = cycles.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+            showSelectionModal(
+                'Sélectionnez le cycle à réinitialiser',
+                'Réinitialisation par cycle',
+                `<select id="selectModalField" style="width: 100%; padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                    <option value="">-- Sélectionner --</option>
+                    ${optionsHTML}
+                </select>`,
+                () => {
+                    const select = document.getElementById('selectModalField');
+                    if (!select || !select.value) {
+                        showNotification('Veuillez sélectionner un cycle.', 'warning');
+                        return false;
+                    }
+                    const cycle = select.value;
+                    deleteCoursesByFilter(
+                        c => c.cycle === cycle,
+                        `Voulez-vous vraiment supprimer TOUS les cours du cycle "${cycle}" ?`,
+                        `Suppression des cours du cycle ${cycle}`
+                    );
+                    return true;
+                }
+            );
+        }
+
+        // Réinitialiser par enseignant
+        function resetTimetableByTeacher() {
+            const courses = getCourses();
+            const teachers = [...new Set(courses.filter(c => c.teacherName).map(c => c.teacherName))].sort();
+
+            if (teachers.length === 0) {
+                showNotification('Aucun enseignant trouvé dans les cours enregistrés.', 'warning');
+                return;
+            }
+
+            const optionsHTML = teachers.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+            showSelectionModal(
+                'Sélectionnez l\'enseignant à réinitialiser',
+                'Réinitialisation par enseignant',
+                `<select id="selectModalField" style="width: 100%; padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                    <option value="">-- Sélectionner --</option>
+                    ${optionsHTML}
+                </select>`,
+                () => {
+                    const select = document.getElementById('selectModalField');
+                    if (!select || !select.value) {
+                        showNotification('Veuillez sélectionner un enseignant.', 'warning');
+                        return false;
+                    }
+                    const teacher = select.value;
+                    deleteCoursesByFilter(
+                        c => c.teacherName === teacher,
+                        `Voulez-vous vraiment supprimer TOUS les cours de l'enseignant "${teacher}" ?`,
+                        `Suppression des cours de ${teacher}`
+                    );
+                    return true;
+                }
+            );
+        }
+
+        // Réinitialiser par jour
+        function resetTimetableByDay() {
+            const dayOptions = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+            const courses = getCourses();
+            const daysInUse = dayOptions.filter(d => courses.some(c => c.day === d));
+
+            if (daysInUse.length === 0) {
+                showNotification('Aucun jour trouvé dans les cours enregistrés.', 'warning');
+                return;
+            }
+
+            const optionsHTML = daysInUse.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+
+            showSelectionModal(
+                'Sélectionnez le jour à réinitialiser',
+                'Réinitialisation par jour',
+                `<select id="selectModalField" style="width: 100%; padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                    <option value="">-- Sélectionner --</option>
+                    ${optionsHTML}
+                </select>`,
+                () => {
+                    const select = document.getElementById('selectModalField');
+                    if (!select || !select.value) {
+                        showNotification('Veuillez sélectionner un jour.', 'warning');
+                        return false;
+                    }
+                    const day = select.value;
+                    deleteCoursesByFilter(
+                        c => c.day === day,
+                        `Voulez-vous vraiment supprimer TOUS les cours du ${day} ?`,
+                        `Suppression des cours du ${day}`
+                    );
+                    return true;
+                }
+            );
+        }
+
+        // Réinitialiser par type d'activité
+        function resetTimetableByActivityType() {
+            const activityOptions = ['Cours', 'DEVOIR', 'TD', 'TP', 'TM'];
+            const courses = getCourses();
+            const typesInUse = activityOptions.filter(t => courses.some(c => c.activityType === t));
+
+            if (typesInUse.length === 0) {
+                showNotification('Aucun type d\'activité trouvé dans les cours enregistrés.', 'warning');
+                return;
+            }
+
+            const labels = {
+                'Cours': 'Cours',
+                'DEVOIR': 'DEVOIR (surveillé)',
+                'TD': 'Travaux Dirigés (TD)',
+                'TP': 'Travaux Pratiques (TP)',
+                'TM': 'Travail Manuel (TM)'
+            };
+
+            const optionsHTML = typesInUse.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(labels[t] || t)}</option>`).join('');
+
+            showSelectionModal(
+                'Sélectionnez le type d\'activité à réinitialiser',
+                'Réinitialisation par type d\'activité',
+                `<select id="selectModalField" style="width: 100%; padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                    <option value="">-- Sélectionner --</option>
+                    ${optionsHTML}
+                </select>`,
+                () => {
+                    const select = document.getElementById('selectModalField');
+                    if (!select || !select.value) {
+                        showNotification('Veuillez sélectionner un type d\'activité.', 'warning');
+                        return false;
+                    }
+                    const activityType = select.value;
+                    deleteCoursesByFilter(
+                        c => c.activityType === activityType,
+                        `Voulez-vous vraiment supprimer TOUS les cours de type "${labels[activityType] || activityType}" ?`,
+                        `Suppression des cours de type ${labels[activityType] || activityType}`
+                    );
+                    return true;
+                }
+            );
+        }
+
+        // Réinitialiser par période (matin / après-midi)
+        function resetTimetableByPeriod() {
+            const courses = getCourses();
+            const periodsInUse = [];
+            if (courses.some(c => c.timePeriod === 'morning')) periodsInUse.push('morning');
+            if (courses.some(c => c.timePeriod === 'afternoon')) periodsInUse.push('afternoon');
+
+            if (periodsInUse.length === 0) {
+                showNotification('Aucune période trouvée dans les cours enregistrés.', 'warning');
+                return;
+            }
+
+            const periodLabels = {
+                'morning': 'Matin (avant midi)',
+                'afternoon': 'Après-midi'
+            };
+
+            const optionsHTML = periodsInUse.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(periodLabels[p])}</option>`).join('');
+
+            showSelectionModal(
+                'Sélectionnez la période à réinitialiser',
+                'Réinitialisation par période',
+                `<select id="selectModalField" style="width: 100%; padding: 10px; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);">
+                    <option value="">-- Sélectionner --</option>
+                    ${optionsHTML}
+                </select>`,
+                () => {
+                    const select = document.getElementById('selectModalField');
+                    if (!select || !select.value) {
+                        showNotification('Veuillez sélectionner une période.', 'warning');
+                        return false;
+                    }
+                    const period = select.value;
+                    deleteCoursesByFilter(
+                        c => c.timePeriod === period,
+                        `Voulez-vous vraiment supprimer TOUS les cours de la période "${periodLabels[period]}" ?`,
+                        `Suppression des cours de ${periodLabels[period]}`
+                    );
+                    return true;
+                }
+            );
+        }
+
+        // ============================================
+        // MODAL DE SÉLECTION (helper pour les réinitialisations ciblées)
+        // ============================================
+        function showSelectionModal(message, title, fieldHTML, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const messageEl = document.getElementById('confirmModalMessage');
+            const titleEl = document.querySelector('#confirmModalTitle span');
+            const okBtn = document.getElementById('confirmModalOk');
+
+            if (!modal || !messageEl || !titleEl || !okBtn) {
+                console.warn('Modal de sélection introuvable');
+                return;
+            }
+
+            titleEl.textContent = title || 'Sélection';
+            messageEl.innerHTML = `
+                <div style="text-align: left;">
+                    <p style="margin-bottom: 12px;">${escapeHtml(message)}</p>
+                    ${fieldHTML}
+                </div>
+            `;
+
+            // Réafficher le bouton OK (au cas où il aurait été masqué par showConflictsReport)
+            okBtn.style.display = '';
+
+            // Utiliser selectionCallback au lieu de confirmCallback
+            confirmCallback = null; // effacer l'ancien
+            selectionCallback = onConfirm;
+
+            modal.classList.add('active');
+            setTimeout(() => {
+                const field = document.getElementById('selectModalField');
+                if (field) field.focus();
+            }, 50);
         }
 
         function exportData() {
@@ -6132,60 +7297,150 @@
             const selectedDays = Array.from(document.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
             const timeSlot = document.getElementById('manualTimeSlot').value;
             const activityType = document.getElementById('activityType').value;
-            
+            const teacherName = document.getElementById('teacherName').value.trim();
+            const className = document.getElementById('manualClass').value;
+            const cycle = document.getElementById('manualCycle').value;
+            const subject = document.getElementById('manualSubject').value;
+
             if (selectedDays.length === 0) {
                 showNotification('Veuillez sélectionner au moins un jour', 'error');
                 return;
             }
-            
+
             if (!timeSlot) {
                 showNotification('Veuillez sélectionner un créneau horaire', 'error');
                 return;
             }
-            
+
+            if (!teacherName) {
+                showNotification('Veuillez saisir le nom de l\'enseignant', 'error');
+                return;
+            }
+
+            if (!className) {
+                showNotification('Veuillez sélectionner une classe', 'error');
+                return;
+            }
+
+            if (!subject) {
+                showNotification('Veuillez sélectionner une matière', 'error');
+                return;
+            }
+
+            // ============================================
+            // ÉTAPE 1 : Vérifier les restrictions (mercredi PM, mardi/vendredi PM)
+            // ============================================
             const invalidDays = [];
             selectedDays.forEach(day => {
                 if (isSlotReserved(day, timeSlot, activityType)) {
                     invalidDays.push(day);
                 }
             });
-            
+
             if (invalidDays.length > 0) {
                 const dayNames = invalidDays.join(', ');
                 let errorMessage = '';
-                
+
                 if (invalidDays.includes('Mercredi')) {
                     errorMessage = 'Le mercredi après-midi est entièrement réservé.';
                 } else {
                     errorMessage = `Les après-midi de ${dayNames} sont réservés uniquement pour les DEVOIR surveillés.`;
                 }
-                
-                showNotification(`Impossible d'ajouter le cours: ${errorMessage}`, 'error');
+
+                showNotification(`Impossible d'ajouter le cours : ${errorMessage}`, 'error');
                 return;
             }
-            
+
+            // ============================================
+            // ÉTAPE 2 : Vérifier les conflits (enseignant ET classe)
+            // ============================================
+            const newCourses = selectedDays.map(day => ({
+                teacherName: teacherName,
+                className: className,
+                cycle: cycle,
+                subject: subject,
+                activityType: activityType,
+                day: day,
+                timeSlot: timeSlot,
+                timePeriod: getTimePeriod(timeSlot)
+            }));
+
+            const conflictCheck = checkBatchConflicts(newCourses);
+
+            if (conflictCheck.hasConflict) {
+                // Construire un rapport de conflits détaillé avec suggestions
+                const conflictMessages = conflictCheck.conflicts.map(c => c.message);
+                const uniqueConflicts = [...new Set(conflictMessages)];
+
+                // Chercher des créneaux alternatifs
+                const alternatives = [];
+                newCourses.forEach(course => {
+                    const alt = findAlternativeSlot(course, allTimeSlots, days);
+                    if (alt) {
+                        alternatives.push({
+                            originalDay: course.day,
+                            originalSlot: course.timeSlot,
+                            altDay: alt.day,
+                            altSlot: alt.timeSlot
+                        });
+                    }
+                });
+
+                let message = `${uniqueConflicts.length} conflit(s) détecté(s) :\n\n`;
+                message += uniqueConflicts.slice(0, 5).join('\n');
+                if (uniqueConflicts.length > 5) {
+                    message += `\n... et ${uniqueConflicts.length - 5} autre(s) conflit(s).`;
+                }
+
+                if (alternatives.length > 0) {
+                    message += `\n\nCréneaux alternatifs suggérés :\n`;
+                    alternatives.slice(0, 3).forEach(a => {
+                        message += `• ${a.originalDay} ${a.originalSlot} → ${a.altDay} ${a.altSlot}\n`;
+                    });
+                    message += `\nVoulez-vous voir le rapport complet des conflits ?`;
+                } else {
+                    message += `\n\nAucun créneau alternatif disponible. Voulez-vous voir le rapport complet ?`;
+                }
+
+                showConfirmModal(
+                    message,
+                    'Conflits détectés',
+                    () => {
+                        // Afficher le rapport détaillé
+                        showConflictsReport(conflictCheck.conflicts);
+                    }
+                );
+                return;
+            }
+
+            // ============================================
+            // ÉTAPE 3 : Aucun conflit → enregistrer
+            // ============================================
             let createdCount = 0;
+            const courses = getCourses();
+
             selectedDays.forEach(day => {
                 const course = {
-                    id: Date.now() + Math.floor(Math.random() * 1000),
-                    teacherName: document.getElementById('teacherName').value,
-                    className: document.getElementById('manualClass').value,
-                    cycle: document.getElementById('manualCycle').value,
-                    subject: document.getElementById('manualSubject').value,
+                    id: Date.now() + Math.floor(Math.random() * 1000000) + createdCount,
+                    teacherName: teacherName,
+                    className: className,
+                    cycle: cycle,
+                    subject: subject,
                     activityType: activityType,
                     day: day,
                     timeSlot: timeSlot,
                     timePeriod: getTimePeriod(timeSlot)
                 };
-                
-                const courses = getCourses();
+
                 courses.push(course);
-                localStorage.setItem('courses', JSON.stringify(courses));
                 createdCount++;
             });
-            
-            showNotification(`${createdCount} cours enregistrés avec succès!`, 'success');
-            
+
+            localStorage.setItem('courses', JSON.stringify(courses));
+
+            showNotification(`${createdCount} cours enregistré(s) avec succès !`, 'success');
+
+            // Réinitialiser le formulaire
             document.getElementById('teacherName').value = '';
             document.getElementById('manualCycle').value = '';
             document.getElementById('manualClass').value = '';
@@ -6195,7 +7450,11 @@
             document.getElementById('manualTimeSlot').value = '';
             document.getElementById('timePeriod').value = 'all';
             filterTimeSlots();
-            
+
+            // Masquer l'avertissement de conflit
+            const warningDiv = document.getElementById('conflictWarning');
+            if (warningDiv) warningDiv.classList.add('hidden');
+
             updateFilters();
             updateDashboard();
             syncAllTabs();
